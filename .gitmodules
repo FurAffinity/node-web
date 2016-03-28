@@ -1,0 +1,3 @@
+[submodule "bbcode"]
+	path = bbcode
+	url = https://github.com/FurAffinity/bbcode-js
