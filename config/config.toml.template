@@ -1,0 +1,53 @@
+[site]
+# The prefix to use when creating absolute URIs. No trailing slash.
+root = {root!t}
+
+[database]
+host = {database_host!t}
+user = {database_user!t}
+password = {database_password!t}
+database = {database_name!t}
+
+[redis]
+prefix = 'fa:'
+
+[user_counter]
+host = '127.0.0.1'
+port = 30051
+listen_host = '127.0.0.1'
+
+[files]
+temporary_root = 'tmp'
+temporary_name_size = 18
+
+storage_root = 'files'
+
+# The maximum uploaded file size, in bytes.
+max_size = 100_000_000
+
+[sessions]
+cookie_name = 's'
+cookie_secure = {cookie_secure!t}
+
+# Session MACs prevent sessions from being invalidated given only the session
+# id. With random session ids, this doesn’t matter as much, but keep this key
+# safe anyway.
+session_mac_key = {session_mac_key!t}
+
+# The time between session key regenerations, in seconds.
+user_session_rekey_time = 300
+
+# The time a session is valid, in seconds.
+user_session_lifetime = 15768000
+
+[forms]
+# A CSRF attack needs a session id to be able to cause trouble; random session
+# ids mean that one can’t be obtained passively. Keep this key safe anyway.
+csrf_mac_key = {csrf_mac_key!t}
+
+[bcrypt]
+log_rounds = 12
+
+[registration]
+from_address = 'support@furaffinity.net'
+registration_key_size = 18
