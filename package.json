@@ -8,13 +8,14 @@
 		"htmlparser2": "3.9.0",
 		"mmmagic": "0.4.1",
 		"nunjucks": "2.4.1",
-		"pg": "4.5.1",
-		"redis": "2.6.0-0",
+		"pg": "4.5.2",
+		"redis": "2.6.0-1",
 		"strict-cookie-parser": "1.0.0",
 		"toml": "2.3.0",
 		"ipaddr.js": "1.1.0"
 	},
 	"devDependencies": {
+		"browserify": ">=13.0.0",
 		"prosemirror": "0.5.1",
 		"tap": ">=5.7.0"
 	}

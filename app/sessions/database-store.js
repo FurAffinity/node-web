@@ -154,7 +154,7 @@ DatabaseSessionStore.prototype.readCookie =
 	function readCookie(sessionCookie) {
 		var sessionStore = this;
 		var database = this.database;
-		var cookieBytes = new Buffer(sessionCookie, "base64");
+		var cookieBytes = Buffer.from(sessionCookie, "base64");
 
 		if (cookieBytes.length === GUEST_COOKIE_SIZE) {
 			return bluebird.resolve({
