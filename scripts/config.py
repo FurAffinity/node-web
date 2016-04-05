@@ -37,7 +37,7 @@ class TomlFormatter(string.Formatter):
 
 questions = [
 	("database_host", "Database host", "localhost"),
-	("database_user", "Database user", "fa_web"),
+	("database_user", "Database user", "fa_dev"),
 	("database_password", "Database password", ""),
 	("database_name", "Database name", "fa"),
 	("root", "Site root (no trailing slash)", "http://localhost"),
