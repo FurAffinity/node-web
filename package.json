@@ -4,15 +4,15 @@
 		"bluebird": "3.3.4",
 		"busboy": "0.2.13",
 		"express": "4.13.4",
-		"gm": "1.21.1",
 		"htmlparser2": "3.9.0",
+		"ipaddr.js": "1.1.0",
 		"mmmagic": "0.4.1",
 		"nunjucks": "2.4.1",
 		"pg": "4.5.2",
 		"redis": "2.6.0-1",
+		"sharp": "0.14.0",
 		"strict-cookie-parser": "1.0.0",
-		"toml": "2.3.0",
-		"ipaddr.js": "1.1.0"
+		"toml": "2.3.0"
 	},
 	"devDependencies": {
 		"browserify": ">=13.0.0",
