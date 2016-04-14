@@ -1,14 +1,14 @@
 {
 	"dependencies": {
-		"bcrypt-small": "1.0.1",
-		"bluebird": "3.3.4",
+		"bcrypt-small": "1.0.2",
+		"bluebird": "3.3.5",
 		"busboy": "0.2.13",
 		"express": "4.13.4",
 		"htmlparser2": "3.9.0",
 		"ipaddr.js": "1.1.0",
 		"mmmagic": "0.4.1",
 		"nunjucks": "2.4.1",
-		"pg": "4.5.2",
+		"pg": "4.5.3",
 		"redis": "2.6.0-1",
 		"sharp": "0.14.0",
 		"strict-cookie-parser": "1.0.0",
@@ -16,7 +16,7 @@
 	},
 	"devDependencies": {
 		"browserify": ">=13.0.0",
-		"prosemirror": "0.5.1",
+		"prosemirror": "0.6.0",
 		"tap": ">=5.7.0"
 	}
 }
