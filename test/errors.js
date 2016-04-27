@@ -8,7 +8,15 @@ var ApplicationError = errors.ApplicationError;
 
 tap.test("ApplicationError should behave in a manner consistent with other errors", function (t) {
 	function testConstructor(errorConstructor) {
-		t.ok(!errorConstructor.prototype.hasOwnProperty("message"));
+		t.deepEqual(
+			Object.getOwnPropertyDescriptor(errorConstructor.prototype, "message"),
+			{
+				value: "",
+				writable: true,
+				enumerable: false,
+				configurable: true,
+			}
+		);
 
 		var instance = new errorConstructor("test error");
 

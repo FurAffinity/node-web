@@ -14,6 +14,12 @@ function extend(constructor) {
 			writable: true,
 			value: constructor.name,
 		},
+		message: {
+			configurable: true,
+			enumerable: false,
+			writable: true,
+			value: "",
+		},
 	});
 
 	constructor.extend = extend;
@@ -44,6 +50,12 @@ ApplicationError.prototype = Object.create(Error.prototype, {
 		enumerable: false,
 		writable: true,
 		value: ApplicationError.name,
+	},
+	message: {
+		configurable: true,
+		enumerable: false,
+		writable: true,
+		value: "",
 	},
 });
 
