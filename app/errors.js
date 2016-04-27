@@ -1,5 +1,24 @@
 "use strict";
 
+function extend(constructor) {
+	constructor.prototype = Object.create(this.prototype, {
+		constructor: {
+			configurable: true,
+			enumerable: false,
+			writable: true,
+			value: constructor,
+		},
+		name: {
+			configurable: true,
+			enumerable: false,
+			writable: true,
+			value: constructor.name,
+		},
+	});
+
+	constructor.extend = extend;
+}
+
 function ApplicationError(message) {
 	if (message !== undefined) {
 		Object.defineProperty(this, "message", {
@@ -28,21 +47,6 @@ ApplicationError.prototype = Object.create(Error.prototype, {
 	},
 });
 
-ApplicationError.extend = function extend(constructor) {
-	constructor.prototype = Object.create(ApplicationError.prototype, {
-		constructor: {
-			configurable: true,
-			enumerable: false,
-			writable: true,
-			value: constructor,
-		},
-		name: {
-			configurable: true,
-			enumerable: false,
-			writable: true,
-			value: constructor.name,
-		},
-	});
-};
+ApplicationError.extend = extend;
 
 exports.ApplicationError = ApplicationError;

@@ -38,11 +38,20 @@ tap.test("ApplicationError should behave in a manner consistent with other error
 
 	ApplicationError.extend(TestError);
 
+	function TestDerivedError(message) {
+		TestError.call(this, message);
+	}
+
+	TestError.extend(TestDerivedError);
+
 	testConstructor(RangeError);
 	testConstructor(ApplicationError);
 	testConstructor(TestError);
+	testConstructor(TestDerivedError);
 
 	t.ok(new TestError() instanceof ApplicationError);
+	t.ok(new TestDerivedError() instanceof ApplicationError);
+	t.ok(new TestDerivedError() instanceof TestError);
 
 	t.end();
 });

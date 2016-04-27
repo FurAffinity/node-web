@@ -8,25 +8,26 @@ var hashAsync = bluebird.promisify(bcrypt.hash);
 
 var config = require("./config");
 var database = require("./database");
-var errors = require("./errors");
+
+var ApplicationError = require("./errors").ApplicationError;
 
 function NoUserError() {
-	errors.ApplicationError.call(this, "No user with the given username exists");
+	ApplicationError.call(this, "No user with the given username exists");
 }
 
-errors.ApplicationError.extend(NoUserError);
+ApplicationError.extend(NoUserError);
 
 function UserNotActiveError() {
-	errors.ApplicationError.call(this, "This account has not yet been activated");
+	ApplicationError.call(this, "This account has not yet been activated");
 }
 
-errors.ApplicationError.extend(UserNotActiveError);
+ApplicationError.extend(UserNotActiveError);
 
 function InvalidCredentialsError() {
-	errors.ApplicationError.call(this, "Incorrect username or password");
+	ApplicationError.call(this, "Incorrect username or password");
 }
 
-errors.ApplicationError.extend(InvalidCredentialsError);
+ApplicationError.extend(InvalidCredentialsError);
 
 function getSelectPasswordQuery(username) {
 	return {

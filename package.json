@@ -6,17 +6,17 @@
 		"express": "4.13.4",
 		"htmlparser2": "3.9.0",
 		"ipaddr.js": "1.1.0",
-		"mmmagic": "0.4.1",
-		"nunjucks": "2.4.1",
+		"mmmagic": "0.4.3",
+		"nunjucks": "2.4.2",
 		"pg": "4.5.3",
 		"redis": "2.6.0-1",
-		"sharp": "0.14.0",
+		"sharp": "0.14.1",
 		"strict-cookie-parser": "1.0.0",
 		"toml": "2.3.0"
 	},
 	"devDependencies": {
 		"browserify": ">=13.0.0",
-		"prosemirror": "0.6.0",
+		"prosemirror": "0.6.1",
 		"tap": ">=5.7.0"
 	}
 }
