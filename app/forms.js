@@ -184,6 +184,7 @@ function getReader(schema) {
 	};
 }
 
+exports.getCsrfKey = getCsrfKey;
 exports.getReader = getReader;
 exports.many = { count: many, reader: null };
 exports.one = { count: one, reader: null };

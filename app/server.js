@@ -14,7 +14,7 @@ var userCounter = require("./user-counter");
 var users = require("./users");
 
 var DatabaseSessionStore = require("./sessions/database-store").DatabaseSessionStore;
-var getCsrfKey = require("./forms/forms").getCsrfKey;
+var getCsrfKey = require("./forms").getCsrfKey;
 
 var app = express();
 
