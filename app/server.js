@@ -109,6 +109,7 @@ app.use(userCounter.middleware);
 app.use(require("./routes/home").router);
 app.use(require("./routes/login").router);
 app.use(require("./routes/logout").router);
+app.use(require("./routes/profile").router);
 app.use(require("./routes/registration").router);
 app.use(require("./routes/registration-verify").router);
 app.use(require("./routes/settings").router);
@@ -117,31 +118,6 @@ app.use(require("./routes/submissions-upload").router);
 app.use(require("./routes/submissions-view").router);
 app.use(require("./routes/submissions-comment").router);
 app.use(require("./routes/submissions-hide").router);
-
-/*
-app.get(r`/users/:id(\d+)/:username([\w.~-]+)`, function (req, res, next) {
-	var profileId = req.params.id | 0;
-
-	bluebird.all([
-		users.viewProfile(profileId),
-		users.getUserStatistics(profileId),
-		submissions.getRecentUserSubmissions(req.user, profileId),
-	])
-		.spread(function (profile, statistics, recentSubmissions) {
-			return {
-				profile: profile,
-				recentSubmissions: recentSubmissions,
-				statistics: statistics,
-			};
-		})
-		.done(
-			function (templateData) {
-				res.render("profile.html", templateData);
-			},
-			next
-		);
-});
-*/
 
 app.use(function (error, req, res, next) {
 	if (res.headersSent || !(error instanceof errors.ApplicationError)) {
