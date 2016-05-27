@@ -29,7 +29,8 @@ CREATE TYPE file_type AS ENUM (
 	'wav',
 	'mp3',
 	'ogg',
-	'flac'
+	'flac',
+	'm4a'
 );
 
 CREATE TABLE files (

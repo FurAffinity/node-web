@@ -46,6 +46,13 @@ var types = [
 		generators: [generators.ogg, generators.waveform],
 	},
 	{
+		id: "m4a",
+		mediaType: "audio/x-m4a",
+		submissionType: "audio",
+		description: "AAC",
+		generators: [generators.ogg, generators.waveform],
+	},
+	{
 		id: "docx",
 		mediaType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 		submissionType: "text",

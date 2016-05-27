@@ -10,6 +10,7 @@ def("upload", ["button", "editor"], function (button, editor) {
 		"mp3": "MP3",
 		"ogg": "Vorbis",
 		"flac": "FLAC",
+		"m4a": "AAC",
 		"docx": "Word document",
 		"epub": "EPUB",
 	};
