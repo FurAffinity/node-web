@@ -1,0 +1,69 @@
+{% extends "layout.html" %}
+
+{% block title -%}
+	Profile Settings – {{ super() }}
+{%- endblock %}
+
+{% block stylesheets %}
+	{{ super() }}
+	<link rel="stylesheet" href="/css/editor.css" />
+	<link rel="stylesheet" href="/css/settings.css" />
+{% endblock %}
+
+{% block scripts %}
+	{{ super() }}
+	<script src="/js/editor.js" async></script>
+{% endblock %}
+
+{% block navigation_middle %}
+	<nav id="settings-navigation" class="header-navigation">
+		<ul>
+			<li><a href="javascript:void 0" class="selected">Profile</a></li>
+			<li><a href="javascript:void 0">Browsing</a></li>
+			<li><a href="javascript:void 0">Account</a></li>
+		</ul>
+	</nav>
+{% endblock %}
+
+{% block body %}
+	<form class="settings" method="POST" enctype="multipart/form-data">
+		<label class="field">
+			<span class="label">Profile picture</span>
+			<input type="file" name="profile-picture" accept="image/*" />
+		</label>
+
+		<label class="field">
+			<span class="label">Banner</span>
+			<input type="file" name="banner" accept="image/*" />
+		</label>
+
+		<div class="field-horizontal">
+			<label class="field">
+				<span class="label">Full name</span>
+				<input class="text" type="text" name="full-name" value="" placeholder="{{ user.displayUsername | capitalize }}" />
+			</label>
+
+			<label class="field">
+				<span class="label">Artist type</span>
+				<input class="text" type="text" name="artist-type" value="" placeholder="Photographer" />
+			</label>
+		</div>
+
+		<div class="field">
+			<label class="label" for="profile-text">Profile text</label>
+
+			<textarea id="profile-text" class="text long-text editor-textarea" name="profile-text"></textarea>
+
+			<script>
+			req(["editor"], function (editor) {
+				var profileText = document.getElementById("profile-text");
+				editor.createEditor(profileText);
+			});
+			</script>
+		</div>
+
+		<div class="form-actions">
+			<button class="button">Save Profile</button>
+		</div>
+	</form>
+{% endblock %}

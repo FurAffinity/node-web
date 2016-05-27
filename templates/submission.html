@@ -1,0 +1,204 @@
+{% extends "layout.html" %}
+
+{% block title -%}
+	{{ submission.title }} by {{ submission.owner.displayUsername }} – {{ super() }}
+{%- endblock %}
+
+{% block stylesheets %}
+	{{ super() }}
+	<link rel="stylesheet" href="/css/submission.css" />
+	<link rel="stylesheet" href="/css/audio.css" />
+	<link rel="stylesheet" href="/css/comments.css" />
+	<link rel="stylesheet" href="/css/written.css" />
+	<link rel="stylesheet" href="/css/editor.css" />
+{% endblock %}
+
+{% block scripts %}
+	{{ super() }}
+	<script src="/js/editor.js" async></script>
+	<script src="/js/comments.js" async></script>
+
+	{% if submission.type == "audio" %}
+		<script src="/js/main.js" async></script>
+		<script src="/js/audio.js" async></script>
+	{% elif submission.type == "text" %}
+		<script src="/js/written.js" async></script>
+	{% endif %}
+{% endblock %}
+
+{% block navigation_middle %}
+	<div id="submission-header">
+		<h1 id="submission-title">{{ submission.title }}</h1>
+		<p id="submission-byline">by <a href="{{ submission.owner | user_path }}" rel="author">{{ submission.owner.displayUsername }}</a></p>
+	</div>
+{% endblock %}
+
+{% block body %}
+	<div id="submission-main">
+		{% if submission.type == "image" %}
+			<div class="submission-image-container">
+				{% set file = submission.files[0] %}
+				<a href="{{ file | file_path }}" class="submission-image">
+					<img src="{{ file | file_path }}" />
+				</a>
+			</div>
+		{% elif submission.type == "audio" %}
+			<div id="submission-player">
+				<audio class="submission-audio" preload="auto" controls data-waveform="/files/{{ submission.waveformHash }}">
+					{% for file in submission.files %}
+						{% if file.type == "mp3" or file.type == "ogg" %}
+							<source type="audio/{{ file.type }}" src="/files/{{ file.hash }}.{{ file.type }}" />
+						{% endif %}
+					{% endfor %}
+				</audio>
+
+				<div class="submission-player-actions">
+					<button class="submission-play"><span class="play-icon"></span> <span class="play-text">Play</span></button>
+				</div>
+			</div>
+
+			<script>
+			req(["audio"], function (audio) {
+				var submissionPlayer = document.getElementById("submission-player");
+				audio.createSubmissionPlayer(submissionPlayer);
+			});
+			</script>
+		{% elif submission.type == "text" %}
+			{% for file in submission.files %}
+				{% if file.type == "html" %}
+					<div class="submission-text-container">
+						<div class="submission-text-tools" style="display: none;">
+							<select>
+								<option selected>Neuton</option>
+								<option>EB Garamond</option>
+								<option>Source Sans Pro</option>
+								<option>Comic Neue</option>
+							</select>
+
+							<select>
+								<option>11 pt</option>
+								<option>12 pt</option>
+								<option selected>14 pt</option>
+								<option>16 pt</option>
+							</select>
+
+							<button>Save</button>
+						</div>
+
+						<div class="submission-text-tools-container">
+							<div class="submission-text-tools">
+								<button type="button" class="text-option-select text-typeface-select" title="Font family" aria-haspopup="true" aria-owns="text-typeface-options"><span role="presentation">a</span></button>
+
+								<div id="text-typeface-options" class="text-option-list" data-property="fontFamily" role="listbox" hidden>
+									<a href="javascript:void 0" class="text-option selected" style="font-family: Neuton;" data-value="Neuton, serif">Neuton</a>
+									<a href="javascript:void 0" class="text-option" style="font-family: EB Garamond;" data-value="EB Garamond, serif">EB Garamond</a>
+									<a href="javascript:void 0" class="text-option" style="font-family: Source Sans Pro;" data-value="Source Sans Pro, sans-serif">Source Sans Pro</a>
+									<a href="javascript:void 0" class="text-option" style="font-family: Comic Neue;" data-value="Comic Neue, cursive">Comic Neue</a>
+								</div>
+
+								<button type="button" class="text-option-select text-size-select" title="Font size" aria-haspopup="true" aria-owns="text-size-options"><span class="text-size-select-icon" role="presentation"><span>a</span>a</span></button>
+
+								<div id="text-size-options" class="text-option-list" data-property="fontSize" role="listbox" hidden>
+									<a href="javascript:void 0" class="text-option" data-value="11pt">11pt</a>
+									<a href="javascript:void 0" class="text-option" data-value="12pt">12pt</a>
+									<a href="javascript:void 0" class="text-option selected" data-value="14pt">14pt</a>
+									<a href="javascript:void 0" class="text-option" data-value="16pt">16pt</a>
+								</div>
+							</div>
+						</div>
+
+						<div class="submission-text">
+							{{ file.contents | clean_html }}
+						</div>
+					</div>
+
+					<script>
+					req(["written"], function (written) {
+						written.addListeners(document.getElementsByClassName("submission-text-container")[0]);
+					});
+					</script>
+				{% endif %}
+			{% endfor %}
+		{% endif %}
+	</div>
+
+	<div id="submission-comments" class="comment-list">
+		<div id="submission-description" class="comment">
+			<div class="comment-inner">
+				<header>
+					<a href="{{ submission.owner | user_path }}" rel="author" tabindex="-1">
+						<img src="{{ submission.owner.image | file_path("profile") }}" alt="{{ submission.owner.displayUsername }}" class="comment-author-image" />
+					</a>
+				</header>
+
+				<div class="comment-body">
+					{{ submission.description | bbcode }}
+
+					<ul id="submission-tags">
+						{% for tag in submission.tags %}
+							<li><a href="javascript:void 0" rel="tag">{{ tag }}</a></li>
+						{% endfor %}
+					</ul>
+				</div>
+			</div>
+		</div>
+
+		{% macro comment_box(comment) %}
+			<article id="comment-{{ comment.id }}" class="comment">
+				<div class="comment-inner">
+					<header>
+						<a href="{{ comment.author | user_path }}" tabindex="-1">
+							<img src="{{ comment.author.image | file_path("profile") }}" alt="" class="comment-author-image" />
+						</a>
+
+						<div class="comment-info">
+							<a href="{{ comment.author | user_path }}" class="comment-author">{{ comment.author.displayUsername }}</a>
+
+							<div class="comment-info-right">
+								{{ comment.created | relative_date }}
+
+								<span class="comment-actions">
+									<a href="#comment-{{ comment.id }}" rel="bookmark">link</a>
+									<a class="comment-action-collapse" href="javascript:void 0">collapse</a>
+									{% if user %}
+										<a href="/submissions/{{ submission.id }}/comments/{{ comment.id }}/reply">reply</a>
+									{% endif %}
+								</span>
+							</div>
+						</div>
+					</header>
+
+					<div class="comment-body">
+						{{ comment.text | bbcode }}
+					</div>
+				</div>
+
+				{% for child in comment.children %}
+					{{ comment_box(child) }}
+				{% endfor %}
+			</article>
+		{% endmacro %}
+
+		{% for comment in submission.comments %}
+			{{ comment_box(comment) }}
+		{% endfor %}
+
+		{% if user %}
+			<form id="new-comment" class="new-comment" method="POST" action="/submissions/{{ submission.id }}/comments/">
+				{{ csrf("comment") }}
+
+				<textarea class="text long-text" name="text"></textarea>
+
+				<div class="form-actions">
+					<button class="button">Post Comment</button>
+				</div>
+			</form>
+
+			<script>
+			req(["comments"], function (comments) {
+				comments.ready();
+			});
+			</script>
+		{% endif %}
+	</div>
+{% endblock %}

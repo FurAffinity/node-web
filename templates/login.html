@@ -1,0 +1,42 @@
+{% extends "layout.html" %}
+{% set current_page = "login" %}
+
+{% block title -%}
+	Log In – {{ super() }}
+{%- endblock %}
+
+{% block stylesheets %}
+	{{ super() }}
+	<link rel="stylesheet" href="/css/login.css" />
+{% endblock %}
+
+{% block body %}
+	<form id="login" method="POST" novalidate>
+		{{ csrf("login") }}
+
+		{{ form_errors() }}
+
+		<label class="field">
+			<span class="label">Username</span>
+			<input type="text" name="username" value="{{ form.username or "" }}" class="text" autofocus autocomplete="username" inputmode="verbatim" required />
+
+			<div class="field-aside">
+				{{ field_errors("username") }}
+			</div>
+		</label>
+
+		<label class="field">
+			<span class="label">Password</span>
+			<input type="password" name="password" value="{{ form.password or "" }}" maxlength="72" class="text" autocomplete="current-password" required />
+
+			<div class="field-aside">
+				{{ field_errors("password") }}
+			</div>
+		</label>
+
+		<div class="form-actions">
+			<button class="button">Log in</button>
+			<a href="javascript:void 0" class="action-link">Forgot your password?</a>
+		</div>
+	</form>
+{% endblock %}

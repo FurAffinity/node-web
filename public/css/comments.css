@@ -1,0 +1,106 @@
+.comment-list {
+	margin: 0 auto;
+	max-width: 60em;
+	padding-left: 3.7em;
+}
+
+.comment:target .comment-inner::before {
+	background-color: #8b8;
+	border-radius: 1em;
+	content: '';
+	height: 0.5em;
+	left: -0.9em;
+	position: absolute;
+	top: 0.8em;
+	width: 0.5em;
+}
+
+.comment-inner {
+	background-color: #dddedf;
+	/*box-shadow: 0 6px 2px -4px rgba(0, 0, 0, 0.4);*/
+	box-shadow: 0 2px 2px rgba(0, 0, 0, 0.4);
+	color: #222;
+	margin: 1em 0;
+	position: relative;
+}
+
+.comment-author-image {
+	max-height: 3.2em;
+	margin-right: 0.5em;
+	position: absolute;
+	right: 100%;
+	top: 2.2em;
+}
+
+.comment-author {
+	color: #eee;
+	font-weight: bold;
+	text-decoration: none;
+}
+
+.comment-info {
+	background-color: #394250;
+	color: #ccc;
+	display: flex;
+	font-size: 0.9em;
+	overflow: hidden;
+	padding: 0.556em 1.11em;
+	text-overflow: ellipsis;
+}
+
+.comment-info-right {
+	flex: 1;
+	text-align: right;
+}
+
+.comment-actions {
+	margin-left: 0.3em;
+}
+
+.comment-actions a {
+	color: white;
+	margin: 0 0.3em;
+	outline: none;
+	text-decoration: none;
+}
+
+.comment-actions a:focus {
+	text-decoration: underline;
+}
+
+.comment-actions a:last-child {
+	margin-right: 0;
+}
+
+.comment-body {
+	line-height: 1.4;
+	hyphens: auto;
+	overflow: hidden;
+	    word-wrap: break-word;
+	overflow-wrap: break-word;
+	padding: 1em;
+}
+
+/* TODO: Set padding so that <p> margins add up to 1em instead
+ * (leading lists will look wrong this way, for example) */
+.comment-body :first-child {
+	margin-top: 0;
+}
+
+.comment-body :last-child {
+	margin-bottom: 0;
+}
+
+.comment .comment {
+	margin-left: 2em;
+}
+
+.comment .new-comment {
+	margin-bottom: 1em;
+	margin-left: 2em;
+	margin-top: 1em;
+}
+
+.comment-collapsed .comment-body, .comment-collapsed .comment, .comment-collapsed .comment-author-image {
+	display: none;
+}

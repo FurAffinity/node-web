@@ -1,0 +1,205 @@
+#profile-navigation {
+	flex: 1;
+	text-align: center;
+}
+
+#navigation-right {
+	flex: 0 1 auto;
+}
+
+.page-message {
+	margin-bottom: 1.6em;
+	margin-top: -1.6em;
+	padding: 0.8em;
+	text-align: center;
+}
+
+.page-message-danger {
+	background-color: #812;
+}
+
+.page-message a {
+	color: white;
+	font-weight: bold;
+}
+
+#profile-banner {
+	background-attachment: fixed;
+	background-size: cover;
+	box-shadow: inset 0 -2px 2px -2px rgba(0, 0, 0, 0.8);
+	margin-bottom: -4.5em;
+	margin-top: -1.6em;
+	height: 8.5em;
+	width: 100%;
+}
+
+#profile-header {
+	margin: 1em;
+	text-align: center;
+}
+
+#profile-header-top {
+	background-color: #20262c;
+	border-radius: 0.2em;
+	display: inline-block;
+	margin-top: -1em;
+	padding: 1em;
+	padding-bottom: 0;
+	position: relative;
+}
+
+#profile-banner + #profile-header #profile-header-top {
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+#profile-header-top::before {
+	background-color: inherit;
+	bottom: -4px;
+	content: '';
+	left: -3px;
+	position: absolute;
+	right: -3px;
+	top: 4.5em;
+}
+
+#profile-image {
+	border-radius: 2px;
+	display: inline-block;
+	margin-right: 0.8em;
+	position: relative;
+	vertical-align: middle;
+}
+
+#profile-summary {
+	display: inline-block;
+	position: relative;
+	text-align: left;
+	vertical-align: middle;
+}
+
+#profile-username {
+	display: inline-block;
+	font-weight: normal;
+	margin: 0;
+}
+
+#profile-full-name {
+	color: rgba(255, 255, 255, 0.6);
+	display: inline-block;
+	font-size: 2em;
+	margin: 0;
+}
+
+/* an extra wrapper with unicode-bidi: isolate isn’t necessary here as
+ * #profile-full-name is a block element with only a ::before */
+#profile-full-name::before {
+	content: '/ ';
+}
+
+#profile-type {
+	color: #bef;
+	margin: 0;
+}
+
+#profile-text {
+	margin: 0 auto;
+	max-width: 30em;
+}
+
+#profile-text-read-more {
+	color: inherit;
+	display: block;
+	font-size: 0.9em;
+	margin-top: -1em;
+	opacity: 0.6;
+	text-decoration: none;
+	text-transform: lowercase;
+	transition: opacity 0.2s ease;
+}
+
+#profile-text-read-more:hover {
+	opacity: 1;
+}
+
+#profile-text-more {
+	display: none;
+}
+
+#profile-main {
+	display: flex;
+}
+
+#profile-main.profile-right-only {
+	display: block;
+	margin: 0 auto;
+	width: 50%;
+}
+
+.profile-section {
+	margin: 2em;
+}
+
+#profile-left {
+	margin-right: -2em;
+	width: 52%;
+}
+
+#profile-right {
+	flex: 1;
+	margin-left: -2em;
+}
+
+#profile-main h2 {
+	font-size: 1em;
+}
+
+.journal {
+	background-color: #dddedf;
+	box-shadow: 0 2px 2px rgba(0, 0, 0, 0.4);
+	color: #222;
+}
+
+.journal-header {
+	align-items: center;
+	background-color: #394250;
+	color: white;
+	display: flex;
+	padding: 1em;
+}
+
+.journal-title {
+	font-weight: normal;
+	margin: 0;
+}
+
+.journal-info {
+	flex: 1;
+	text-align: right;
+}
+
+.journal-body {
+	line-height: 1.6;
+	overflow: hidden;
+	    word-wrap: break-word;
+	overflow-wrap: break-word;
+	padding: 1em;
+}
+
+/* TODO: Set padding so that <p> margins add up to 1em instead
+ * (leading lists will look wrong this way, for example) */
+.journal-body :first-child {
+	margin-top: 0;
+}
+
+.journal-body :last-child {
+	margin-bottom: 0;
+}
+
+.journal-footer {
+	padding: 1em;
+	padding-top: 0;
+}
+
+.journal-footer a {
+	color: #04c;
+}

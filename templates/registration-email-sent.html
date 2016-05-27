@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{% set current_page = "register" %}
+
+{% block title -%}
+	Account Created – {{ super() }}
+{%- endblock %}
+
+{% block body %}
+	<p>You’re signed up! We’ve sent an e-mail to {{ email }} with a link to verify your account. If you don’t receive it within a few minutes, please contact {# TODO #}support.</p>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+{% set current_page = "register" %}
+
+{% block title -%}
+	Register New Account – {{ super() }}
+{%- endblock %}
+
+{% block stylesheets %}
+	{{ super() }}
+	<link rel="stylesheet" href="/css/register.css" />
+{% endblock %}
+
+{% block body %}
+	<form id="register" method="POST" action="/users/" novalidate>
+		{{ csrf("register") }}
+
+		{{ form_errors() }}
+
+		<label class="field">
+			<span class="label">Username</span>
+			<input type="text" name="username" value="{{ form.username or "" }}" class="text" autofocus autocomplete="username" inputmode="verbatim" pattern="_*[a-zA-Z0-9~-]_*[a-zA-Z0-9.~-]_*[a-zA-Z0-9.~-][\w.~-]*" title="Ignoring underscores, usernames cannot start with a period and must be at least 3 characters long." required />
+
+			<div class="field-aside">
+				<p class="field-description">Usernames can contain letters, digits, and hyphens.</p>
+				{{ field_errors("username") }}
+			</div>
+		</label>
+
+		<label class="field">
+			<span class="label">Password</span>
+			<input type="password" name="password" value="{{ form.password or "" }}" minlength="8" maxlength="72" class="text" autocomplete="new-password" required />
+
+			<div class="field-aside">
+				<p class="field-description">A good password is hard to guess. Avoid passwords you already use on other websites.</p>
+				{{ field_errors("password") }}
+			</div>
+		</label>
+
+		<label class="field">
+			<span class="label">E-mail address</span>
+			<input type="email" name="email" value="{{ form.email or "" }}" class="text" autocomplete="email" required />
+
+			<div class="field-aside">
+				<p class="field-description">We’ll send a message to this address to verify your account.</p>
+				{{ field_errors("email") }}
+			</div>
+		</label>
+
+		<div class="form-actions">
+			<button class="button">Create account</button>
+		</div>
+	</form>
+{% endblock %}

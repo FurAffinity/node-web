@@ -1,0 +1,12 @@
+Welcome to Fur Affinity, {{ username }}!
+
+To verify your account, please use the following link, which will expire in 24 hours:
+
+{{ site_root }}/users/{{ id }}/+verify?key={{ key }}
+
+If you didn’t create an account, the link will also allow you to cancel it immediately.
+
+Feel free to reply to this e-mail with any questions or concerns.
+
+Regards,
+The Fur Affinity team

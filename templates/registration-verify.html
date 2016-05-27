@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% set current_page = "register" %}
+
+{% block title -%}
+	Verify Account – {{ super() }}
+{%- endblock %}
+
+{% block stylesheets %}
+	{{ super() }}
+	<link rel="stylesheet" href="/css/register.css" />
+{% endblock %}
+
+{% block body %}
+	<form method="POST">
+		{{ csrf("register-verify") }}
+
+		<button class="button">Verify account</button>
+	</form>
+{% endblock %}

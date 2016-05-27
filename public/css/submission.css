@@ -1,0 +1,104 @@
+#submission-header {
+	color: white;
+	flex: 1;
+	font-family: Lato, sans-serif;
+	left: 50%;
+	line-height: 2.7;
+	overflow: hidden;
+	text-align: center;
+	text-overflow: ellipsis;
+	top: 0.8em;
+	white-space: nowrap;
+	width: 0;
+}
+
+#submission-title {
+	display: inline;
+	font-size: 1em;
+	font-weight: bold;
+	margin: 0;
+}
+
+#submission-byline {
+	color: rgba(255, 255, 255, 0.7);
+	display: inline-block;
+	font-size: 0.9em;
+	margin: 0;
+	margin-left: 0.2em;
+}
+
+#submission-byline a {
+	color: inherit;
+	text-decoration: none;
+}
+
+#navigation-right {
+	flex: 0 1 auto;
+}
+
+.submission-image-container {
+	text-align: center;
+}
+
+.submission-image {
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+	display: inline-block;
+	outline: none;
+}
+
+.submission-image img {
+	border: none;
+	max-height: 90vh;
+	max-width: 100%;
+	vertical-align: middle;
+}
+
+.submission-image.expandable {
+	cursor: zoom-in;
+}
+
+.submission-image.expanded {
+	cursor: zoom-out;
+	max-height: none;
+}
+
+#submission-comments {
+	margin: 3em auto;
+	max-width: 80em;
+}
+
+#submission-description .comment-inner {
+	background-color: transparent;
+	box-shadow: none;
+	color: #ddd;
+}
+
+#submission-description .comment-author-image {
+	max-height: 5em;
+	top: 0;
+}
+
+#submission-description .comment-body {
+	min-height: 4em;
+	padding: 0;
+}
+
+#submission-tags {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+}
+
+#submission-tags li {
+	display: inline-block;
+}
+
+#submission-tags a {
+	background-color: #eee;
+	background-clip: padding-box;
+	border: 1px dotted rgba(255, 255, 255, 0.4);
+	color: #222;
+	display: inline-block;
+	padding: 0 0.4em;
+	text-decoration: none;
+}

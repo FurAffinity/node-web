@@ -1,0 +1,13 @@
+#settings-navigation {
+	flex: 1;
+	text-align: center;
+}
+
+#navigation-right {
+	flex: 0 1 auto;
+}
+
+.settings {
+	margin: 0 auto;
+	max-width: 40em;
+}

@@ -1,0 +1,9 @@
+#login {
+	margin: 2em auto;
+	max-width: 18em;
+}
+
+#login .action-link {
+	float: right;
+	line-height: 2.8;
+}

@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+{% set current_page = "home" %}
+
+{% block title -%}
+	Home – {{ super() }}
+{%- endblock %}
+
+{% block stylesheets %}
+	{{ super() }}
+	<link rel="stylesheet" href="/css/home.css" />
+{% endblock %}
+
+{% block scripts %}
+	{{ super() }}
+	<script src="/js/home.js" async></script>
+{% endblock %}
+
+{% block body %}
+	<section class="thumbnail-section">
+		<h2 class="thumbnail-section-header">Recent Artwork</h2>
+
+		<div class="thumbnails">
+			{% for submission in recentSubmissions %}
+				<div class="thumbnail thumbnail-{{ submission.rating }}" data-id="{{ submission.id }}">
+					<div class="thumbnail-link-container">
+						<a href="/submissions/{{ submission.id }}" class="thumbnail-link">
+							<img src="{{ submission.thumbnail | file_path("thumbnail") }}" class="thumbnail-image" />
+						</a>
+					</div>
+				</div>
+			{% endfor %}
+		</div>
+	</section>
+
+	{% if user %}
+		<form action="/logout" method="POST">
+			{{ csrf("logout") }}
+			<button>Log out</button>
+		</form>
+	{% endif %}
+{% endblock %}

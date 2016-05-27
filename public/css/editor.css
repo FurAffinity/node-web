@@ -1,0 +1,285 @@
+.editor {
+	background-color: white;
+	color: black;
+}
+
+.editor-toolbar {
+	border-bottom: 1px solid #ccc;
+	display: flex;
+	/* TODO: position: sticky;
+	top: 0; */
+}
+
+.editor-palette {
+	display: flex;
+	position: relative;
+}
+
+.editor-palette[hidden] {
+	display: none;
+}
+
+.editor-toolbar button {
+	background-color: transparent;
+	background-image: linear-gradient(white, #e0e0e0);
+	border: none;
+	border-bottom: 1px solid #ccc;
+	background-position: 0 2em;
+	background-repeat: no-repeat;
+	color: #333;
+	cursor: pointer;
+	display: inline-block;
+	flex-shrink: 0;
+	font-family: Source Sans Pro, sans-serif;
+	font-size: 14.6667px;
+	line-height: 2;
+	margin: 0;
+	margin-bottom: -1px;
+	outline: none;
+	padding: 0;
+	position: relative;
+	text-align: center;
+	transition: all 0.3s ease;
+	width: 2em;
+}
+
+.editor-toolbar button::-moz-focus-inner {
+	border: none;
+	padding: 0;
+}
+
+.editor-toolbar button:focus, .editor-toolbar button:hover {
+	background-position: 0 0;
+	border-bottom-color: #666;
+}
+
+.editor-toolbar button.selected {
+	border-bottom-color: #07f;
+	color: #07f;
+}
+
+.editor-bold {
+	font-weight: bold;
+}
+
+.editor-italic {
+	font-style: italic;
+}
+
+.editor-underline {
+	text-decoration: underline;
+}
+
+.editor-strike {
+	text-decoration: line-through;
+}
+
+.editor-color-preview {
+	background-color: red;
+	bottom: 0.2em;
+	left: 25%;
+	height: 0.15em;
+	position: absolute;
+	right: 25%;
+}
+
+.editor-color-option span {
+	background-image: linear-gradient(to right, currentColor, transparent);
+	background-position: -2em 0;
+	background-repeat: no-repeat;
+	background-size: 2em 100%;
+	border-radius: 2px;
+	display: inline-block;
+	height: 0.9em;
+	overflow: hidden;
+	position: relative;
+	transition: all 0.3s ease;
+	vertical-align: middle;
+	width: 0.9em;
+}
+
+.editor-color-option span::before {
+	border-radius: inherit;
+	bottom: 0;
+	box-shadow: inset 0 0 0 1px #666, inset 0 0 0 2px white;
+	content: '';
+	left: 0;
+	position: absolute;
+	right: 0;
+	top: 0;
+	transition: all 0.3s ease;
+}
+
+.editor-color-transform .editor-color-option span {
+	background-position: 0 0;
+	border-radius: 0;
+	width: 2em;
+}
+
+.editor-color-transform .editor-color-option span::before {
+	left: -2px;
+	right: -2px;
+}
+
+.editor-color-transform .editor-color-option:first-of-type span {
+	border-radius: 1em;
+	height: 1.6em;
+	margin: -0.2em 0;
+	margin-right: -0.6em;
+	width: 1.6em;
+}
+
+.editor-color-transform .editor-color-option:first-of-type span::before {
+	left: 0;
+	right: 0;
+}
+
+.editor-color-transform .editor-color-option:first-of-type span::after {
+	background-color: currentColor;
+	content: '';
+	height: 0.6em;
+	position: absolute;
+	right: 0;
+	top: 0.5em;
+	width: 4px;
+}
+
+.editor-color-transform .editor-color-option:last-child span {
+	border-bottom-right-radius: 1em;
+	border-top-right-radius: 1em;
+}
+
+.editor-color-transform .editor-color-option:last-child span::before {
+	right: 0;
+}
+
+@keyframes rainbow-option {
+	from {
+		background-position: 0 0;
+	}
+	to {
+		background-position: -14.8px -14.8px;
+	}
+}
+
+.editor-color-option .editor-color-option-rainbow {
+	animation: rainbow-option 3s linear infinite;
+	background-image: repeating-linear-gradient(135deg, red 0, red 3px, orange 3px, orange 6px, yellow 6px, yellow 9px, #0c0 9px, #0c0 12px, #06f 12px, #06f 15px, #10f 15px, #10f 18px, #80f 18px, #80f 21px);
+	background-size: 30px 30px;
+}
+
+.editor-color-line {
+	left: 0.5em;
+	position: absolute;
+	top: 0.35em;
+	z-index: 9999;
+}
+
+.editor-color-line-overlay {
+	background-color: rgba(0, 0, 0, 0.8);
+	bottom: 0;
+	left: 0;
+	position: fixed;
+	right: 0;
+	top: 0;
+	z-index: 9998;
+}
+
+.editor .ProseMirror {
+	border: none;
+}
+
+.editor .ProseMirror-content {
+	padding-top: 0.6em;
+	outline: none;
+}
+
+.editor .ProseMirror-content span[data-color="red"] {
+	color: red;
+}
+
+.editor .ProseMirror-content span[data-color="orange"] {
+	color: #f60;
+}
+
+.editor .ProseMirror-content span[data-color="yellow"] {
+	color: #c90;
+}
+
+.editor .ProseMirror-content span[data-color="green"] {
+	color: green;
+}
+
+.editor .ProseMirror-content span[data-color="blue"] {
+	color: blue;
+}
+
+.editor .ProseMirror-content span[data-color="indigo"] {
+	color: indigo;
+}
+
+.editor .ProseMirror-content span[data-color="violet"] {
+	color: violet;
+}
+
+.editor-replaced {
+	display: none;
+}
+
+.rainbow, .editor .ProseMirror-content span[data-color="rainbow"] {
+	display: inline-block;
+	position: relative;
+}
+
+@keyframes rainbow {
+	from {
+		background-position: 0 0;
+	}
+	to {
+		background-position: 10em 0;
+	}
+}
+
+.rainbow::before, .editor .ProseMirror-content span[data-color="rainbow"]::before {
+	animation: rainbow 3s linear infinite;
+	background-size: 10em auto;
+	bottom: 0;
+	content: '';
+	left: 0;
+	pointer-events: none;
+	position: absolute;
+	right: 0;
+	top: 0;
+}
+
+.rainbow-dark {
+	background-color: black;
+	color: white;
+}
+
+.rainbow-dark::before {
+	background-image: linear-gradient(to right, #fc0, #ff0, #cf0, #0fc, #0ff, #f0f, #f0c, #fc0);
+	mix-blend-mode: multiply;
+}
+
+.rainbow-dark::after {
+	background-color: #20262c;
+	bottom: 0;
+	content: '';
+	left: 0;
+	mix-blend-mode: lighten;
+	pointer-events: none;
+	position: absolute;
+	right: 0;
+	top: 0;
+}
+
+.rainbow-light, .editor .ProseMirror-content span[data-color="rainbow"] {
+	background-color: white;
+	color: black;
+}
+
+.rainbow-light::before, .editor .ProseMirror-content span[data-color="rainbow"]::before {
+	background-image: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet, red);
+	mix-blend-mode: lighten;
+}

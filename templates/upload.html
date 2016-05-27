@@ -1,0 +1,162 @@
+{% extends "layout.html" %}
+{% set current_page = "upload" %}
+
+{% block title -%}
+	Upload – {{ super() }}
+{%- endblock %}
+
+{% block stylesheets %}
+	{{ super() }}
+	<link rel="stylesheet" href="/css/upload.css" />
+{% endblock %}
+
+{% block scripts %}
+	{{ super() }}
+	<script src="/js/main.js" async></script>
+	<script src="/js/upload.js" async></script>
+{% endblock %}
+
+{% block body %}
+	<form id="clear-uploads" method="POST"></form>
+
+	<form id="new-submission-form" method="POST" action="/submissions/" novalidate>
+		{{ csrf("submissions") }}
+
+		<div id="upload-list">
+			<label class="upload-new">
+				<input id="upload-file" type="file" multiple accesskey="u" data-csrf="{{ getCsrfToken("upload") }}" accept="image/*,audio/*,video/*,.docx,.epub" />
+				<span class="button">Upload file</span>
+			</label>
+
+			<label id="upload-template" class="upload" aria-hidden="true">
+				<div class="upload-thumbnail upload-progress">
+					<div class="upload-progress-left"></div>
+					<div class="upload-progress-left-cover"></div>
+					<div class="upload-progress-right"></div>
+					<div class="upload-progress-right-cover"></div>
+					<div class="upload-progress-hole"></div>
+				</div>
+
+				<div class="upload-info">
+					<div class="upload-filename"></div>
+					<div class="upload-file-details"></div>
+				</div>
+
+				<input type="radio" class="upload-use" required />
+			</label>
+
+			{% for upload in pendingSubmissions %}
+				<label class="upload">
+					<img class="upload-thumbnail" src="{{ upload.thumbnail | file_path("thumbnail") }}" alt="" />
+
+					<div class="upload-info">
+						<div class="upload-filename" title="{{ upload.title }}">{{ upload.title }}</div>
+						<div class="upload-file-details">{{ upload.fileType | type_name }}, {{ upload.fileSize | file_size }}</div>
+					</div>
+
+					<input type="radio" name="id" value="{{ upload.id }}" class="upload-use" required{% if form.id == upload.id %} checked{% endif %} />
+				</label>
+			{% endfor %}
+
+			<button id="clear-uploads-button" form="clear-uploads" name="clear">Clear uploads</button>
+		</div>
+
+		<div id="new-submission">
+			{{ form_errors() }}
+
+			{{ field_errors_block("title") }}
+
+			<label class="field">
+				<span class="label">Title</span>
+				<input class="text" type="text" name="title" value="{{ form.title or "" }}" tabindex="1" required />
+			</label>
+
+			<label class="field">
+				<span class="label">Description</span>
+				<textarea class="text long-text" name="description" tabindex="2">{{ form.description or "" }}</textarea>
+			</label>
+
+			<label class="field">
+				<span class="label">Tags</span>
+				<input class="text" name="tags" value="{{ form.tags or "" }}" tabindex="3" placeholder="comma-separated – e.g. photography, nature, lake" autocapitalize="none" inputmode="latin" />
+			</label>
+
+			<div class="field">
+				<span class="label">Folders</span>
+
+				<div class="folder-list">
+					{% for folder in folders %}
+						<div class="folder{% if folder.hidden %} folder-scrap{% endif %}">
+							<input id="folder-{{ folder.id }}" type="checkbox" name="folders" value="{{ folder.id }}" tabindex="{{ 3 + loop.index }}" />
+
+							<span class="folder-info">
+								<label for="folder-{{ folder.id }}"><span class="direction-contain">{{ folder.title }}</span></label>
+
+								<div class="folder-contents">
+									<div>
+										{% for submission in folder.submissions %}
+											<img src="{{ submission.thumbnail | file_path("thumbnail") }}" alt="{{ submission.title }}" title="{{ submission.title }}" />
+										{% endfor %}
+
+										<img class="folder-new-submission" src="/images/default-thumbnail.svg" alt="New submission" />
+									</div>
+								</div>
+							</span>
+						</div>
+					{% endfor %}
+
+					<div id="new-folder" class="folder">
+						<input type="checkbox" name="folders" value="0" tabindex="{{ 4 + folders.length }}" />
+
+						<span class="folder-info">
+							<input class="text" type="text" name="new-folder" value="" placeholder="New folder" tabindex="{{ 5 + folders.length }}" />
+						</span>
+					</div>
+				</div>
+
+				<div class="field">
+					<span class="label">Rating</span>
+
+					{{ field_errors_block("rating") }}
+
+					<label class="rating-option">
+						<input type="radio" name="rating" value="general" tabindex="{{ 6 + folders.length }}" required{% if form.rating == "general" %} checked{% endif %} />
+
+						<span class="rating-info">
+							<span class="rating-name">General</span>
+							<p class="rating-description">Content suitable for all ages.</p>
+						</span>
+					</label>
+
+					<label class="rating-option">
+						<input type="radio" name="rating" value="mature" tabindex="{{ 7 + folders.length }}" required{% if form.rating == "mature" %} checked{% endif %} />
+
+						<span class="rating-info">
+							<span class="rating-name">Mature</span>
+							<p class="rating-description">(description)</p>
+						</span>
+					</label>
+
+					<label class="rating-option">
+						<input type="radio" name="rating" value="adult" tabindex="{{ 8 + folders.length }}" required{% if form.rating == "adult" %} checked{% endif %} />
+
+						<span class="rating-info">
+							<span class="rating-name">Adult</span>
+							<p class="rating-description">(description)</p>
+						</span>
+					</label>
+				</div>
+
+				<div class="form-actions">
+					<button class="button" tabindex="{{ 9 + folders.length }}">Publish submission</button>
+				</div>
+			</div>
+		</div>
+
+		<script>
+		req(["upload"], function (upload) {
+			upload.ready();
+		});
+		</script>
+	</form>
+{% endblock %}

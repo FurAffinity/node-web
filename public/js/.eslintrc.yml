@@ -1,0 +1,14 @@
+---
+parserOptions:
+  ecmaVersion: 5
+env:
+  browser: true
+  node: false
+  es6: false
+globals:
+  def: false
+rules:
+  no-shadow:
+    - 2
+    - allow:
+      - e

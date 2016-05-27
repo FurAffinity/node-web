@@ -1,0 +1,177 @@
+{%- macro csrf(endpoint) -%}
+	<input type="hidden" name="t" value="{{ getCsrfToken(endpoint) }}" />
+{%- endmacro -%}
+
+{%- macro form_errors() -%}
+	{% if form and form.errors.form.length != 0 %}
+		<ul class="form-errors">
+			{% for error in form.errors.form %}
+				<li>{{ error }}</li>
+			{% endfor %}
+		</ul>
+	{% endif %}
+{%- endmacro -%}
+
+{%- macro field_errors(field) -%}
+	{%- for error in form.errors[field] -%}
+		<div class="field-error">{{ error }}</div>
+	{%- endfor -%}
+{%- endmacro -%}
+
+{%- macro field_errors_block(field) -%}
+	{% if form and form.errors[field].length != 0 %}
+		<ul class="form-errors">
+			{% for error in form.errors[field] %}
+				<li>{{ error }}</li>
+			{% endfor %}
+		</ul>
+	{% endif %}
+{%- endmacro -%}
+
+<!DOCTYPE html>
+
+<html lang="en"{% if user %} data-hide-csrf="{{ getCsrfToken("hide") }}"{% endif %}>
+	<head>
+		<meta charset="utf-8" />
+
+		<meta name="viewport" content="initial-scale=1" />
+
+		<title>{% block title %}Fur Affinity{% endblock %}</title>
+
+		{% block stylesheets %}
+			<link rel="stylesheet" href="/css/main.css" />
+			<link rel="stylesheet" href="/css/navigation.css" />
+		{% endblock %}
+
+		{% block scripts %}
+			<script>
+			(function (global) {
+				"use strict";
+
+				var modules = Object.create(null);
+				var waiting = Object.create(null);
+
+				function wait(name, f) {
+					if (name in waiting) {
+						waiting[name].push(f);
+					} else {
+						waiting[name] = [f];
+					}
+				}
+
+				function require_(dependencyNames, f) {
+					var l = dependencyNames.length;
+					var waitingCount = 0;
+					var dependencies = new Array(l);
+
+					for (var i = 0; i < l; i++) {
+						var dependencyName = dependencyNames[i];
+
+						if (dependencyName in modules) {
+							dependencies[i] = modules[dependencyName];
+						} else {
+							dependencies[i] = null;
+
+							wait(dependencyName, (function (i) {
+								return function (dependency) {
+									dependencies[i] = dependency;
+									waitingCount--;
+
+									if (waitingCount === 0) {
+										f(dependencies);
+									}
+								};
+							})(i));
+
+							waitingCount++;
+						}
+					}
+
+					if (waitingCount === 0) {
+						f(dependencies);
+					}
+				}
+
+				function define(name, dependencyNames, getModule) {
+					require_(dependencyNames, function (dependencies) {
+						var module = getModule.apply(null, dependencies);
+						modules[name] = module;
+
+						var w = waiting[name];
+
+						if (w) {
+							delete waiting[name];
+
+							for (var i = 0, l = w.length; i < l; i++) {
+								var f = w[i];
+								f(module);
+							}
+						}
+					});
+				}
+
+				function require(dependencyNames, f) {
+					require_(dependencyNames, function (dependencies) {
+						f.apply(null, dependencies);
+					});
+				}
+
+				global.def = define;
+				global.req = require;
+			})(this);
+			</script>
+		{% endblock %}
+
+		<link rel="icon" type="image/svg+xml" href="/images/favicon.svg" />
+	</head>
+	<body>
+		{% macro active(page) -%}
+			{% if page == current_page %} class="selected"{% endif %}
+		{%- endmacro %}
+
+		<header id="header">
+			<nav class="header-navigation">
+				<ul>
+					<li><a href="/"{{ active("home") }}><img id="logo" src="/images/logo.svg" alt="Home" /></a></li>
+					<li><a href="javascript:void 0"{{ active("browse") }}>Browse</a></li>
+					<li><a href="javascript:void 0" rel="search"{{ active("search") }}>Search</a></li>
+
+					{% if user %}
+						<li><a href="/submissions/new"{{ active("upload") }}>Upload</a></li>
+					{% endif %}
+				</ul>
+			</nav>
+
+			{% block navigation_middle %}{% endblock %}
+
+			<nav id="navigation-right" class="header-navigation">
+				<ul>
+					{% if user %}
+						<li><a href="javascript:void 0"{{ active("notifications") }}>Notifications<span class="notification-indicator"></span></a></li>
+						<li><a href="/settings/profile">Settings</a></li>
+					{% else %}
+						<li><a href="/users/new"{{ active("register") }}>Register</a></li>
+						<li><a href="/login"{{ active("login") }}>Log in</a></li>
+					{% endif %}
+				</ul>
+			</nav>
+		</header>
+
+		<main id="main">
+			{% block body %}{% endblock %}
+		</main>
+
+		<footer id="footer">
+			<div id="footer-links">
+				<a href="javascript:void 0">Advertising</a>
+				<a href="javascript:void 0">Twitter</a>
+				<a href="javascript:void 0">Facebook</a>
+				<a href="javascript:void 0">Terms of Service</a>
+				<a href="javascript:void 0">Code of Conduct</a>
+				<a href="javascript:void 0">Acceptable Upload Policy</a>
+			</div>
+
+			<p id="footer-stats">{{ userCount }} user{% if userCount != 1 %}s{% endif %} online</p>
+		</footer>
+	</body>
+</html>

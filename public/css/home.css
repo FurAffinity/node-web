@@ -1,0 +1,150 @@
+.thumbnail {
+	align-items: center;
+	display: flex;
+	height: 200px;
+	justify-content: center;
+	margin: 1em;
+	margin-top: 0;
+	text-align: center;
+	width: 200px;
+}
+
+.thumbnail-link-container {
+	position: relative;
+}
+
+.thumbnail-link-container::after {
+	bottom: 0;
+	box-shadow: inset 0 -4px 2px -4px rgba(0, 0, 0, 0.8);
+	content: '';
+	height: 2px;
+	left: -1em;
+	opacity: 0;
+	position: absolute;
+	right: -1em;
+	transition: opacity 0.4s ease;
+}
+
+.thumbnail-link {
+	display: block;
+	outline: none;
+	position: relative;
+}
+
+.thumbnail-removing .thumbnail-link {
+	overflow: hidden;
+}
+
+.thumbnail-removing .thumbnail-link-container::after {
+	opacity: 1;
+}
+
+.thumbnail-image {
+	border: 1px solid rgba(255, 255, 255, 0.5);
+	border: none;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+	display: block;
+	max-height: 200px;
+	max-width: 200px;
+	position: relative;
+	transition: box-shadow 0.4s ease;
+}
+
+.thumbnail-removing .thumbnail-image {
+	box-shadow: none;
+}
+
+.thumbnail-mature .thumbnail-link-container::before, .thumbnail-adult .thumbnail-link-container::before {
+	background-color: #b00;
+	border-radius: 2px;
+	bottom: 2px;
+	color: white;
+	content: '18+';
+	font-family: PT Sans, sans-serif;
+	font-size: 0.6em;
+	opacity: 0.8;
+	padding: 0.1em 0.3em;
+	pointer-events: none;
+	position: absolute;
+	right: 2px;
+	transition: opacity 0.2s ease;
+	z-index: 5;
+}
+
+.thumbnail-mature .thumbnail-link-container::before {
+	background-color: #00b;
+}
+
+.thumbnail-mature.thumbnail-removing .thumbnail-link-container::before, .thumbnail-mature:hover .thumbnail-link-container::before, .thumbnail-adult.thumbnail-removing .thumbnail-link-container::before, .thumbnail-adult:hover .thumbnail-link-container::before {
+	opacity: 0;
+}
+
+@keyframes replacement-in {
+	from {
+		-webkit-filter: blur(2px);
+		        filter: blur(2px);
+		opacity: 0;
+		transform: scale(1.5);
+	}
+	to {
+		-webkit-filter: none;
+		        filter: none;
+		opacity: 1;
+		transform: none;
+	}
+}
+
+.thumbnail-replaced {
+	overflow: hidden;
+}
+
+.thumbnail-replacement {
+	animation: replacement-in 0.3s cubic-bezier(.21,.52,.89,1.66);
+	color: white;
+	font-family: Lato, sans-serif;
+	padding: 2px;
+}
+
+.thumbnail-replacement header {
+	font-weight: bold;
+}
+
+.thumbnail-replacement p {
+	color: rgba(255, 255, 255, 0.8);
+	font-size: 0.9em;
+	line-height: 1.4;
+}
+
+.thumbnail-more {
+	flex: 1;
+	height: auto;
+	width: auto;
+}
+
+.thumbnail-more-inner {
+	display: flex;
+}
+
+.thumbnail-more-inner a {
+	color: rgba(255, 255, 255, 0.8);
+	text-decoration: none;
+}
+
+.thumbnail-more-inner a::after {
+	content: ' »';
+}
+
+.thumbnail-section {
+	margin: 2em;
+}
+
+.thumbnails {
+	display: flex;
+	flex-wrap: wrap;
+	/*justify-content: space-around;*/
+	margin: 0 -1em;
+}
+
+.thumbnail-section-header {
+	font-size: 1em;
+}
