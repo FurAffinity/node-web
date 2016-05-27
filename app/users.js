@@ -6,10 +6,10 @@ var crypto = require("crypto");
 
 var hashAsync = bluebird.promisify(bcrypt.hash);
 
+var ApplicationError = require("./errors").ApplicationError;
 var config = require("./config");
 var database = require("./database");
 var email = require("./email");
-var errors = require("./errors");
 
 var sendAsync = bluebird.promisify(email.send);
 var timingSafeCompare = require("./timing-safe-compare").timingSafeCompare;
@@ -24,16 +24,28 @@ var registrationEmailTemplate = email.templateEnvironment.getTemplate("registrat
 var registrationDuplicateEmailTemplate = email.templateEnvironment.getTemplate("registration-duplicate", true);
 
 function UsernameConflictError() {
-	errors.ApplicationError.call(this, "A user with this username already exists");
+	ApplicationError.call(this, "A user with this username already exists");
 }
 
-errors.ApplicationError.extend(UsernameConflictError);
+ApplicationError.extend(UsernameConflictError);
+
+function UsernameInvalidError() {
+	ApplicationError.call(this, "Invalid username");
+}
+
+ApplicationError.extend(UsernameInvalidError);
+
+function EmailInvalidError() {
+	ApplicationError.call(this, "Invalid e-mail address");
+}
+
+ApplicationError.extend(EmailInvalidError);
 
 function RegistrationKeyInvalidError() {
-	errors.ApplicationError.call(this, "The registration key is invalid or has expired");
+	ApplicationError.call(this, "The registration key is invalid or has expired");
 }
 
-errors.ApplicationError.extend(RegistrationKeyInvalidError);
+ApplicationError.extend(RegistrationKeyInvalidError);
 
 function toPathSafeBase64(buffer) {
 	return (
@@ -173,14 +185,14 @@ function registerUser(userInfo) {
 	var displayUsername = userInfo.username;
 
 	if (!isValidDisplayUsername(displayUsername)) {
-		return bluebird.reject(new errors.ApplicationError("Invalid username"));
+		return bluebird.reject(new UsernameInvalidError());
 	}
 
 	var canonicalUsername = getCanonicalUsername(displayUsername);
 	var canonicalEmail = email.getCanonicalAddress(userInfo.email);
 
 	if (canonicalEmail === null) {
-		return bluebird.reject(new errors.ApplicationError("Invalid e-mail address"));
+		return bluebird.reject(new EmailInvalidError());
 	}
 
 	return hashAsync(userInfo.password, config.bcrypt.log_rounds).then(function (passwordHash) {
@@ -300,6 +312,9 @@ function getUserStatistics(userId) {
 		});
 }
 
+exports.EmailInvalidError = EmailInvalidError;
+exports.UsernameConflictError = UsernameConflictError;
+exports.UsernameInvalidError = UsernameInvalidError;
 exports.getCanonicalUsername = getCanonicalUsername;
 exports.getUserMeta = getUserMeta;
 exports.getUserStatistics = getUserStatistics;

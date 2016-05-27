@@ -81,4 +81,7 @@ function authenticate(username, password) {
 	});
 }
 
+exports.NoUserError = NoUserError;
+exports.UserNotActiveError = UserNotActiveError;
+exports.InvalidCredentialsError = InvalidCredentialsError;
 exports.authenticate = authenticate;
