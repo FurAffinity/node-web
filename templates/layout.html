@@ -171,7 +171,14 @@
 				<a href="javascript:void 0">Acceptable Upload Policy</a>
 			</div>
 
-			<p id="footer-stats">{{ userCount }} user{% if userCount != 1 %}s{% endif %} online</p>
+			<div id="footer-stats">
+				{% if siteRevision %}
+					<span id="site-revision" title="{{ siteRevision }}">{{ siteRevision.substring(0, 8) }}</span>
+				{% else %}
+					<span id="site-revision">unknown revision</span>
+				{% endif %} ·
+				<span id="online-count">{{ userCount }} user{% if userCount != 1 %}s{% endif %} online</span>
+			</div>
 		</footer>
 	</body>
 </html>

@@ -12,6 +12,7 @@ var filters = require("./filters");
 var types = require("./files/types");
 var userCounter = require("./user-counter");
 var users = require("./users");
+var version = require("./version");
 
 var DatabaseSessionStore = require("./sessions/database-store").DatabaseSessionStore;
 var getCsrfKey = require("./forms").getCsrfKey;
@@ -36,6 +37,10 @@ var env = new nunjucks.Environment(
 		throwOnUndefined: true,
 	}
 );
+
+version.getGitRevision().then(function (gitRevision) {
+	env.addGlobal("siteRevision", gitRevision);
+});
 
 env.addFilter("type_name", function (fileType) {
 	return types.byId(fileType).description;

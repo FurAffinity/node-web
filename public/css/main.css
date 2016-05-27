@@ -373,3 +373,19 @@ body {
 #footer a:focus, #footer a:hover {
 	color: white;
 }
+
+#footer-stats {
+	font-size: 0.9em;
+}
+
+#footer-stats span {
+	margin: 0 0.2em;
+}
+
+#site-revision {
+	font-variant-numeric: oldstyle-nums;
+}
+
+#site-revision[title] {
+	border-bottom: 1px dotted currentColor;
+}
