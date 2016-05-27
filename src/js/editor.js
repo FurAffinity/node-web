@@ -569,6 +569,8 @@ def("editor", [], function () {
 			}
 		});
 
+		editor.content.tabIndex = textarea.tabIndex;
+
 		function addRainbowOption() {
 			var rainbowOptionInner = document.createElement("span");
 			rainbowOptionInner.className = "editor-color-option-rainbow";

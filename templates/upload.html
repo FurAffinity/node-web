@@ -7,11 +7,13 @@
 
 {% block stylesheets %}
 	{{ super() }}
+	<link rel="stylesheet" href="/css/editor.css" />
 	<link rel="stylesheet" href="/css/upload.css" />
 {% endblock %}
 
 {% block scripts %}
 	{{ super() }}
+	<script src="/js/editor.js" async></script>
 	<script src="/js/main.js" async></script>
 	<script src="/js/upload.js" async></script>
 {% endblock %}
@@ -71,10 +73,10 @@
 				<input class="text" type="text" name="title" value="{{ form.title or "" }}" tabindex="1" required />
 			</label>
 
-			<label class="field">
-				<span class="label">Description</span>
-				<textarea class="text long-text" name="description" tabindex="2">{{ form.description or "" }}</textarea>
-			</label>
+			<div class="field">
+				<label class="label" for="upload-description">Description</label>
+				<textarea class="text long-text" id="upload-description" name="description" tabindex="2">{{ form.description or "" }}</textarea>
+			</div>
 
 			<label class="field">
 				<span class="label">Tags</span>

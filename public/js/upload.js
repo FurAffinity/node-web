@@ -1,6 +1,6 @@
 "use strict";
 
-def("upload", ["button"], function (button) {
+def("upload", ["button", "editor"], function (button, editor) {
 	var SIZE_KB = 1000;
 	var SIZE_MB = 1000 * SIZE_KB;
 
@@ -550,6 +550,9 @@ def("upload", ["button"], function (button) {
 
 			e.preventDefault();
 		});
+
+		var uploadDescription = document.getElementById("upload-description");
+		editor.createEditor(uploadDescription);
 	}
 
 	function updateProgress(upload, progress) {
