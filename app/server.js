@@ -37,8 +37,6 @@ var env = new nunjucks.Environment(
 	}
 );
 
-env.addGlobal("site_root", config.site.root);
-
 env.addFilter("type_name", function (fileType) {
 	return types.byId(fileType).description;
 });
