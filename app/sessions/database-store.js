@@ -279,6 +279,7 @@ DatabaseSessionStore.prototype.getCookieHeader =
 		}
 
 		cookieHeaderParts.push("HttpOnly");
+		cookieHeaderParts.push("SameSite=Strict");
 
 		return cookieHeaderParts.join("; ");
 	};
