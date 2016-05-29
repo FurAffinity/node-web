@@ -2,6 +2,10 @@
 	<input type="hidden" name="t" value="{{ getCsrfToken(endpoint) }}" />
 {%- endmacro -%}
 
+{%- macro active(page) -%}
+	{% if page == current_page %} class="selected"{% endif %}
+{%- endmacro -%}
+
 {%- macro form_errors() -%}
 	{% if form and form.errors.form.length != 0 %}
 		<ul class="form-errors">
@@ -125,10 +129,6 @@
 		<link rel="icon" type="image/svg+xml" href="/images/favicon.svg" />
 	</head>
 	<body>
-		{% macro active(page) -%}
-			{% if page == current_page %} class="selected"{% endif %}
-		{%- endmacro %}
-
 		<header id="header">
 			<nav class="header-navigation">
 				<ul>
