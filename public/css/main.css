@@ -82,6 +82,15 @@ body {
 	min-height: 100%;
 }
 
+a {
+	color: #bdf;
+	transition: color 0.2s ease;
+}
+
+a:hover {
+	color: #fdf;
+}
+
 .button {
 	background-color: #365;
 	border: none;
@@ -98,6 +107,7 @@ body {
 	padding-bottom: 0.8em;
 	position: relative;
 	text-align: left;
+	text-decoration: none;
 	transition: background-color 0.2s ease-in;
 	white-space: nowrap;
 }
@@ -109,6 +119,7 @@ body {
 
 .button:hover {
 	background-color: #376;
+	color: white;
 	transition: background-color 0.2s ease-out;
 }
 
