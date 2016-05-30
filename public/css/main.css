@@ -180,6 +180,14 @@ a:hover {
 	top: 2px;
 }
 
+.button.button-negative {
+	background-color: #993940;
+}
+
+.button.button-negative:hover {
+	background-color: #ac3c44;
+}
+
 .text-transition {
 	display: inline-block;
 	overflow: hidden;

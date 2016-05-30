@@ -16,10 +16,12 @@ var timingSafeCompare = require("./timing-safe-compare").timingSafeCompare;
 var redisClient = require("./redis").client;
 
 var POSTGRESQL_UNIQUE_VIOLATION = "23505";
+var POSTGRESQL_SERIALIZATION_FAILURE = "40001";
 
 var NON_CANONICAL_USERNAME_CHARACTER = /_/g;
 var DISPLAY_USERNAME = /^[\w.~-]+$/;
 
+var recoveryCodeByteLength = 6;
 var registrationEmailTemplate = email.templateEnvironment.getTemplate("registration", true);
 var registrationDuplicateEmailTemplate = email.templateEnvironment.getTemplate("registration-duplicate", true);
 
@@ -129,6 +131,39 @@ function getSelectUserStatisticsQuery(userId) {
 		name: "select_user_statistics",
 		text: "SELECT COUNT(*) AS submissions FROM submissions WHERE owner = $1 AND published",
 		values: [userId],
+	};
+}
+
+function getSetupTwoFactorQuery(userId, key, lastUsedCounter) {
+	return {
+		name: "setup_two_factor",
+		text: "UPDATE users SET totp_key = $2, totp_last_used_counter = $3 WHERE id = $1 AND totp_key IS NULL",
+		values: [userId, key, lastUsedCounter],
+	};
+}
+
+function getDeleteTwoFactorRecoveryQuery(userId) {
+	return {
+		name: "delete_two_factor_recovery",
+		text: 'DELETE FROM two_factor_recovery WHERE "user" = $1',
+		values: [userId],
+	};
+}
+
+function getInsertTwoFactorRecoveryQuery(userId, recoveryCodes) {
+	// pg can’t serialize BYTEA[], so recovery codes go through base64.
+	return {
+		name: "insert_two_factor_recovery",
+		text: `
+			INSERT INTO two_factor_recovery ("user", recovery_code)
+			SELECT $1, decode(recovery_code, 'base64') FROM UNNEST ($2::TEXT[]) AS recovery_code
+		`,
+		values: [
+			userId,
+			recoveryCodes.map(function (code) {
+				return code.toString("base64");
+			}),
+		],
 	};
 }
 
@@ -312,6 +347,57 @@ function getUserStatistics(userId) {
 		});
 }
 
+function getRecoveryCodes() {
+	var recoveryCodes = [];
+
+	for (var i = 0; i < config.totp.recovery_codes; i++) {
+		recoveryCodes.push(crypto.randomBytes(recoveryCodeByteLength));
+	}
+
+	return recoveryCodes;
+}
+
+function setupTwoFactor(userId, key, lastUsedCounter) {
+	var recoveryCodes = getRecoveryCodes();
+
+	return database.queryAsync(getSetupTwoFactorQuery(userId, key, lastUsedCounter))
+		.then(function (result) {
+			if (result.rowCount !== 1) {
+				return bluebird.reject(new Error("Two-factor authentication is already enabled for this account"));
+			}
+
+			return database.queryAsync(getInsertTwoFactorRecoveryQuery(userId, recoveryCodes));
+		});
+}
+
+function regenerateTwoFactorRecovery(userId) {
+	var recoveryCodes = getRecoveryCodes();
+
+	function useTransaction(client) {
+		return client.queryAsync("SET TRANSACTION SERIALIZATION LEVEL REPEATABLE READ")
+			.then(function () {
+				return client.queryAsync(getDeleteTwoFactorRecoveryQuery(userId));
+			})
+			.then(function () {
+				return client.queryAsync(getInsertTwoFactorRecoveryQuery(userId));
+			});
+	}
+
+	function executeAndRetry() {
+		return database.withTransaction(useTransaction)
+			.catch(function (error) {
+				if (error.code === POSTGRESQL_SERIALIZATION_FAILURE) {
+					return executeAndRetry();
+				}
+
+				return bluebird.reject(error);
+			});
+	}
+
+	return executeAndRetry()
+		.return(recoveryCodes);
+}
+
 exports.EmailInvalidError = EmailInvalidError;
 exports.UsernameConflictError = UsernameConflictError;
 exports.UsernameInvalidError = UsernameInvalidError;
@@ -319,5 +405,7 @@ exports.getCanonicalUsername = getCanonicalUsername;
 exports.getUserMeta = getUserMeta;
 exports.getUserStatistics = getUserStatistics;
 exports.registerUser = registerUser;
+exports.setupTwoFactor = setupTwoFactor;
+exports.regenerateTwoFactorRecovery = regenerateTwoFactorRecovery;
 exports.verifyRegistrationKey = verifyRegistrationKey;
 exports.viewProfile = viewProfile;

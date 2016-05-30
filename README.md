@@ -1,10 +1,11 @@
 ## Dependencies
 
-- PostgreSQL 9.5
+- PostgreSQL
 - Redis
-- libvips 8.3
+- libvips
 - Pandoc
-- Node.js 5.10
+- Node.js
+- libqrencode (with tools)
 
 ## Quick start
 

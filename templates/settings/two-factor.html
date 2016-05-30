@@ -1,0 +1,34 @@
+{% extends "settings/layout.html" %}
+{% set current_page = "account-settings" %}
+
+{% block title -%}
+	Enable Two-Factor Authentication – {{ super() }}
+{%- endblock %}
+
+{% block body %}
+	<form class="settings" method="POST">
+		{{ csrf("two-factor") }}
+
+		<input type="hidden" name="key" value="{{ key.toString("base64") }}" />
+
+		<div class="otpauth">
+			<div class="otpauth-barcode">
+				<img src="{{ barcodeUri }}" alt="Two-factor authentication barcode" />
+			</div>
+
+			<div class="otpauth-instructions">
+				<p>Scan the QR code on the left using Google Authenticator or any other app that supports TOTP. You can also enter the secret key manually:</p>
+
+				<pre class="otpauth-secret">{{ encodedKey | lower }}</pre>
+
+				<p>Confirm the six-digit code to enable two-factor authentication:</p>
+
+				<input class="text otpauth-code-entry" type="text" name="otp" value="{{ form.otp or "" }}" pattern="\d{6}" inputmode="numeric" minlength="6" maxlength="6" title="enter a six-digit code" autofocus required />
+
+				<button class="button">Enable 2FA</button>
+
+				{{ field_errors_block("otp") }}
+			</div>
+		</div>
+	</form>
+{% endblock %}

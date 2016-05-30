@@ -11,3 +11,34 @@
 	margin: 0 auto;
 	max-width: 40em;
 }
+
+.otpauth {
+	display: flex;
+}
+
+.otpauth-instructions {
+	flex: 1;
+	margin-left: 1em;
+	margin-top: 0.5em;
+	line-height: 1.4;
+}
+
+.otpauth-instructions p:first-child {
+	margin-top: 0;
+}
+
+.otpauth-code-entry {
+	width: 6em;
+	vertical-align: bottom;
+}
+
+.otpauth-secret {
+	background-color: #13171a;
+	padding: 0.6em;
+	text-align: center;
+	word-spacing: -0.2em;
+}
+
+.otpauth-instructions .form-errors {
+	margin-top: 0.6em;
+}
