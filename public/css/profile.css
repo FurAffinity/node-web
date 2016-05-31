@@ -24,18 +24,25 @@
 }
 
 #profile-banner {
-	background-attachment: fixed;
-	background-size: cover;
-	box-shadow: inset 0 -2px 2px -2px rgba(0, 0, 0, 0.8);
-	margin-bottom: -4.5em;
-	margin-top: -1.6em;
-	height: 8.5em;
+	height: 20em;
+	object-fit: cover;
+	position: fixed;
+	top: 0;
 	width: 100%;
+	z-index: -1;
+}
+
+#profile-above-banner {
+	background-color: #20262c;
+	box-shadow: 0 -2px 2px -2px rgba(0, 0, 0, 0.8);
+	margin-top: 8.5em;
 }
 
 #profile-header {
 	margin: 1em;
+	position: relative;
 	text-align: center;
+	top: -3.5em;
 }
 
 #profile-header-top {
@@ -48,7 +55,7 @@
 	position: relative;
 }
 
-#profile-banner + #profile-header #profile-header-top {
+#profile-banner + #profile-above-banner #profile-header-top {
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 

@@ -34,170 +34,172 @@
 	</div>
 
 	{% if profile.banner %}
-		<div id="profile-banner" style="background-image: url('{{ profile.banner | file_path }}');"></div>
+		<img id="profile-banner" src="{{ profile.banner | file_path }}" alt="" />
 	{% endif %}
 
-	<header id="profile-header">
-		<div id="profile-header-top">
-			<img id="profile-image" src="{{ profile.image | file_path("profile") }}" alt="" width="100" height="100" />
+	<div id="profile-above-banner">
+		<header id="profile-header">
+			<div id="profile-header-top">
+				<img id="profile-image" src="{{ profile.image | file_path("profile") }}" alt="" width="100" height="100" />
 
-			<div id="profile-summary">
-				<h1 id="profile-username">{{ profile.displayUsername }}</h1>
+				<div id="profile-summary">
+					<h1 id="profile-username">{{ profile.displayUsername }}</h1>
 
-				{% if profile.fullName %}
-					<p id="profile-full-name">{{ profile.fullName }}</p>
-				{% endif %}
+					{% if profile.fullName %}
+						<p id="profile-full-name">{{ profile.fullName }}</p>
+					{% endif %}
 
-				<p id="profile-type">{{ profile.profileType or "Member" }}</p>
-			</div>
-		</div>
-
-		<div id="profile-text">
-			{% set splitText = profile.profileText | bbcodeWithExcerpt(300) %}
-			{{ splitText.excerpt }}
-
-			{% if splitText.full %}
-				<a href="#profile-text" id="profile-text-read-more">Read more</a>
-
-				<div id="profile-text-more">
-					{{ splitText.full }}
+					<p id="profile-type">{{ profile.profileType or "Member" }}</p>
 				</div>
-			{% endif %}
-		</div>
-	</header>
+			</div>
 
-	<div id="profile-main"{% if recentSubmissions.length == 0 %} class="profile-right-only"{% endif %}>
-		{% if recentSubmissions.length != 0 %}
-			<div id="profile-left">
-				{% if recentSubmissions.length != 0 %}
-					<section class="profile-section">
-						<h2 class="thumbnail-section-header">Recent Work</h2>
+			<div id="profile-text">
+				{% set splitText = profile.profileText | bbcodeWithExcerpt(300) %}
+				{{ splitText.excerpt }}
 
-						<div class="thumbnails">
-							{% for submission in recentSubmissions %}
-								<div class="thumbnail thumbnail-{{ submission.rating }}" data-id="{{ submission.id }}">
-									<div class="thumbnail-link-container">
-										<a href="/submissions/{{ submission.id }}" class="thumbnail-link">
-											<img src="
-												{%- if submission.thumbnail_hash -%}
-													/files/{{ submission.thumbnail_hash }}.{{ submission.thumbnail_type }}
-												{%- else -%}
-													/images/default-thumbnail.svg
-												{%- endif %}" class="thumbnail-image" />
-										</a>
+				{% if splitText.full %}
+					<a href="#profile-text" id="profile-text-read-more">Read more</a>
+
+					<div id="profile-text-more">
+						{{ splitText.full }}
+					</div>
+				{% endif %}
+			</div>
+		</header>
+
+		<div id="profile-main"{% if recentSubmissions.length == 0 %} class="profile-right-only"{% endif %}>
+			{% if recentSubmissions.length != 0 %}
+				<div id="profile-left">
+					{% if recentSubmissions.length != 0 %}
+						<section class="profile-section">
+							<h2 class="thumbnail-section-header">Recent Work</h2>
+
+							<div class="thumbnails">
+								{% for submission in recentSubmissions %}
+									<div class="thumbnail thumbnail-{{ submission.rating }}" data-id="{{ submission.id }}">
+										<div class="thumbnail-link-container">
+											<a href="/submissions/{{ submission.id }}" class="thumbnail-link">
+												<img src="
+													{%- if submission.thumbnail_hash -%}
+														/files/{{ submission.thumbnail_hash }}.{{ submission.thumbnail_type }}
+													{%- else -%}
+														/images/default-thumbnail.svg
+													{%- endif %}" class="thumbnail-image" />
+											</a>
+										</div>
+									</div>
+								{% endfor %}
+
+								{% set more = statistics.submissions - recentSubmissions.length %}
+
+								<div class="thumbnail thumbnail-more">
+									<div class="thumbnail-more-inner">
+										<a href="javascript:void 0">{{ more }} more</a>
 									</div>
 								</div>
-							{% endfor %}
+							</div>
+						</section>
+					{% endif %}
 
-							{% set more = statistics.submissions - recentSubmissions.length %}
+					{#
+					<section class="profile-section">
+						<h2 class="thumbnail-section-header">Recent Favorites</h2>
+
+						<div class="thumbnails">
+							<div class="thumbnail">
+								<div class="thumbnail-link-container">
+									<a href="javascript:void 0" class="thumbnail-link">
+										<img src="" class="thumbnail-image" />
+									</a>
+								</div>
+							</div>
 
 							<div class="thumbnail thumbnail-more">
 								<div class="thumbnail-more-inner">
-									<a href="javascript:void 0">{{ more }} more</a>
+									<a href="javascript:void 0">107 more</a>
 								</div>
 							</div>
 						</div>
 					</section>
-				{% endif %}
+					#}
+				</div>
+			{% endif %}
 
-				{#
+			<div id="profile-right">
 				<section class="profile-section">
-					<h2 class="thumbnail-section-header">Recent Favorites</h2>
+					<h2>Latest Journal</h2>
 
-					<div class="thumbnails">
-						<div class="thumbnail">
-							<div class="thumbnail-link-container">
-								<a href="javascript:void 0" class="thumbnail-link">
-									<img src="" class="thumbnail-image" />
-								</a>
-							</div>
+					<article id="profile-journal" class="journal">
+						<header class="journal-header">
+							<h3 class="journal-title">Example journal</h3>
+							<div class="journal-info"><time datetime="2016-01-22T18:49:15Z" pubdate>2 days ago</time></div>
+						</header>
+
+						<div class="journal-body">
+							<p>Lorem ipsum dolor sit amet, consectetur adipiscing
+							elit. Curabitur quis interdum leo. In risus nulla,
+							ultricies varius diam vitae, pretium dictum lorem.
+							Aliquam eget dolor felis. Fusce neque nisl, imperdiet
+							placerat dignissim ac, auctor in ex. Nullam a convallis
+							enim, sagittis venenatis tortor. In rhoncus velit id
+							magna feugiat ultrices. Duis nunc erat, ornare ac
+							auctor posuere, semper porta odio. Aenean consequat
+							ipsum vel facilisis tincidunt. Vivamus et sem volutpat,
+							fermentum purus eu, facilisis diam. Suspendisse ac
+							tellus et arcu pulvinar varius maximus eu orci.</p>
+
+							<p>Curabitur in felis non lacus tincidunt placerat.
+							Duis tristique facilisis ornare. Mauris sit amet turpis
+							mattis, pellentesque nisi in, auctor elit. Proin
+							placerat, mi in blandit rutrum, nunc sem ultrices quam,
+							at tristique erat lectus a leo. Ut ac ante hendrerit,
+							efficitur turpis id, pharetra ex. Etiam euismod erat a
+							tincidunt porta. Duis pellentesque, nisl eu varius
+							maximus, dolor diam consequat est, eget interdum urna
+							nulla in magna. Duis finibus dui sit amet nisi
+							vulputate, et sollicitudin purus efficitur.</p>
 						</div>
 
-						<div class="thumbnail thumbnail-more">
-							<div class="thumbnail-more-inner">
-								<a href="javascript:void 0">107 more</a>
+						<footer class="journal-footer">
+							<a href="javascript:void 0">230 comments</a>
+						</footer>
+					</article>
+				</section>
+
+				<section class="profile-section">
+					<h2>Statistics</h2>
+
+					<dl>
+						<dt>Joined</dt>
+						<dd>{{ profile.created | relative_date }}</dd>
+
+						<dt>Submissions</dt>
+						<dd>{{ statistics.submissions }}</dd>
+					</dl>
+				</section>
+
+				<section class="profile-section">
+					<h2>Shouts</h2>
+
+					<div class="comment-list">
+						<div class="comment">
+							<div class="comment-inner">
+								<header>
+									<img src="avatar.png" alt="" class="comment-author-image" />
+
+									<div class="comment-info">
+										<a href="javascript:void 0" class="comment-author">author</a>
+									</div>
+								</header>
+
+								<div class="comment-body">
+									<p>comment body</p>
+								</div>
 							</div>
 						</div>
 					</div>
 				</section>
-				#}
 			</div>
-		{% endif %}
-
-		<div id="profile-right">
-			<section class="profile-section">
-				<h2>Latest Journal</h2>
-
-				<article id="profile-journal" class="journal">
-					<header class="journal-header">
-						<h3 class="journal-title">Example journal</h3>
-						<div class="journal-info"><time datetime="2016-01-22T18:49:15Z" pubdate>2 days ago</time></div>
-					</header>
-
-					<div class="journal-body">
-						<p>Lorem ipsum dolor sit amet, consectetur adipiscing
-						elit. Curabitur quis interdum leo. In risus nulla,
-						ultricies varius diam vitae, pretium dictum lorem.
-						Aliquam eget dolor felis. Fusce neque nisl, imperdiet
-						placerat dignissim ac, auctor in ex. Nullam a convallis
-						enim, sagittis venenatis tortor. In rhoncus velit id
-						magna feugiat ultrices. Duis nunc erat, ornare ac
-						auctor posuere, semper porta odio. Aenean consequat
-						ipsum vel facilisis tincidunt. Vivamus et sem volutpat,
-						fermentum purus eu, facilisis diam. Suspendisse ac
-						tellus et arcu pulvinar varius maximus eu orci.</p>
-
-						<p>Curabitur in felis non lacus tincidunt placerat.
-						Duis tristique facilisis ornare. Mauris sit amet turpis
-						mattis, pellentesque nisi in, auctor elit. Proin
-						placerat, mi in blandit rutrum, nunc sem ultrices quam,
-						at tristique erat lectus a leo. Ut ac ante hendrerit,
-						efficitur turpis id, pharetra ex. Etiam euismod erat a
-						tincidunt porta. Duis pellentesque, nisl eu varius
-						maximus, dolor diam consequat est, eget interdum urna
-						nulla in magna. Duis finibus dui sit amet nisi
-						vulputate, et sollicitudin purus efficitur.</p>
-					</div>
-
-					<footer class="journal-footer">
-						<a href="javascript:void 0">230 comments</a>
-					</footer>
-				</article>
-			</section>
-
-			<section class="profile-section">
-				<h2>Statistics</h2>
-
-				<dl>
-					<dt>Joined</dt>
-					<dd>{{ profile.created | relative_date }}</dd>
-
-					<dt>Submissions</dt>
-					<dd>{{ statistics.submissions }}</dd>
-				</dl>
-			</section>
-
-			<section class="profile-section">
-				<h2>Shouts</h2>
-
-				<div class="comment-list">
-					<div class="comment">
-						<div class="comment-inner">
-							<header>
-								<img src="avatar.png" alt="" class="comment-author-image" />
-
-								<div class="comment-info">
-									<a href="javascript:void 0" class="comment-author">author</a>
-								</div>
-							</header>
-
-							<div class="comment-body">
-								<p>comment body</p>
-							</div>
-						</div>
-					</div>
-				</div>
-			</section>
 		</div>
 	</div>
 {% endblock %}
