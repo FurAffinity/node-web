@@ -37,8 +37,19 @@ function createBanner(originalPath, originalType) {
 	return sharp(originalPath)
 		.metadata()
 		.then(function (metadata) {
-			var resizeWidth = Math.min(metadata.width, 3840);
-			var resizeHeight = Math.min(metadata.height, 910);
+			var width;
+			var height;
+
+			if (metadata.orientation >= 5) {
+				width = metadata.height;
+				height = metadata.width;
+			} else {
+				width = metadata.width;
+				height = metadata.height;
+			}
+
+			var resizeWidth = Math.min(width, 3840);
+			var resizeHeight = Math.min(height, 910);
 
 			return sharp(originalPath)
 				.limitInputPixels(BANNER_PIXEL_LIMIT)

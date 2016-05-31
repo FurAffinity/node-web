@@ -58,7 +58,7 @@ router.post("/settings/profile",
 		users.updateProfile(
 			req.user.id,
 			{
-				banner: form["banner"],
+				banner: form.banner,
 				profileImage: form["profile-image"],
 				fullName: form["full-name"],
 				profileType: form["profile-type"],
