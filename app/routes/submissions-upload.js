@@ -8,10 +8,11 @@ var files = require("../files");
 var forms = require("../forms");
 var permissions = require("../permissions");
 var submissions = require("../submissions");
+var types = require("../files/types");
 var wrap = require("./wrap").wrap;
 
 function readFile(stream, filename) {
-	return files.storeUpload(stream)
+	return files.storeUpload(stream, types.submissionGenerators)
 		.tap(function (submissionFiles) {
 			submissionFiles.filename = filename;
 		})

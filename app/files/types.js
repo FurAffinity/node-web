@@ -15,58 +15,66 @@ var types = [
 		mediaType: "image/jpeg",
 		submissionType: "image",
 		description: "JPEG",
-		generators: [generators.thumbnail],
 	},
 	{
 		id: "png",
 		mediaType: "image/png",
 		submissionType: "image",
 		description: "PNG",
-		generators: [generators.thumbnail],
 	},
 	{
 		id: "mp3",
 		mediaType: "audio/mpeg",
 		submissionType: "audio",
 		description: "MP3",
-		generators: [generators.ogg, generators.waveform],
 	},
 	{
 		id: "ogg",
 		mediaType: "audio/ogg",
 		submissionType: "audio",
 		description: "Vorbis",
-		generators: [generators.waveform],
 	},
 	{
 		id: "flac",
 		mediaType: "audio/x-flac",
 		submissionType: "audio",
 		description: "FLAC",
-		generators: [generators.ogg, generators.waveform],
 	},
 	{
 		id: "m4a",
 		mediaType: "audio/x-m4a",
 		submissionType: "audio",
 		description: "AAC",
-		generators: [generators.ogg, generators.waveform],
 	},
 	{
 		id: "docx",
 		mediaType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 		submissionType: "text",
 		description: "Word document",
-		generators: [generators.html],
 	},
 	{
 		id: "epub",
 		mediaType: "application/epub+zip",
 		submissionType: "text",
 		description: "EPUB",
-		generators: [generators.html],
 	},
 ];
+
+var submissionGenerators = {
+	jpg: [generators.thumbnail],
+	png: [generators.thumbnail],
+	mp3: [generators.ogg, generators.waveform],
+	ogg: [generators.waveform],
+	flac: [generators.ogg, generators.waveform],
+	m4a: [generators.ogg, generators.waveform],
+	docx: [generators.html],
+	epub: [generators.html],
+};
+
+var profileImageGenerators = {
+	jpg: [generators.profileImage],
+	png: [generators.profileImage],
+};
 
 var idMap = Object.create(null);
 var mediaTypeMap = Object.create(null);
@@ -94,4 +102,6 @@ function byMediaType(mediaType) {
 
 exports.byId = byId;
 exports.byMediaType = byMediaType;
+exports.profileImageGenerators = profileImageGenerators;
+exports.submissionGenerators = submissionGenerators;
 exports.types = types;

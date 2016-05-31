@@ -117,12 +117,35 @@ function getViewProfileQuery(userId) {
 		name: "view_profile",
 		text: `
 			SELECT
-				display_username, full_name, profile_text, files.hash AS image_hash, image_type, created
+				display_username, full_name, profile_text, profile_type, files.hash AS image_hash, image_type, created
 			FROM users
 				LEFT JOIN files ON users.image = files.id
 			WHERE users.id = $1 AND active
 		`,
 		values: [userId],
+	};
+}
+
+function getUpdateProfileQuery(userId, profileInfo) {
+	var name = "update_profile";
+	var set = ["full_name = $2", "profile_text = $3", "profile_type = $4"];
+	var values = [userId, profileInfo.fullName, profileInfo.profileText, profileInfo.profileType];
+
+	var profileImage = profileInfo.profileImage;
+
+	if (profileImage !== null) {
+		name += "_with_image";
+		set.push("image = $" + (set.length + 2));
+		values.push(profileImage.id);
+
+		set.push("image_type = $" + (set.length + 2));
+		values.push(profileImage.type);
+	}
+
+	return {
+		name: name,
+		text: "UPDATE users SET " + set.join(", ") + " WHERE id = $1",
+		values: values,
 	};
 }
 
@@ -333,10 +356,20 @@ function viewProfile(userId) {
 				displayUsername: row.display_username,
 				fullName: row.full_name,
 				profileText: row.profile_text,
+				profileType: row.profile_type,
 				created: row.created,
 				image: getFile(row.image_hash, row.image_type),
 				banner: null,
 			};
+		});
+}
+
+function updateProfile(userId, profileInfo) {
+	return database.queryAsync(getUpdateProfileQuery(userId, profileInfo))
+		.then(function (result) {
+			return result.rowCount === 1 ?
+				bluebird.resolve() :
+				bluebird.reject(new Error("Expected user"));
 		});
 }
 
@@ -404,8 +437,9 @@ exports.UsernameInvalidError = UsernameInvalidError;
 exports.getCanonicalUsername = getCanonicalUsername;
 exports.getUserMeta = getUserMeta;
 exports.getUserStatistics = getUserStatistics;
+exports.regenerateTwoFactorRecovery = regenerateTwoFactorRecovery;
 exports.registerUser = registerUser;
 exports.setupTwoFactor = setupTwoFactor;
-exports.regenerateTwoFactorRecovery = regenerateTwoFactorRecovery;
+exports.updateProfile = updateProfile;
 exports.verifyRegistrationKey = verifyRegistrationKey;
 exports.viewProfile = viewProfile;

@@ -4,17 +4,64 @@ var express = require("express");
 
 var config = require("../config");
 var duration = require("../duration");
+var files = require("../files");
+var filters = require("../filters");
 var forms = require("../forms");
 var permissions = require("../permissions");
 var rateLimit = require("../rate-limit");
 var totp = require("../totp");
+var types = require("../files/types");
 var users = require("../users");
 
 var router = new express.Router();
 
-router.get("/settings/profile", permissions.user.middleware, function (req, res) {
-	res.render("settings/profile.html");
+function readProfileImage(stream) {
+	return files.storeUploadOrEmpty(stream, types.profileImageGenerators)
+		.then(function (generatedFiles) {
+			return generatedFiles && generatedFiles.profileImage;
+		});
+}
+
+router.get("/settings/profile", permissions.user.middleware, function (req, res, next) {
+	users.viewProfile(req.user.id).done(
+		function (profile) {
+			res.render("settings/profile.html", {
+				profile: profile,
+			});
+		},
+		next
+	);
 });
+
+router.post("/settings/profile",
+	permissions.user.middleware,
+	forms.getReader({
+		name: "profile-settings",
+		fields: {
+			"profile-image": forms.oneFile(readProfileImage),
+			"full-name": forms.one,
+			"profile-type": forms.one,
+			"profile-text": forms.one,
+		},
+	}),
+	function (req, res, next) {
+		var form = req.form;
+
+		users.updateProfile(
+			req.user.id,
+			{
+				profileImage: form["profile-image"],
+				fullName: form["full-name"],
+				profileType: form["profile-type"],
+				profileText: form["profile-text"],
+			}
+		).done(
+			function () {
+				res.redirect(filters.userPath(req.user));
+			},
+			next
+		);
+	});
 
 router.get("/settings/account", permissions.user.middleware, function (req, res) {
 	res.render("settings/account.html");

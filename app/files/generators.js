@@ -9,7 +9,28 @@ var unlinkAsync = bluebird.promisify(fs.unlink);
 
 var files = require("./");
 
+var PROFILE_IMAGE_PIXEL_LIMIT = 8000 * 8000;
 var SUBMISSION_PIXEL_LIMIT = 8000 * 8000;
+
+function createProfileImage(originalPath, originalType) {
+	return sharp(originalPath)
+		.limitInputPixels(PROFILE_IMAGE_PIXEL_LIMIT)
+		.rotate()
+		.resize(200, 200)
+		.withoutEnlargement()
+		.interpolateWith("nohalo")
+		.crop(sharp.strategy.entropy)
+		.compressionLevel(9)
+		.quality(100)
+		.trellisQuantisation()
+		.optimiseScans()
+		.toBuffer()
+		.then(files.insertBuffer)
+		.tap(function (file) {
+			file.type = originalType;
+			file.role = "profileImage";
+		});
+}
 
 function createThumbnail(originalPath, originalType) {
 	return sharp(originalPath)
@@ -152,6 +173,7 @@ function createHtml(originalPath, originalType) {
 	});
 }
 
+exports.profileImage = createProfileImage;
 exports.thumbnail = createThumbnail;
 exports.ogg = createOgg;
 exports.waveform = createWaveform;

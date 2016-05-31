@@ -52,6 +52,7 @@ CREATE TABLE users (
 	display_username TEXT NOT NULL,
 	full_name TEXT NOT NULL DEFAULT '',
 	profile_text TEXT NOT NULL DEFAULT '',
+	profile_type TEXT NOT NULL DEFAULT '',
 	image INTEGER REFERENCES files (id),
 	image_type file_type,
 	views INTEGER NOT NULL DEFAULT 0,

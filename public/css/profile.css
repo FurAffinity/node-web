@@ -66,6 +66,7 @@
 	border-radius: 2px;
 	display: inline-block;
 	margin-right: 0.8em;
+	object-fit: scale-down;
 	position: relative;
 	vertical-align: middle;
 }

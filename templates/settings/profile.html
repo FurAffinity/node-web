@@ -21,7 +21,7 @@
 
 		<label class="field">
 			<span class="label">Profile picture</span>
-			<input type="file" name="profile-picture" accept="image/*" />
+			<input type="file" name="profile-image" accept="image/*" />
 		</label>
 
 		<label class="field">
@@ -32,19 +32,19 @@
 		<div class="field-horizontal">
 			<label class="field">
 				<span class="label">Full name</span>
-				<input class="text" type="text" name="full-name" value="" placeholder="{{ user.displayUsername | capitalize }}" />
+				<input class="text" type="text" name="full-name" value="{{ profile.fullName }}" placeholder="{{ user.displayUsername | capitalize }}" />
 			</label>
 
 			<label class="field">
 				<span class="label">Artist type</span>
-				<input class="text" type="text" name="artist-type" value="" placeholder="Photographer" />
+				<input class="text" type="text" name="profile-type" value="{{ profile.profileType }}" placeholder="Photographer" />
 			</label>
 		</div>
 
 		<div class="field">
 			<label class="label" for="profile-text">Profile text</label>
 
-			<textarea id="profile-text" class="text long-text editor-textarea" name="profile-text"></textarea>
+			<textarea id="profile-text" class="text long-text editor-textarea" name="profile-text">{{ profile.profileText }}</textarea>
 
 			<script>
 			req(["editor"], function (editor) {

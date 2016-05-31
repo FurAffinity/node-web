@@ -4,6 +4,7 @@ var bluebird = require("bluebird");
 var crypto = require("crypto");
 var fs = require("fs");
 var path = require("path");
+var stream = require("stream");
 
 var readFileAsync = bluebird.promisify(fs.readFile);
 var unlinkAsync = bluebird.promisify(fs.unlink);
@@ -171,7 +172,7 @@ function getOriginalGenerator(hexDigest, byteSize) {
 	};
 }
 
-function storeUpload(uploadStream) {
+function storeUpload(uploadStream, typeGenerators) {
 	return bluebird.using(getTemporary(), function (temporary) {
 		return new bluebird.Promise(function (resolve, reject) {
 			var hash = crypto.createHash("sha256");
@@ -182,9 +183,13 @@ function storeUpload(uploadStream) {
 			function temporaryFileIdentified(fileType) {
 				var hexDigest = hash.read().toString("hex");
 
+				if (!typeGenerators.hasOwnProperty(fileType.id)) {
+					return bluebird.reject(new Error("Unexpected file type: " + fileType.id));
+				}
+
 				var generators =
 					[getOriginalGenerator(hexDigest, byteSize)]
-						.concat(fileType.generators);
+						.concat(typeGenerators[fileType.id]);
 
 				return (
 					bluebird.map(generators, function (generator) {
@@ -240,6 +245,29 @@ function storeUpload(uploadStream) {
 	});
 }
 
+function storeUploadOrEmpty(uploadStream, typeGenerators) {
+	return new bluebird.Promise(function (resolve) {
+		function endListener() {
+			resolve(null);
+		}
+
+		function dataListener(data) {
+			uploadStream.removeListener("data", dataListener);
+			uploadStream.removeListener("end", endListener);
+
+			var passthrough = new stream.PassThrough();
+
+			passthrough.write(data);
+			uploadStream.pipe(passthrough);
+
+			resolve(storeUpload(passthrough, typeGenerators));
+		}
+
+		uploadStream.on("data", dataListener);
+		uploadStream.on("end", endListener);
+	});
+}
+
 function readFile(hexDigest, encoding) {
 	return readFileAsync(getStoragePath(hexDigest), encoding);
 }
@@ -250,3 +278,4 @@ exports.insertBuffer = insertBuffer;
 exports.insertFile = insertFile;
 exports.readFile = readFile;
 exports.storeUpload = storeUpload;
+exports.storeUploadOrEmpty = storeUploadOrEmpty;
