@@ -76,6 +76,11 @@ var profileImageGenerators = {
 	png: [generators.profileImage],
 };
 
+var bannerGenerators = {
+	jpg: [generators.banner],
+	png: [generators.banner],
+};
+
 var idMap = Object.create(null);
 var mediaTypeMap = Object.create(null);
 
@@ -100,6 +105,7 @@ function byMediaType(mediaType) {
 	return mediaTypeMap[mediaType];
 }
 
+exports.bannerGenerators = bannerGenerators;
 exports.byId = byId;
 exports.byMediaType = byMediaType;
 exports.profileImageGenerators = profileImageGenerators;

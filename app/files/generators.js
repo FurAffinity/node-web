@@ -10,6 +10,7 @@ var unlinkAsync = bluebird.promisify(fs.unlink);
 var files = require("./");
 
 var PROFILE_IMAGE_PIXEL_LIMIT = 8000 * 8000;
+var BANNER_PIXEL_LIMIT = 8000 * 8000;
 var SUBMISSION_PIXEL_LIMIT = 8000 * 8000;
 
 function createProfileImage(originalPath, originalType) {
@@ -29,6 +30,33 @@ function createProfileImage(originalPath, originalType) {
 		.tap(function (file) {
 			file.type = originalType;
 			file.role = "profileImage";
+		});
+}
+
+function createBanner(originalPath, originalType) {
+	return sharp(originalPath)
+		.metadata()
+		.then(function (metadata) {
+			var resizeWidth = Math.min(metadata.width, 3840);
+			var resizeHeight = Math.min(metadata.height, 910);
+
+			return sharp(originalPath)
+				.limitInputPixels(BANNER_PIXEL_LIMIT)
+				.rotate()
+				.resize(resizeWidth, resizeHeight)
+				.withoutEnlargement()
+				.interpolateWith("nohalo")
+				.crop()
+				.compressionLevel(9)
+				.quality(100)
+				.trellisQuantisation()
+				.optimiseScans()
+				.toBuffer()
+				.then(files.insertBuffer)
+				.tap(function (file) {
+					file.type = originalType;
+					file.role = "banner";
+				});
 		});
 }
 
@@ -173,6 +201,7 @@ function createHtml(originalPath, originalType) {
 	});
 }
 
+exports.banner = createBanner;
 exports.profileImage = createProfileImage;
 exports.thumbnail = createThumbnail;
 exports.ogg = createOgg;

@@ -117,9 +117,10 @@ function getViewProfileQuery(userId) {
 		name: "view_profile",
 		text: `
 			SELECT
-				display_username, full_name, profile_text, profile_type, files.hash AS image_hash, image_type, created
+				display_username, full_name, profile_text, profile_type, image_files.hash AS image_hash, image_type, banner_files.hash AS banner_hash, banner_type, created
 			FROM users
-				LEFT JOIN files ON users.image = files.id
+				LEFT JOIN files image_files ON users.image = image_files.id
+				LEFT JOIN files banner_files ON users.banner = banner_files.id
 			WHERE users.id = $1 AND active
 		`,
 		values: [userId],
@@ -140,6 +141,17 @@ function getUpdateProfileQuery(userId, profileInfo) {
 
 		set.push("image_type = $" + (set.length + 2));
 		values.push(profileImage.type);
+	}
+
+	var banner = profileInfo.banner;
+
+	if (banner !== null) {
+		name += "_with_banner";
+		set.push("banner = $" + (set.length + 2));
+		values.push(banner.id);
+
+		set.push("banner_type = $" + (set.length + 2));
+		values.push(banner.type);
 	}
 
 	return {
@@ -359,7 +371,7 @@ function viewProfile(userId) {
 				profileType: row.profile_type,
 				created: row.created,
 				image: getFile(row.image_hash, row.image_type),
-				banner: null,
+				banner: getFile(row.banner_hash, row.banner_type),
 			};
 		});
 }

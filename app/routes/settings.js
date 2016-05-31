@@ -22,6 +22,13 @@ function readProfileImage(stream) {
 		});
 }
 
+function readBanner(stream) {
+	return files.storeUploadOrEmpty(stream, types.bannerGenerators)
+		.then(function (generatedFiles) {
+			return generatedFiles && generatedFiles.banner;
+		});
+}
+
 router.get("/settings/profile", permissions.user.middleware, function (req, res, next) {
 	users.viewProfile(req.user.id).done(
 		function (profile) {
@@ -39,6 +46,7 @@ router.post("/settings/profile",
 		name: "profile-settings",
 		fields: {
 			"profile-image": forms.oneFile(readProfileImage),
+			"banner": forms.oneFile(readBanner),
 			"full-name": forms.one,
 			"profile-type": forms.one,
 			"profile-text": forms.one,
@@ -50,6 +58,7 @@ router.post("/settings/profile",
 		users.updateProfile(
 			req.user.id,
 			{
+				banner: form["banner"],
 				profileImage: form["profile-image"],
 				fullName: form["full-name"],
 				profileType: form["profile-type"],
