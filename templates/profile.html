@@ -53,16 +53,19 @@
 				</div>
 			</div>
 
-			<div id="profile-text">
+			<div id="profile-text" class="open">
 				{% set splitText = profile.profileText | bbcodeWithExcerpt(300) %}
-				{{ splitText.excerpt }}
 
 				{% if splitText.full %}
-					<a href="#profile-text" id="profile-text-read-more">Read more</a>
+					<div id="profile-text-excerpt">
+						{{ splitText.excerpt }}
+					</div>
 
-					<div id="profile-text-more">
+					<div id="profile-text-full">
 						{{ splitText.full }}
 					</div>
+				{% else %}
+					{{ splitText.excerpt }}
 				{% endif %}
 			</div>
 		</header>
@@ -202,4 +205,6 @@
 			</div>
 		</div>
 	</div>
+
+	<script src="/js/profile.js"></script>
 {% endblock %}

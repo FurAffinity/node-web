@@ -120,6 +120,7 @@
 	font-size: 0.9em;
 	margin-top: -1em;
 	opacity: 0.6;
+	outline: none;
 	text-decoration: none;
 	text-transform: lowercase;
 	transition: opacity 0.2s ease;
@@ -129,8 +130,16 @@
 	opacity: 1;
 }
 
-#profile-text-more {
+#profile-text-full {
 	display: none;
+}
+
+#profile-text.open #profile-text-excerpt {
+	display: none;
+}
+
+#profile-text.open #profile-text-full {
+	display: block;
 }
 
 #profile-main {
