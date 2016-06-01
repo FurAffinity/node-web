@@ -1,0 +1,60 @@
+{% extends "settings/layout.html" %}
+{% set current_page = "browsing-settings" %}
+
+{% block title -%}
+	Browsing Settings – {{ super() }}
+{%- endblock %}
+
+{% block scripts %}
+	{{ super() }}
+	<script src="/js/main.js" async></script>
+{% endblock %}
+
+{% block body %}
+	<form id="browsing-settings" class="settings" method="POST">
+		{{ csrf("browsing-settings") }}
+
+		{% if updated %}
+			<div class="form-status form-status-success">
+				Preferences updated!
+			</div>
+		{% endif %}
+
+		<div class="field">
+			<span class="label">Maximum rating</span>
+
+			<label class="rating-option">
+				<input type="radio" name="rating" value="general" required{% if user.ratingPreference == "general" %} checked{% endif %} />
+
+				<span class="rating-info">
+					<span class="rating-name">General</span>
+					<p class="rating-description">Content suitable for all ages.</p>
+				</span>
+			</label>
+
+			<label class="rating-option">
+				<input type="radio" name="rating" value="mature" required{% if user.ratingPreference == "mature" %} checked{% endif %} />
+
+				<span class="rating-info">
+					<span class="rating-name">Mature</span>
+					<p class="rating-description">(description)</p>
+				</span>
+			</label>
+
+			<label class="rating-option">
+				<input type="radio" name="rating" value="adult" required{% if user.ratingPreference == "adult" %} checked{% endif %} />
+
+				<span class="rating-info">
+					<span class="rating-name">Adult</span>
+					<p class="rating-description">(description)</p>
+				</span>
+			</label>
+		</div>
+
+		<div class="form-actions">
+			<button class="button button-apply-changes">Save Preferences</button>
+		</div>
+	</form>
+
+	<script src="/js/browsing-settings.js"></script>
+{% endblock %}

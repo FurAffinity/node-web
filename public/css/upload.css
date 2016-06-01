@@ -359,22 +359,6 @@
 	cursor: grabbing;
 }
 
-.rating-option {
-	align-items: center;
-	display: flex;
-	margin: 0.6em 0;
-}
-
-.rating-option .rating-info {
-	margin-left: 0.4em;
-}
-
-.rating-option .rating-description {
-	color: rgba(255, 255, 255, 0.7);
-	font-size: 0.9em;
-	margin: 0;
-}
-
 @media (max-width: 50em) {
 	#new-submission-form {
 		flex-direction: column;

@@ -13,6 +13,12 @@ var totp = require("../totp");
 var types = require("../files/types");
 var users = require("../users");
 
+var validRatings = new Set([
+	"general",
+	"mature",
+	"adult",
+]);
+
 var router = new express.Router();
 
 function readProfileImage(stream) {
@@ -67,6 +73,35 @@ router.post("/settings/profile",
 		).done(
 			function () {
 				res.redirect(filters.userPath(req.user));
+			},
+			next
+		);
+	});
+
+router.get("/settings/browsing", permissions.user.middleware, function (req, res) {
+	res.render("settings/browsing.html", { updated: false });
+});
+
+router.post("/settings/browsing",
+	permissions.user.middleware,
+	forms.getReader({
+		name: "browsing-settings",
+		fields: {
+			rating: forms.one,
+		},
+	}),
+	function (req, res, next) {
+		var form = req.form;
+
+		if (!validRatings.has(form.rating)) {
+			res.status(400).send("Invalid rating");
+			return;
+		}
+
+		users.updatePreferences(req.user.id, form).done(
+			function () {
+				req.user.ratingPreference = form.rating;
+				res.render("settings/browsing.html", { updated: true });
 			},
 			next
 		);

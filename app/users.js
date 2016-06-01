@@ -67,7 +67,7 @@ function getFile(hash, type) {
 function getSelectUserMetaQuery(userId) {
 	return {
 		name: "select_user_meta",
-		text: "SELECT username, display_username FROM users WHERE id = $1",
+		text: "SELECT username, display_username, rating_preference FROM users WHERE id = $1",
 		values: [userId],
 	};
 }
@@ -161,6 +161,14 @@ function getUpdateProfileQuery(userId, profileInfo) {
 	};
 }
 
+function getUpdatePreferencesQuery(userId, preferences) {
+	return {
+		name: "update_preferences",
+		text: "UPDATE users SET rating_preference = $2 WHERE id = $1",
+		values: [userId, preferences.rating],
+	};
+}
+
 function getSelectUserStatisticsQuery(userId) {
 	return {
 		name: "select_user_statistics",
@@ -221,34 +229,39 @@ function isValidDisplayUsername(displayUsername) {
 }
 
 function getUserMeta(userId) {
-	return redisClient.hgetAsync("display_usernames", userId)
-		.then(function (result) {
-			if (result) {
+	return bluebird.all([
+		redisClient.hgetAsync("display_usernames", userId),
+		redisClient.hgetAsync("rating_preferences", userId),
+	]).spread(function (displayUsername, ratingPreference) {
+		if (displayUsername && ratingPreference) {
+			return {
+				id: userId,
+				username: getCanonicalUsername(displayUsername),
+				displayUsername: displayUsername,
+				ratingPreference: ratingPreference,
+			};
+		}
+
+		return database.queryAsync(getSelectUserMetaQuery(userId))
+			.then(function (result) {
+				if (result.rows.length !== 1) {
+					return bluebird.reject(new Error("Expected user"));
+				}
+
+				var row = result.rows[0];
+
 				return {
 					id: userId,
-					username: getCanonicalUsername(result),
-					displayUsername: result,
+					username: row.username,
+					displayUsername: row.display_username,
+					ratingPreference: row.rating_preference,
 				};
-			}
-
-			return database.queryAsync(getSelectUserMetaQuery(userId))
-				.then(function (result) {
-					if (result.rows.length !== 1) {
-						return bluebird.reject(new Error("Expected user"));
-					}
-
-					var row = result.rows[0];
-
-					return {
-						id: userId,
-						username: row.username,
-						displayUsername: row.display_username,
-					};
-				})
-				.tap(function (userMeta) {
-					redisClient.hsetAsync("display_usernames", userId, userMeta.displayUsername);
-				});
-		});
+			})
+			.tap(function (userMeta) {
+				redisClient.hsetAsync("display_usernames", userId, userMeta.displayUsername);
+				redisClient.hsetAsync("rating_preferences", userId, userMeta.ratingPreference);
+			});
+	});
 }
 
 function registerUser(userInfo) {
@@ -385,6 +398,17 @@ function updateProfile(userId, profileInfo) {
 		});
 }
 
+function updatePreferences(userId, preferences) {
+	return bluebird.all([
+		database.queryAsync(getUpdatePreferencesQuery(userId, preferences)),
+		redisClient.hsetAsync("rating_preferences", userId, preferences.rating),
+	]).spread(function (result) {
+		return result.rowCount === 1 ?
+			bluebird.resolve() :
+			bluebird.reject(new Error("Expected user"));
+	});
+}
+
 function getUserStatistics(userId) {
 	return database.queryAsync(getSelectUserStatisticsQuery(userId))
 		.then(function (result) {
@@ -452,6 +476,7 @@ exports.getUserStatistics = getUserStatistics;
 exports.regenerateTwoFactorRecovery = regenerateTwoFactorRecovery;
 exports.registerUser = registerUser;
 exports.setupTwoFactor = setupTwoFactor;
+exports.updatePreferences = updatePreferences;
 exports.updateProfile = updateProfile;
 exports.verifyRegistrationKey = verifyRegistrationKey;
 exports.viewProfile = viewProfile;

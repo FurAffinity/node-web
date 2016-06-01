@@ -7,6 +7,11 @@ var errors = require("./errors");
 var files = require("./files");
 var types = require("./files/types");
 
+var guestViewer = {
+	id: null,
+	ratingPreference: "general",
+};
+
 function SubmissionNotFoundError() {
 	errors.ApplicationError.call(this, "Submission not found");
 }
@@ -179,7 +184,7 @@ function getInsertCommentQuery(submissionId, parentId, userId, text) {
 	};
 }
 
-function getSelectRecentSubmissionsQuery(viewerId) {
+function getSelectRecentSubmissionsQuery(viewer) {
 	return {
 		name: "select_recent_submissions",
 		text: `
@@ -188,13 +193,15 @@ function getSelectRecentSubmissionsQuery(viewerId) {
 			FROM submissions
 				LEFT JOIN files ON submissions.thumbnail = files.id
 				LEFT JOIN hidden_submissions ON submissions.id = hidden_submissions.submission AND hidden_submissions.hidden_by = $1
-			WHERE submissions.published
+			WHERE
+				submissions.published AND
+				submissions.rating <= $2
 			GROUP BY submissions.id, files.id
 			HAVING COUNT(hidden_submissions.submission) = 0
 			ORDER BY id DESC
 			LIMIT 20
 		`,
-		values: [viewerId],
+		values: [viewer.id, viewer.ratingPreference],
 	};
 }
 
@@ -214,7 +221,7 @@ function getUnhideSubmissionQuery(viewerId, submissionId) {
 	};
 }
 
-function getSelectRecentUserSubmissionsQuery(viewerId, userId) {
+function getSelectRecentUserSubmissionsQuery(viewer, userId) {
 	return {
 		name: "select_recent_user_submissions",
 		text: `
@@ -223,14 +230,16 @@ function getSelectRecentUserSubmissionsQuery(viewerId, userId) {
 			FROM submissions
 				LEFT JOIN files ON submissions.thumbnail = files.id
 				LEFT JOIN hidden_submissions ON submissions.id = hidden_submissions.submission AND hidden_submissions.hidden_by = $1
-			WHERE submissions.published
-				AND submissions.owner = $2
+			WHERE
+				submissions.published AND
+				submissions.owner = $2 AND
+				submissions.rating <= $3
 			GROUP BY submissions.id, files.id
 			HAVING COUNT(hidden_submissions.submission) = 0
 			ORDER BY id DESC
 			LIMIT 11
 		`,
-		values: [viewerId, userId],
+		values: [viewer.id, userId, viewer.ratingPreference],
 	};
 }
 
@@ -412,9 +421,7 @@ function createComment(submissionId, parentId, userId, text) {
 }
 
 function getRecentSubmissions(viewer) {
-	var viewerId = viewer && viewer.id;
-
-	return database.queryAsync(getSelectRecentSubmissionsQuery(viewerId))
+	return database.queryAsync(getSelectRecentSubmissionsQuery(viewer || guestViewer))
 		.then(function (result) {
 			return result.rows.map(function (row) {
 				return {
@@ -492,9 +499,7 @@ function unhideSubmission(viewerId, submissionId) {
 }
 
 function getRecentUserSubmissions(viewer, userId) {
-	var viewerId = viewer && viewer.id;
-
-	return database.queryAsync(getSelectRecentUserSubmissionsQuery(viewerId, userId))
+	return database.queryAsync(getSelectRecentUserSubmissionsQuery(viewer || guestViewer, userId))
 		.then(function (result) {
 			return result.rows;
 		});

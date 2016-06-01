@@ -7,6 +7,7 @@ env:
   es6: false
 globals:
   def: false
+  req: false
 rules:
   no-shadow:
     - 2

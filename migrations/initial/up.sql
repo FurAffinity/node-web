@@ -57,6 +57,7 @@ CREATE TABLE users (
 	image_type file_type,
 	banner INTEGER REFERENCES files (id),
 	banner_type file_type,
+	rating_preference rating NOT NULL DEFAULT 'general',
 	views INTEGER NOT NULL DEFAULT 0,
 	created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
 	active BOOLEAN NOT NULL DEFAULT FALSE

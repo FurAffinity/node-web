@@ -188,6 +188,17 @@ a:hover {
 	background-color: #ac3c44;
 }
 
+.button.button-disabled, .button.button-disabled:hover {
+	background-color: #777;
+	border: none;
+	box-shadow: none;
+	cursor: not-allowed;
+	margin: 0;
+	margin-top: 2px;
+	padding-bottom: 0.6em;
+	padding-top: calc(0.8em - 2px);
+}
+
 .text-transition {
 	display: inline-block;
 	overflow: hidden;
@@ -299,14 +310,6 @@ a:hover {
 	margin: 0;
 }
 
-/*.field-error {
-	background-color: rgba(238, 153, 34, 0.3);
-	border-top: 2px solid #e92;
-	font-size: 0.9em;
-	margin: 0.3em 0;
-	padding: 0.2em;
-}*/
-
 .field-error {
 	color: #e92;
 }
@@ -337,16 +340,25 @@ a:hover {
 	resize: vertical;
 }
 
-.form-errors {
-	animation: shake 0.2s 2;
-	background-color: rgba(238, 153, 34, 0.3);
-	border-top: 2px solid #e92;
+.form-status {
+	border-top: 2px solid transparent;
 	font-size: 0.9em;
 	list-style-type: none;
 	margin: 0;
 	padding: 0.4em;
-	position: relative;
 	text-align: center;
+}
+
+.form-status-success {
+	background-color: rgba(34, 153, 238, 0.3);
+	border-top-color: #29e;
+}
+
+.form-errors {
+	animation: shake 0.2s 2;
+	background-color: rgba(238, 153, 34, 0.3);
+	border-top-color: #e92;
+	position: relative;
 }
 
 .form-actions {
@@ -367,6 +379,22 @@ a:hover {
 
 .direction-contain {
 	unicode-bidi: embed;
+}
+
+.rating-option {
+	align-items: center;
+	display: flex;
+	margin: 0.6em 0;
+}
+
+.rating-option .rating-info {
+	margin-left: 0.4em;
+}
+
+.rating-option .rating-description {
+	color: rgba(255, 255, 255, 0.7);
+	font-size: 0.9em;
+	margin: 0;
 }
 
 #main {
