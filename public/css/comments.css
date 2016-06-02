@@ -33,7 +33,7 @@
 	top: 2.2em;
 }
 
-.comment-author {
+.comment-author, .comment-author:hover {
 	color: #eee;
 	font-weight: bold;
 	text-decoration: none;

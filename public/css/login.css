@@ -4,6 +4,7 @@
 }
 
 #login .action-link {
+	color: white;
 	float: right;
 	line-height: 2.8;
 }
