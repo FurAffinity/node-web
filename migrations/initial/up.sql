@@ -60,7 +60,9 @@ CREATE TABLE users (
 	rating_preference rating NOT NULL DEFAULT 'general',
 	views INTEGER NOT NULL DEFAULT 0,
 	created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-	active BOOLEAN NOT NULL DEFAULT FALSE
+	active BOOLEAN NOT NULL DEFAULT FALSE,
+	CHECK ((image IS NULL) = (image_type IS NULL)),
+	CHECK ((banner IS NULL) = (banner_type IS NULL))
 );
 
 COMMENT ON COLUMN users.username IS
