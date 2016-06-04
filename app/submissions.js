@@ -176,9 +176,17 @@ function getSelectCommentsQuery(submissionId) {
 	};
 }
 
-function getInsertCommentQuery(submissionId, parentId, userId, text) {
+function getInsertCommentQuery(submissionId, userId, text) {
 	return {
 		name: "insert_comment",
+		text: "INSERT INTO comments (submission, parent, owner, text) VALUES ($1, NULL, $2, $3) RETURNING id",
+		values: [submissionId, userId, text],
+	};
+}
+
+function getInsertReplyQuery(submissionId, parentId, userId, text) {
+	return {
+		name: "insert_reply",
 		text: "INSERT INTO comments (submission, parent, owner, text) VALUES ($1, (SELECT id FROM comments WHERE id = $2 AND submission = $1), $3, $4) RETURNING id",
 		values: [submissionId, parentId, userId, text],
 	};
@@ -414,7 +422,12 @@ function viewSubmission(submissionId) {
 }
 
 function createComment(submissionId, parentId, userId, text) {
-	return database.queryAsync(getInsertCommentQuery(submissionId, parentId, userId, text))
+	var query =
+		parentId === null ?
+			getInsertCommentQuery(submissionId, userId, text) :
+			getInsertReplyQuery(submissionId, parentId, userId, text);
+
+	return database.queryAsync(query)
 		.then(function (result) {
 			return result.rows[0].id;
 		});
