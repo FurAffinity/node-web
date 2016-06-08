@@ -4,7 +4,7 @@
 	padding-left: 3.7em;
 }
 
-.comment:target .comment-inner::before {
+.comment:target > .comment-inner::before {
 	background-color: #8b8;
 	border-radius: 1em;
 	content: '';
