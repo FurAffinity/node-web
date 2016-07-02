@@ -35,3 +35,11 @@ tap.test("base-32 encoding should be accurate", function (t) {
 	t.equals(base32Encode(b`\xab\xbd\xc8\xd5\xed\x06\x07\x08\x09`), "VO64RVPNAYDQQCI");
 	t.equals(base32Encode(b`\xa2\xbf\xc1\xd0\xe1\x11\x21\x32\x43\x55`), "UK74DUHBCEQTEQ2V");
 });
+
+tap.test("hotp", function (t) {
+	var key = Buffer.alloc(20, 0);
+
+	t.plan(2);
+	t.equals(totp.hotp(key, 0), "328482", "hotp should produce a correct OTP");
+	t.equals(totp.hotp(key, 3198), "000529", "hotp should produce a zero-padded OTP");
+});

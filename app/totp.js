@@ -157,4 +157,5 @@ exports.base32Encode = base32Encode;
 exports.generateKey = generateKey;
 exports.getKeyBarcode = getKeyBarcode;
 exports.getCodeCounter = getCodeCounter;
+exports.hotp = hotp;
 exports.secretLength = secretLength;
