@@ -103,7 +103,7 @@ DatabaseSessionStore.prototype.createUserSession =
 		var sessionKey = randomBytes.slice(SESSION_ID_SIZE);
 
 		return (
-			database.queryAsync(getInsertSessionQuery(sessionId, sessionKey, userId))
+			database.query(getInsertSessionQuery(sessionId, sessionKey, userId))
 				.return(new Session(sessionId, sessionKey, userId))
 		);
 	};
@@ -116,14 +116,14 @@ DatabaseSessionStore.prototype.createGuestSession =
 
 DatabaseSessionStore.prototype.deleteUserSession =
 	function deleteUserSession(sessionId) {
-		return this.database.queryAsync(
+		return this.database.query(
 			getDeleteSessionQuery(sessionId)
 		);
 	};
 
 DatabaseSessionStore.prototype.deleteExpiredSessions =
 	function deleteExpiredSessions() {
-		return this.database.queryAsync(
+		return this.database.query(
 			getDeleteExpiredSessionsQuery(this.userSessionLifetime)
 		);
 	};
@@ -188,7 +188,7 @@ DatabaseSessionStore.prototype.readCookie =
 
 		function confirmSessionKey(userId) {
 			return (
-				database.queryAsync(getUpdateKeyQuery(sessionId, sessionKey))
+				database.query(getUpdateKeyQuery(sessionId, sessionKey))
 					.return({
 						modified: false,
 						session: new Session(sessionId, sessionKey, userId),
@@ -200,7 +200,7 @@ DatabaseSessionStore.prototype.readCookie =
 			var nextKey = crypto.randomBytes(SESSION_KEY_SIZE);
 
 			return (
-				database.queryAsync(getUpdateNextKeyQuery(sessionId, nextKey))
+				database.query(getUpdateNextKeyQuery(sessionId, nextKey))
 					.return({
 						modified: true,
 						session: new Session(sessionId, nextKey, userId),
@@ -248,7 +248,7 @@ DatabaseSessionStore.prototype.readCookie =
 		}
 
 		return (
-			database.queryAsync(getSelectSessionQuery(sessionId))
+			database.query(getSelectSessionQuery(sessionId))
 				.then(function (result) {
 					if (result.rows.length === 1) {
 						return handleRow(result.rows[0]);

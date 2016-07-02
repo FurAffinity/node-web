@@ -100,10 +100,10 @@ function insertObject(hexDigest, byteSize, writer) {
 	var storagePath = getStoragePath(hexDigest);
 
 	function useTransaction(client) {
-		return client.queryAsync(getInsertFileQuery(hexDigest, byteSize))
+		return client.query(getInsertFileQuery(hexDigest, byteSize))
 			.then(function (result) {
 				if (result.rows.length !== 1) {
-					return client.queryAsync(getSelectFileQuery(hexDigest))
+					return client.query(getSelectFileQuery(hexDigest))
 						.then(function (result) {
 							return {
 								id: result.rows[0].id,

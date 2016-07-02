@@ -280,7 +280,7 @@ function getFile(hash, type) {
 
 function createSubmission(userId, submissionInfo) {
 	function useTransaction(client) {
-		return client.queryAsync(getPublishSubmissionQuery(userId, submissionInfo))
+		return client.query(getPublishSubmissionQuery(userId, submissionInfo))
 			.then(function (result) {
 				if (result.rowCount !== 1) {
 					return bluebird.reject(new Error("Submission does not exist or is not owned by the user"));
@@ -292,8 +292,8 @@ function createSubmission(userId, submissionInfo) {
 				var tags = parseTags(submissionInfo.tags);
 
 				return bluebird.all([
-					database.queryAsync(getAssociateTagsQuery(submissionInfo.id, tags)),
-					database.queryAsync(getAssociateFoldersQuery(submissionInfo.id, userId, submissionInfo.folders)),
+					database.query(getAssociateTagsQuery(submissionInfo.id, tags)),
+					database.query(getAssociateFoldersQuery(submissionInfo.id, userId, submissionInfo.folders)),
 				]);
 			});
 	}
@@ -303,7 +303,7 @@ function createSubmission(userId, submissionInfo) {
 
 function createFolder(userId, folderName) {
 	return (
-		database.queryAsync(getCreateFolderQuery(userId, folderName))
+		database.query(getCreateFolderQuery(userId, folderName))
 			.then(function (result) {
 				return result.rows[0].id;
 			})
@@ -312,7 +312,7 @@ function createFolder(userId, folderName) {
 
 function getFolders(userId) {
 	return (
-		database.queryAsync(getSelectFoldersQuery(userId))
+		database.query(getSelectFoldersQuery(userId))
 			.then(function (result) {
 				return result.rows.map(function (row) {
 					return {
@@ -336,7 +336,7 @@ function getFolders(userId) {
 
 function viewSubmission(submissionId) {
 	return bluebird.all([
-		database.queryAsync(getViewSubmissionQuery(submissionId))
+		database.query(getViewSubmissionQuery(submissionId))
 			.then(function (result) {
 				if (result.rows.length !== 1) {
 					return bluebird.reject(new SubmissionNotFoundError());
@@ -344,7 +344,7 @@ function viewSubmission(submissionId) {
 
 				return result.rows[0];
 			}),
-		database.queryAsync(getSelectSubmissionFilesQuery(submissionId))
+		database.query(getSelectSubmissionFilesQuery(submissionId))
 			.then(function (result) {
 				return bluebird.map(
 					result.rows,
@@ -361,7 +361,7 @@ function viewSubmission(submissionId) {
 					}
 				);
 			}),
-		database.queryAsync(getSelectCommentsQuery(submissionId))
+		database.query(getSelectCommentsQuery(submissionId))
 			.then(function (result) {
 				var comments = [];
 				var commentLookup = new Map();
@@ -427,14 +427,14 @@ function createComment(submissionId, parentId, userId, text) {
 			getInsertCommentQuery(submissionId, userId, text) :
 			getInsertReplyQuery(submissionId, parentId, userId, text);
 
-	return database.queryAsync(query)
+	return database.query(query)
 		.then(function (result) {
 			return result.rows[0].id;
 		});
 }
 
 function getRecentSubmissions(viewer) {
-	return database.queryAsync(getSelectRecentSubmissionsQuery(viewer || guestViewer))
+	return database.query(getSelectRecentSubmissionsQuery(viewer || guestViewer))
 		.then(function (result) {
 			return result.rows.map(function (row) {
 				return {
@@ -451,7 +451,7 @@ function getRecentSubmissions(viewer) {
 }
 
 function getPendingSubmissions(userId) {
-	return database.queryAsync(getSelectPendingSubmissionsQuery(userId))
+	return database.query(getSelectPendingSubmissionsQuery(userId))
 		.then(function (result) {
 			return result.rows.map(function (row) {
 				return {
@@ -476,7 +476,7 @@ function createPendingSubmission(userId, submissionFiles) {
 
 	function useTransaction(client) {
 		return (
-			client.queryAsync(
+			client.query(
 				getCreatePendingSubmissionQuery({
 					owner: userId,
 					type: types.byId(original.type).submissionType,
@@ -490,7 +490,7 @@ function createPendingSubmission(userId, submissionFiles) {
 					return result.rows[0].id;
 				})
 				.tap(function (submissionId) {
-					return client.queryAsync(
+					return client.query(
 						getAssociateFilesQuery(
 							submissionId,
 							submissionFiles.submission
@@ -504,15 +504,15 @@ function createPendingSubmission(userId, submissionFiles) {
 }
 
 function hideSubmission(viewerId, submissionId) {
-	return database.queryAsync(getHideSubmissionQuery(viewerId, submissionId));
+	return database.query(getHideSubmissionQuery(viewerId, submissionId));
 }
 
 function unhideSubmission(viewerId, submissionId) {
-	return database.queryAsync(getUnhideSubmissionQuery(viewerId, submissionId));
+	return database.query(getUnhideSubmissionQuery(viewerId, submissionId));
 }
 
 function getRecentUserSubmissions(viewer, userId) {
-	return database.queryAsync(getSelectRecentUserSubmissionsQuery(viewer || guestViewer, userId))
+	return database.query(getSelectRecentUserSubmissionsQuery(viewer || guestViewer, userId))
 		.then(function (result) {
 			return result.rows;
 		});

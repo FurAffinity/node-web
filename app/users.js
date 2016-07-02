@@ -242,7 +242,7 @@ function getUserMeta(userId) {
 			};
 		}
 
-		return database.queryAsync(getSelectUserMetaQuery(userId))
+		return database.query(getSelectUserMetaQuery(userId))
 			.then(function (result) {
 				if (result.rows.length !== 1) {
 					return bluebird.reject(new Error("Expected user"));
@@ -280,7 +280,7 @@ function registerUser(userInfo) {
 
 	return hashAsync(userInfo.password, config.bcrypt.log_rounds).then(function (passwordHash) {
 		function useTransaction(client) {
-			return client.queryAsync(getInsertUnregisteredUserQuery({
+			return client.query(getInsertUnregisteredUserQuery({
 				username: canonicalUsername,
 				email: canonicalEmail,
 				passwordHash: passwordHash,
@@ -289,11 +289,11 @@ function registerUser(userInfo) {
 				.then(function (result) {
 					if (result.rows.length !== 1) {
 						return bluebird.all([
-							client.queryAsync(getFindConflictingUserQuery(canonicalEmail))
+							client.query(getFindConflictingUserQuery(canonicalEmail))
 								.then(function (result) {
 									return result.rows[0].display_username;
 								}),
-							client.queryAsync(getInsertUnregisteredUserQuery({
+							client.query(getInsertUnregisteredUserQuery({
 								username: canonicalUsername,
 								email: null,
 								passwordHash: passwordHash,
@@ -315,7 +315,7 @@ function registerUser(userInfo) {
 					var userId = result.rows[0].id;
 					var registrationKey = crypto.randomBytes(config.registration.registration_key_size);
 
-					return client.queryAsync(getInsertRegistrationKeyQuery(userId, registrationKey))
+					return client.query(getInsertRegistrationKeyQuery(userId, registrationKey))
 						.then(function () {
 							return sendAsync({
 								to: canonicalEmail,
@@ -345,7 +345,7 @@ function registerUser(userInfo) {
 
 function verifyRegistrationKey(userId, key) {
 	function useTransaction(client) {
-		return client.queryAsync(getDeleteRegistrationKeyQuery(userId))
+		return client.query(getDeleteRegistrationKeyQuery(userId))
 			.then(function (result) {
 				if (result.rows.length !== 1) {
 					return bluebird.reject(new RegistrationKeyInvalidError());
@@ -360,7 +360,7 @@ function verifyRegistrationKey(userId, key) {
 				return bluebird.resolve();
 			})
 			.then(function () {
-				return client.queryAsync(getActivateUserQuery(userId));
+				return client.query(getActivateUserQuery(userId));
 			});
 	}
 
@@ -372,7 +372,7 @@ function verifyRegistrationKey(userId, key) {
 }
 
 function viewProfile(userId) {
-	return database.queryAsync(getViewProfileQuery(userId))
+	return database.query(getViewProfileQuery(userId))
 		.then(function (result) {
 			var row = result.rows[0];
 
@@ -390,7 +390,7 @@ function viewProfile(userId) {
 }
 
 function updateProfile(userId, profileInfo) {
-	return database.queryAsync(getUpdateProfileQuery(userId, profileInfo))
+	return database.query(getUpdateProfileQuery(userId, profileInfo))
 		.then(function (result) {
 			return result.rowCount === 1 ?
 				bluebird.resolve() :
@@ -400,7 +400,7 @@ function updateProfile(userId, profileInfo) {
 
 function updatePreferences(userId, preferences) {
 	return bluebird.all([
-		database.queryAsync(getUpdatePreferencesQuery(userId, preferences)),
+		database.query(getUpdatePreferencesQuery(userId, preferences)),
 		redisClient.hsetAsync("rating_preferences", userId, preferences.rating),
 	]).spread(function (result) {
 		return result.rowCount === 1 ?
@@ -410,7 +410,7 @@ function updatePreferences(userId, preferences) {
 }
 
 function getUserStatistics(userId) {
-	return database.queryAsync(getSelectUserStatisticsQuery(userId))
+	return database.query(getSelectUserStatisticsQuery(userId))
 		.then(function (result) {
 			return result.rows[0];
 		});
@@ -429,13 +429,13 @@ function getRecoveryCodes() {
 function setupTwoFactor(userId, key, lastUsedCounter) {
 	var recoveryCodes = getRecoveryCodes();
 
-	return database.queryAsync(getSetupTwoFactorQuery(userId, key, lastUsedCounter))
+	return database.query(getSetupTwoFactorQuery(userId, key, lastUsedCounter))
 		.then(function (result) {
 			if (result.rowCount !== 1) {
 				return bluebird.reject(new Error("Two-factor authentication is already enabled for this account"));
 			}
 
-			return database.queryAsync(getInsertTwoFactorRecoveryQuery(userId, recoveryCodes));
+			return database.query(getInsertTwoFactorRecoveryQuery(userId, recoveryCodes));
 		});
 }
 
@@ -443,12 +443,12 @@ function regenerateTwoFactorRecovery(userId) {
 	var recoveryCodes = getRecoveryCodes();
 
 	function useTransaction(client) {
-		return client.queryAsync("SET TRANSACTION SERIALIZATION LEVEL REPEATABLE READ")
+		return client.query("SET TRANSACTION SERIALIZATION LEVEL REPEATABLE READ")
 			.then(function () {
-				return client.queryAsync(getDeleteTwoFactorRecoveryQuery(userId));
+				return client.query(getDeleteTwoFactorRecoveryQuery(userId));
 			})
 			.then(function () {
-				return client.queryAsync(getInsertTwoFactorRecoveryQuery(userId));
+				return client.query(getInsertTwoFactorRecoveryQuery(userId));
 			});
 	}
 

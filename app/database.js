@@ -5,63 +5,49 @@ var pg = require("pg");
 
 var config = require("./config");
 
-pg.Client.prototype.queryAsync = (function () {
-	var queryAsync_ = bluebird.promisify(pg.Client.prototype.query);
-
-	return function (query) {
-		var start = process.hrtime();
-
-		return queryAsync_.call(this, query).tap(function () {
-			var t = process.hrtime(start);
-			console.log(query.name + ": " + (t[0] * 1000 + t[1] * 1e-6 | 0) + " ms");
-		});
-	};
-})();
-
-function connect() {
-	var done_ = null;
-
-	return new bluebird.Promise(function (resolve, reject) {
-		pg.connect(config.database, function (error, client, done) {
-			if (error) {
-				reject(error);
-				return;
-			}
-
-			done_ = done;
-			resolve(client);
-		});
-	}).disposer(function () {
-		if (done_) {
-			done_();
-		}
-	});
+function ClientWrapper(client) {
+	this.client = client;
 }
 
-function queryAsync(query) {
-	return bluebird.using(connect(), function (client) {
-		return client.queryAsync(query);
-	});
-}
+ClientWrapper.prototype.query = function (options, values) {
+	var promise = this.client.query(options, values).promise();
+	return bluebird.resolve(promise);
+};
 
-function withTransaction(useTransaction) {
-	return bluebird.using(connect(), function (client) {
-		return client.queryAsync("BEGIN").then(function () {
-			return useTransaction(client)
+var pool = new pg.Pool(
+	Object.assign(
+		{ Promise: bluebird },
+		config.database
+	)
+);
+
+pool.on("error", function (error) {
+	console.error("idle client error: " + error.stack);
+});
+
+pool.connectDisposer = function () {
+	return this.connect().disposer(function (client) {
+		client.release();
+	});
+};
+
+pool.withTransaction = function (useTransaction) {
+	return bluebird.using(this.connectDisposer(), function (client) {
+		return client.query("BEGIN").then(function () {
+			return useTransaction(new ClientWrapper(client))
 				.tap(function () {
-					return client.queryAsync("COMMIT");
+					return client.query("COMMIT");
 				})
 				.catch(function (error) {
 					function throwOriginal() {
 						return bluebird.reject(error);
 					}
 
-					return client.queryAsync("ROLLBACK")
+					return client.query("ROLLBACK")
 						.then(throwOriginal, throwOriginal);
 				});
 		});
 	});
-}
+};
 
-exports.queryAsync = queryAsync;
-exports.withTransaction = withTransaction;
+module.exports = pool;

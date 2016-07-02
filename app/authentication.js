@@ -51,12 +51,12 @@ function rehashIfNecessary(userId, password, passwordHash) {
 	}
 
 	return hashAsync(password, config.bcrypt.log_rounds).then(function (newHash) {
-		return database.queryAsync(getRehashPasswordQuery(userId, passwordHash, newHash));
+		return database.query(getRehashPasswordQuery(userId, passwordHash, newHash));
 	});
 }
 
 function authenticate(username, password) {
-	return database.queryAsync(getSelectPasswordQuery(username)).then(function (result) {
+	return database.query(getSelectPasswordQuery(username)).then(function (result) {
 		if (result.rows.length !== 1) {
 			return bluebird.reject(new NoUserError());
 		}

@@ -4,10 +4,8 @@
 var bluebird = require("bluebird");
 var fs = require("fs");
 var path = require("path");
-var pg = require("pg");
 
 var database = require("../app/database");
-var readFileAsync = bluebird.promisify(fs.readFile);
 
 var MIGRATION_ROOT = path.join(__dirname, "../migrations");
 var MIGRATION_ORDER = path.join(MIGRATION_ROOT, "order");
@@ -20,72 +18,100 @@ function getVersion(result) {
 	return result.rows.length === 1 ? result.rows[0].version : null;
 }
 
-function* getSQLMigration(migrationName) {
-	var contents = yield readFileAsync(path.join(MIGRATION_ROOT, migrationName, "up.sql"), "utf8");
+function getMigration(migrationName, direction) {
+	var migration = null;
+	var jsMigrationPath = path.join(MIGRATION_ROOT, migrationName + ".js");
 
-	return {
-		up: function* (queryAsync) {
-			yield queryAsync(contents);
-		},
+	try {
+		migration = require(jsMigrationPath);
+	} catch (error) {
+		if (error.code !== "MODULE_NOT_FOUND") {
+			throw error;
+		}
+	}
+
+	if (migration) {
+		return migration[direction];
+	}
+
+	var sqlMigrationPath = path.join(MIGRATION_ROOT, migrationName, direction + ".sql");
+	var sql = fs.readFileSync(sqlMigrationPath, "utf8");
+
+	return function* (client) {
+		yield client.query(sql);
 	};
 }
 
-function* runMigration(queryAsync, migrationName) {
-	var migration;
-
-	try {
-		migration = require(path.join(MIGRATION_ROOT, migrationName + ".js"));
-	} catch (error) {
-		migration = yield* getSQLMigration(migrationName);
-	}
-
-	yield* migration.up(queryAsync);
-}
-
-function* migrate(client) {
-	var queryAsync = bluebird.promisify(client.query, { context: client });
-
+function* migrate(client, targetVersion) {
 	var migrationOrder =
-		(yield readFileAsync(MIGRATION_ORDER, "utf8"))
+		fs.readFileSync(MIGRATION_ORDER, "utf8")
 			.split("\n")
 			.filter(isOrderLine);
 
-	yield queryAsync("CREATE TABLE IF NOT EXISTS database_version (version TEXT NOT NULL)");
+	yield client.query("CREATE TABLE IF NOT EXISTS database_version (version TEXT NOT NULL)");
 
-	var currentVersion = getVersion(yield queryAsync("SELECT version FROM database_version"));
-	var versionIndex = migrationOrder.indexOf(currentVersion);
+	var currentVersion = getVersion(yield client.query("SELECT version FROM database_version"));
+	var currentIndex = migrationOrder.indexOf(currentVersion);
+	var targetIndex =
+		targetVersion === null ?
+			migrationOrder.length - 1 :
+			migrationOrder.indexOf(targetVersion);
 
-	if (currentVersion !== null && versionIndex === -1) {
-		throw new Error("Version not found: " + currentVersion);
+	if (currentVersion !== null && currentIndex === -1) {
+		throw new Error("Current version not found: " + currentVersion);
 	}
 
-	var lastMigration = currentVersion;
-
-	for (var i = versionIndex + 1; i < migrationOrder.length; i++) {
-		var migrationName = migrationOrder[i];
-
-		console.log(`${lastMigration || "(empty database)"} → ${migrationName}`);
-
-		yield* runMigration(queryAsync, migrationName);
-
-		lastMigration = migrationName;
+	if (targetVersion !== null && targetIndex === -1) {
+		throw new Error("Target version not found: " + targetVersion);
 	}
 
-	if (currentVersion !== null) {
-		yield queryAsync("UPDATE database_version SET version = $1", [lastMigration]);
-	} else if (lastMigration !== null) {
-		yield queryAsync("INSERT INTO database_version (version) VALUES ($1)", [lastMigration]);
+	if (currentIndex === targetIndex) {
+		console.log("Database is already at version " + currentVersion + ".");
+		return;
+	}
+
+	console.log(currentVersion || "(no version)");
+
+	if (targetIndex < currentIndex) {
+		for (let i = currentIndex; i > targetIndex; i--) {
+			const migrationName = migrationOrder[i];
+			const migration = getMigration(migrationName, "down");
+
+			console.log("↘ " + migrationOrder[i - 1]);
+			yield* migration(client);
+		}
+	} else {
+		for (let i = currentIndex + 1; i <= targetIndex; i++) {
+			const migrationName = migrationOrder[i];
+			const migration = getMigration(migrationName, "up");
+
+			console.log("↗ " + migrationName);
+			yield* migration(client);
+		}
+	}
+
+	var newVersion = migrationOrder[targetIndex];
+
+	if (currentVersion) {
+		yield client.query("UPDATE database_version SET version = $1", [newVersion]);
+	} else if (newVersion) {
+		yield client.query("INSERT INTO database_version (version) VALUES ($1)", [newVersion]);
 	}
 }
 
 bluebird.longStackTraces();
 
+var targetVersion =
+	process.argv.length >= 3 ?
+		process.argv[2] :
+		null;
+
 database.withTransaction(
 	function (client) {
-		return bluebird.coroutine(migrate)(client);
+		return bluebird.coroutine(migrate)(client, targetVersion);
 	}
 )
 	.finally(function () {
-		pg.end();
+		database.end();
 	})
 	.done();
