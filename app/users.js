@@ -448,7 +448,7 @@ function regenerateTwoFactorRecovery(userId) {
 				return client.query(getDeleteTwoFactorRecoveryQuery(userId));
 			})
 			.then(function () {
-				return client.query(getInsertTwoFactorRecoveryQuery(userId));
+				return client.query(getInsertTwoFactorRecoveryQuery(userId, recoveryCodes));
 			});
 	}
 
