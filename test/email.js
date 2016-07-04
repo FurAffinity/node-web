@@ -28,6 +28,20 @@ tap.test("toFlowed should produce 79-character lines when possible", function (t
 		repeat("i", 60) + " \n" + repeat("i", 60)
 	);
 
+	t.equal(
+		email.toFlowed(repeat("i", 80) + " a"),
+		repeat("i", 80) + " \na"
+	);
+
+	t.equal(
+		email.toFlowed(repeat("i", 80) + "\na"),
+		repeat("i", 80) + "\na"
+	);
+	t.equal(
+		email.toFlowed(repeat("i", 60) + " " + repeat("i", 60) + "\na"),
+		repeat("i", 60) + " \n" + repeat("i", 60) + "\na"
+	);
+
 	t.end();
 });
 
@@ -42,6 +56,7 @@ tap.test("getCanonicalAddress", function (t) {
 	t.equal(email.getCanonicalAddress('"necessary\\ escapes"@example.com'), '"necessary\\ escapes"@example.com');
 
 	t.equal(email.getCanonicalAddress("invalid"), null);
+	t.equal(email.getCanonicalAddress(repeat("a", 243) + "@example.com"), null);
 	t.equal(email.getCanonicalAddress("example.com"), null);
 	t.equal(email.getCanonicalAddress("inv@al@id"), null);
 	t.equal(email.getCanonicalAddress("invalid@example.com\n"), null);

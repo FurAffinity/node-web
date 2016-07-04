@@ -16,6 +16,11 @@ tap.test("Safe HTML should be retained", function (t) {
 	);
 
 	t.equal(
+		clean("safe<br>void tags"),
+		"safe<br>void tags"
+	);
+
+	t.equal(
 		clean("<SpAN>mixed-case tags</sPan>"),
 		"<span>mixed-case tags</span>"
 	);

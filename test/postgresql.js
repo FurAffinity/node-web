@@ -1,5 +1,6 @@
 "use strict";
 
+var bluebird = require("bluebird");
 var tap = require("tap");
 
 var database = require("../app/database");
@@ -10,19 +11,30 @@ tap.tearDown(function () {
 });
 
 tap.test("serializeByteaArray", function (t) {
-	var a = Buffer.alloc(8);
-	a.writeDoubleLE(Math.PI, 0);
+	var left = Buffer.alloc(8);
+	left.writeDoubleLE(Math.PI, 0);
 
-	var b = Buffer.alloc(8);
-	b.writeDoubleBE(Math.E, 0);
+	var right = Buffer.alloc(8);
+	right.writeDoubleBE(Math.E, 0);
 
-	return database.query(
-		"SELECT ($1::bytea[])[1] || ($1::bytea[])[2] AS concatenation",
-		[postgresql.serializeByteaArray([a, b])]
-	).then(function (result) {
+	return bluebird.all([
+		database.query(
+			"SELECT ($1::bytea[])[1] || ($1::bytea[])[2] AS concatenation",
+			[postgresql.serializeByteaArray([left, right])]
+		),
+		database.query(
+			"SELECT ($1::bytea[])[1] || ($1::bytea[])[2] AS concatenation",
+			[postgresql.serializeByteaArray([left, null])]
+		),
+	]).spread(function (a, b) {
 		t.equal(
-			result.rows[0].concatenation.toString("hex"),
+			a.rows[0].concatenation.toString("hex"),
 			"182d4454fb2109404005bf0a8b145769"
+		);
+
+		t.equal(
+			b.rows[0].concatenation,
+			null
 		);
 	});
 });
