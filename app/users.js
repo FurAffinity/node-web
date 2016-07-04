@@ -10,6 +10,7 @@ var ApplicationError = require("./errors").ApplicationError;
 var config = require("./config");
 var database = require("./database");
 var email = require("./email");
+var postgresql = require("./postgresql");
 
 var sendAsync = bluebird.promisify(email.send);
 var timingSafeCompare = require("./timing-safe-compare").timingSafeCompare;
@@ -194,18 +195,15 @@ function getDeleteTwoFactorRecoveryQuery(userId) {
 }
 
 function getInsertTwoFactorRecoveryQuery(userId, recoveryCodes) {
-	// pg can’t serialize BYTEA[], so recovery codes go through base64.
 	return {
 		name: "insert_two_factor_recovery",
 		text: `
 			INSERT INTO two_factor_recovery ("user", recovery_code)
-			SELECT $1, decode(recovery_code, 'base64') FROM UNNEST ($2::TEXT[]) AS recovery_code
+			SELECT $1, recovery_code FROM UNNEST ($2::bytea[]) AS recovery_code
 		`,
 		values: [
 			userId,
-			recoveryCodes.map(function (code) {
-				return code.toString("base64");
-			}),
+			postgresql.serializeByteaArray(recoveryCodes),
 		],
 	};
 }
