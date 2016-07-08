@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var SECOND = 1000;
 var MINUTE = 60 * SECOND;
@@ -14,31 +14,31 @@ function relativeDate(date) {
 
 	if (time >= YEAR) {
 		value = time / YEAR | 0;
-		unit = "year";
+		unit = 'year';
 	} else if (time >= MONTH) {
 		value = time / MONTH | 0;
-		unit = "month";
+		unit = 'month';
 	} else if (time >= DAY) {
 		value = time / DAY | 0;
-		unit = "day";
+		unit = 'day';
 
 		if (value === 1) {
-			return "yesterday";
+			return 'yesterday';
 		}
 	} else if (time >= HOUR) {
 		value = time / HOUR | 0;
-		unit = "hour";
+		unit = 'hour';
 	} else if (time >= MINUTE) {
 		value = time / MINUTE | 0;
-		unit = "minute";
+		unit = 'minute';
 	} else if (time >= SECOND) {
 		value = time / SECOND | 0;
-		unit = "second";
+		unit = 'second';
 	} else {
-		return "just now";
+		return 'just now';
 	}
 
-	return value + " " + (value === 1 ? unit : unit + "s") + " ago";
+	return value + ' ' + (value === 1 ? unit : unit + 's') + ' ago';
 }
 
 exports.relativeDate = relativeDate;

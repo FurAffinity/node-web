@@ -1,15 +1,15 @@
-"use strict";
+'use strict';
 
-var bluebird = require("bluebird");
-var express = require("express");
+var bluebird = require('bluebird');
+var express = require('express');
 
-var ApplicationError = require("../errors").ApplicationError;
-var files = require("../files");
-var forms = require("../forms");
-var permissions = require("../permissions");
-var submissions = require("../submissions");
-var types = require("../files/types");
-var wrap = require("./wrap").wrap;
+var ApplicationError = require('../errors').ApplicationError;
+var files = require('../files');
+var forms = require('../forms');
+var permissions = require('../permissions');
+var submissions = require('../submissions');
+var types = require('../files/types');
+var wrap = require('./wrap').wrap;
 
 function readFile(stream, filename) {
 	return files.storeUpload(stream, types.submissionGenerators)
@@ -30,7 +30,7 @@ function readFile(stream, filename) {
 var post = wrap([
 	permissions.submit.middleware,
 	forms.getReader({
-		name: "upload",
+		name: 'upload',
 		fields: {
 			file: forms.manyFiles(readFile),
 		},
@@ -53,7 +53,7 @@ var post = wrap([
 						.then(function (submissionId) {
 							return {
 								id: submissionId,
-								thumbnail: thumbnail && (thumbnail.hexDigest + "." + thumbnail.type),
+								thumbnail: thumbnail && (thumbnail.hexDigest + '.' + thumbnail.type),
 								upload_type: original.type,
 							};
 						})
@@ -70,6 +70,6 @@ var post = wrap([
 
 var router = new express.Router();
 
-router.post("/api/submissions/upload", post);
+router.post('/api/submissions/upload', post);
 
 exports.router = router;

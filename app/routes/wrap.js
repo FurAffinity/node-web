@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 function wrap(handlers) {
 	return function (req, res, next) {

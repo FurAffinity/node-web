@@ -1,10 +1,10 @@
-"use strict";
+'use strict';
 
-var express = require("express");
+var express = require('express');
 
 var r = String.raw;
 
-var submissions = require("../submissions");
+var submissions = require('../submissions');
 
 var router = new express.Router();
 
@@ -13,7 +13,7 @@ router.get(r`/submissions/:id(\d+)`, function (req, res, next) {
 
 	submissions.viewSubmission(submissionId).done(
 		function (submission) {
-			res.render("submission.html", {
+			res.render('submission.html', {
 				submission: submission,
 			});
 		},

@@ -1,24 +1,24 @@
-"use strict";
+'use strict';
 
-var express = require("express");
+var express = require('express');
 
-var ApplicationError = require("../errors").ApplicationError;
-var forms = require("../forms");
-var users = require("../users");
-var wrap = require("./wrap").wrap;
+var ApplicationError = require('../errors').ApplicationError;
+var forms = require('../forms');
+var users = require('../users');
+var wrap = require('./wrap').wrap;
 
 function get(req, res) {
 	if (req.user !== null) {
-		res.redirect("/");
+		res.redirect('/');
 		return;
 	}
 
-	res.render("register.html");
+	res.render('register.html');
 }
 
 var post = wrap([
 	forms.getReader({
-		name: "register",
+		name: 'register',
 		fields: {
 			username: forms.one,
 			password: forms.one,
@@ -29,30 +29,30 @@ var post = wrap([
 		var form = req.form;
 
 		if (!form.username) {
-			form.addError("A username is required", "username");
+			form.addError('A username is required', 'username');
 		}
 
 		if (!form.password) {
-			form.addError("A password is required", "password");
+			form.addError('A password is required', 'password');
 		} else if (form.password.length < 8) {
-			form.addError("Passwords must be at least 8 characters long", "password");
+			form.addError('Passwords must be at least 8 characters long', 'password');
 		} else if (form.password.length > 72) {
-			form.addError("Passwords must be at most 72 characters long", "password");
+			form.addError('Passwords must be at most 72 characters long', 'password');
 		}
 
 		if (!form.email) {
-			form.addError("An e-mail address is required", "email");
+			form.addError('An e-mail address is required', 'email');
 		}
 
 		if (!form.valid) {
 			res.locals.form = form;
-			res.status(422).render("register.html");
+			res.status(422).render('register.html');
 			return;
 		}
 
 		users.registerUser(req.form).done(
 			function (canonicalEmail) {
-				res.render("registration-email-sent.html", {
+				res.render('registration-email-sent.html', {
 					email: canonicalEmail,
 				});
 			},
@@ -61,16 +61,16 @@ var post = wrap([
 					var field;
 
 					if (error instanceof users.UsernameConflictError || error instanceof users.UsernameInvalidError) {
-						field = "username";
+						field = 'username';
 					} else if (error instanceof users.EmailInvalidError) {
-						field = "email";
+						field = 'email';
 					} else {
 						field = null;
 					}
 
 					form.addError(error.message, field);
 					res.locals.form = form;
-					res.status(422).render("register.html");
+					res.status(422).render('register.html');
 				} else {
 					next(error);
 				}
@@ -81,7 +81,7 @@ var post = wrap([
 
 var router = new express.Router();
 
-router.get("/users/new", get);
-router.post("/users/", post);
+router.get('/users/new', get);
+router.post('/users/', post);
 
 exports.router = router;

@@ -1,12 +1,12 @@
-"use strict";
+'use strict';
 
-var bluebird = require("bluebird");
-var express = require("express");
+var bluebird = require('bluebird');
+var express = require('express');
 
 var r = String.raw;
 
-var submissions = require("../submissions");
-var users = require("../users");
+var submissions = require('../submissions');
+var users = require('../users');
 
 var router = new express.Router();
 
@@ -27,7 +27,7 @@ router.get(r`/users/:id(\d+)/:username([\w.~-]+)`, function (req, res, next) {
 		})
 		.done(
 			function (templateData) {
-				res.render("profile.html", templateData);
+				res.render('profile.html', templateData);
 			},
 			next
 		);

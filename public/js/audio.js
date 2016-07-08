@@ -2,15 +2,15 @@
  * Ignores negative values because it looks close enough!
  */
 
-"use strict";
+'use strict';
 
-def("audio", ["button"], function (button) {
+def('audio', ['button'], function (button) {
 	function createSubmissionPlayer(submissionPlayer) {
 		var SCALE_MAXIMA = 0.75;
 		var MARKER_PADDING = 4;
 
-		var submissionAudio = submissionPlayer.getElementsByClassName("submission-audio")[0];
-		var submissionPlayButton = submissionPlayer.getElementsByClassName("submission-play")[0];
+		var submissionAudio = submissionPlayer.getElementsByClassName('submission-audio')[0];
+		var submissionPlayButton = submissionPlayer.getElementsByClassName('submission-play')[0];
 
 		var isLittleEndian = (function () {
 			var u32 = new Uint32Array([1]);
@@ -24,24 +24,24 @@ def("audio", ["button"], function (button) {
 			return;
 		}
 
-		var currentTimeMarker = document.createElement("span");
-		currentTimeMarker.className = "submission-player-time";
+		var currentTimeMarker = document.createElement('span');
+		currentTimeMarker.className = 'submission-player-time';
 
-		var cursorTimeMarker = document.createElement("span");
-		cursorTimeMarker.className = "submission-player-time";
+		var cursorTimeMarker = document.createElement('span');
+		cursorTimeMarker.className = 'submission-player-time';
 
-		var canvas = document.createElement("canvas");
-		var g = canvas.getContext("2d");
+		var canvas = document.createElement('canvas');
+		var g = canvas.getContext('2d');
 		var gradient = g.createLinearGradient(0, canvas.height / 2, 0, canvas.height);
 
-		gradient.addColorStop(0, "rgba(32, 38, 44, 0.5)");
-		gradient.addColorStop(1, "#20262c");
+		gradient.addColorStop(0, 'rgba(32, 38, 44, 0.5)');
+		gradient.addColorStop(1, '#20262c');
 
 		function formatTime(t) {
 			var minutes = t / 60 | 0;
 			var seconds = (t | 0) % 60;
 
-			return minutes + ":" + (seconds < 10 ? "0" + seconds : seconds);
+			return minutes + ':' + (seconds < 10 ? '0' + seconds : seconds);
 		}
 
 		function getWidth(element) {
@@ -96,43 +96,43 @@ def("audio", ["button"], function (button) {
 					var hMean = (sampleMean - min) / (max - min) * height;
 
 					if (i < selection && (selection <= currentFill || i > currentFill)) {
-						g.fillStyle = "#8eb";
+						g.fillStyle = '#8eb';
 						g.fillRect(i, height / 2 - hMax / 2, 1, hMax);
 
-						g.fillStyle = "white";
+						g.fillStyle = 'white';
 						g.fillRect(i, height / 2 - hMean / 2, 1, hMean);
 					} else if (i < currentFill) {
-						g.fillStyle = "#8cf";
+						g.fillStyle = '#8cf';
 						g.fillRect(i, height / 2 - hMax / 2, 1, hMax);
 
-						g.fillStyle = "white";
+						g.fillStyle = 'white';
 						g.fillRect(i, height / 2 - hMean / 2, 1, hMean);
 					} else {
-						g.fillStyle = "rgba(255, 255, 255, 0.5)";
+						g.fillStyle = 'rgba(255, 255, 255, 0.5)';
 						g.fillRect(i, height / 2 - hMax / 2, 1, hMax);
 
-						g.fillStyle = "rgba(255, 255, 255, 0.4)";
+						g.fillStyle = 'rgba(255, 255, 255, 0.4)';
 						g.fillRect(i, height / 2 - hMean / 2, 1, hMean);
 
 						if (i === currentFill) {
 							if (i <= selection) {
-								g.fillStyle = "#8eb";
+								g.fillStyle = '#8eb';
 								g.fillRect(i, height / 2 - hMax / 2, 1, hMax);
 
-								g.fillStyle = "white";
+								g.fillStyle = 'white';
 								g.fillRect(i, height / 2 - hMean / 2, 1, hMean);
 							}
 
-							g.fillStyle = "rgba(136, 204, 255, " + partialFill + ")";
+							g.fillStyle = 'rgba(136, 204, 255, ' + partialFill + ')';
 							g.fillRect(i, height / 2 - hMax / 2, 1, hMax);
 
-							g.fillStyle = "rgba(255, 255, 255, " + partialFill + ")";
+							g.fillStyle = 'rgba(255, 255, 255, ' + partialFill + ')';
 							g.fillRect(i, height / 2 - hMean / 2, 1, hMean);
 						}
 					}
 				}
 
-				/*g.fillStyle = gradient;
+				/* g.fillStyle = gradient;
 				g.fillRect(left, height / 2, right - left + 1, height / 2);*/
 			}
 
@@ -193,8 +193,8 @@ def("audio", ["button"], function (button) {
 					}
 				}
 
-				currentTimeMarker.style.left = currentTimeLeft + "px";
-				cursorTimeMarker.style.left = cursorTimeLeft + "px";
+				currentTimeMarker.style.left = currentTimeLeft + 'px';
+				cursorTimeMarker.style.left = cursorTimeLeft + 'px';
 			}
 
 			function draw() {
@@ -219,7 +219,7 @@ def("audio", ["button"], function (button) {
 				drawRequest = requestAnimationFrame(drawLoop);
 			}
 
-			canvas.addEventListener("mousemove", function (e) {
+			canvas.addEventListener('mousemove', function (e) {
 				var x = e.clientX;
 
 				var p = canvas;
@@ -233,11 +233,11 @@ def("audio", ["button"], function (button) {
 				updateMarkers();
 			});
 
-			canvas.addEventListener("mouseout", function () {
+			canvas.addEventListener('mouseout', function () {
 				updateSelection(-1);
 			});
 
-			canvas.addEventListener("mousedown", function (e) {
+			canvas.addEventListener('mousedown', function (e) {
 				if (e.button || e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) {
 					return;
 				}
@@ -253,8 +253,8 @@ def("audio", ["button"], function (button) {
 				} else {
 					submissionAudio.pause();
 
-					canvas.addEventListener("mouseup", function f() {
-						canvas.removeEventListener("mouseup", f);
+					canvas.addEventListener('mouseup', function f() {
+						canvas.removeEventListener('mouseup', f);
 
 						if (selection !== -1) {
 							submissionAudio.currentTime = selection / l * submissionAudio.duration;
@@ -270,15 +270,15 @@ def("audio", ["button"], function (button) {
 			});
 
 			// This event also fires when the audio ends.
-			submissionAudio.addEventListener("pause", function () {
+			submissionAudio.addEventListener('pause', function () {
 				cancelAnimationFrame(drawRequest);
 			});
 
-			submissionAudio.addEventListener("playing", drawLoop);
-			submissionAudio.addEventListener("ended", draw);
+			submissionAudio.addEventListener('playing', drawLoop);
+			submissionAudio.addEventListener('ended', draw);
 
-			var playerUI = document.createElement("div");
-			playerUI.className = "submission-player-inner";
+			var playerUI = document.createElement('div');
+			playerUI.className = 'submission-player-inner';
 			playerUI.appendChild(currentTimeMarker);
 			playerUI.appendChild(cursorTimeMarker);
 			playerUI.appendChild(canvas);
@@ -287,13 +287,13 @@ def("audio", ["button"], function (button) {
 		}
 
 		(function () {
-			var waveformSource = submissionAudio.getAttribute("data-waveform");
+			var waveformSource = submissionAudio.getAttribute('data-waveform');
 
 			var request = new XMLHttpRequest();
 
-			request.responseType = "arraybuffer";
+			request.responseType = 'arraybuffer';
 
-			request.open("GET", waveformSource, true);
+			request.open('GET', waveformSource, true);
 
 			request.onreadystatechange = function () {
 				if (request.readyState !== 4) {
@@ -302,7 +302,7 @@ def("audio", ["button"], function (button) {
 
 				if (request.status >= 400) {
 					// TODO
-					alert("Failed");
+					alert('Failed');
 					return;
 				}
 
@@ -313,20 +313,20 @@ def("audio", ["button"], function (button) {
 			request.send(null);
 		})();
 
-		submissionAudio.addEventListener("ended", function () {
-			submissionPlayButton.classList.remove("playing");
-			button.transitionButtonText(submissionPlayButton.lastChild, "Play");
+		submissionAudio.addEventListener('ended', function () {
+			submissionPlayButton.classList.remove('playing');
+			button.transitionButtonText(submissionPlayButton.lastChild, 'Play');
 		});
 
-		submissionPlayButton.addEventListener("click", function () {
+		submissionPlayButton.addEventListener('click', function () {
 			if (submissionAudio.paused) {
 				submissionAudio.play();
-				submissionPlayButton.classList.add("playing");
-				button.transitionButtonText(submissionPlayButton.lastChild, "Pause");
+				submissionPlayButton.classList.add('playing');
+				button.transitionButtonText(submissionPlayButton.lastChild, 'Pause');
 			} else {
 				submissionAudio.pause();
-				submissionPlayButton.classList.remove("playing");
-				button.transitionButtonText(submissionPlayButton.lastChild, "Play", true);
+				submissionPlayButton.classList.remove('playing');
+				button.transitionButtonText(submissionPlayButton.lastChild, 'Play', true);
 			}
 		});
 	}

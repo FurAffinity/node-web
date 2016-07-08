@@ -1,62 +1,62 @@
-"use strict";
+'use strict';
 
-var errors = require("../errors");
-var generators = require("./generators");
+var errors = require('../errors');
+var generators = require('./generators');
 
 function UnknownMediaTypeError(mediaType) {
-	errors.ApplicationError.call(this, "Unknown media type: " + mediaType);
+	errors.ApplicationError.call(this, 'Unknown media type: ' + mediaType);
 }
 
 errors.ApplicationError.extend(UnknownMediaTypeError);
 
 var types = [
 	{
-		id: "jpg",
-		mediaType: "image/jpeg",
-		submissionType: "image",
-		description: "JPEG",
+		id: 'jpg',
+		mediaType: 'image/jpeg',
+		submissionType: 'image',
+		description: 'JPEG',
 	},
 	{
-		id: "png",
-		mediaType: "image/png",
-		submissionType: "image",
-		description: "PNG",
+		id: 'png',
+		mediaType: 'image/png',
+		submissionType: 'image',
+		description: 'PNG',
 	},
 	{
-		id: "mp3",
-		mediaType: "audio/mpeg",
-		submissionType: "audio",
-		description: "MP3",
+		id: 'mp3',
+		mediaType: 'audio/mpeg',
+		submissionType: 'audio',
+		description: 'MP3',
 	},
 	{
-		id: "ogg",
-		mediaType: "audio/ogg",
-		submissionType: "audio",
-		description: "Vorbis",
+		id: 'ogg',
+		mediaType: 'audio/ogg',
+		submissionType: 'audio',
+		description: 'Vorbis',
 	},
 	{
-		id: "flac",
-		mediaType: "audio/x-flac",
-		submissionType: "audio",
-		description: "FLAC",
+		id: 'flac',
+		mediaType: 'audio/x-flac',
+		submissionType: 'audio',
+		description: 'FLAC',
 	},
 	{
-		id: "m4a",
-		mediaType: "audio/x-m4a",
-		submissionType: "audio",
-		description: "AAC",
+		id: 'm4a',
+		mediaType: 'audio/x-m4a',
+		submissionType: 'audio',
+		description: 'AAC',
 	},
 	{
-		id: "docx",
-		mediaType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-		submissionType: "text",
-		description: "Word document",
+		id: 'docx',
+		mediaType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+		submissionType: 'text',
+		description: 'Word document',
 	},
 	{
-		id: "epub",
-		mediaType: "application/epub+zip",
-		submissionType: "text",
-		description: "EPUB",
+		id: 'epub',
+		mediaType: 'application/epub+zip',
+		submissionType: 'text',
+		description: 'EPUB',
 	},
 ];
 
@@ -91,7 +91,7 @@ types.forEach(function (type) {
 
 function byId(id) {
 	if (!(id in idMap)) {
-		throw new Error("Unknown type id: " + id);
+		throw new Error('Unknown type id: ' + id);
 	}
 
 	return idMap[id];

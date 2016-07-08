@@ -1,8 +1,8 @@
-"use strict";
+'use strict';
 
-var tap = require("tap");
+var tap = require('tap');
 
-var timingSafeCompare = require("../app/timing-safe-compare").timingSafeCompare;
+var timingSafeCompare = require('../app/timing-safe-compare').timingSafeCompare;
 
 var a = Buffer.from([
 	0x1e, 0xe8, 0x89, 0x9a, 0xee, 0xa2, 0xf1, 0xe9,
@@ -24,14 +24,14 @@ var c = Buffer.from([
 
 var empty = Buffer.alloc(0);
 
-tap.test("Equal buffers should compare as equal", function (t) {
+tap.test('Equal buffers should compare as equal', function (t) {
 	t.ok(timingSafeCompare(a, a));
 	t.ok(timingSafeCompare(a, b));
 	t.ok(timingSafeCompare(empty, Buffer.alloc(0)));
 	t.end();
 });
 
-tap.test("Unequal buffers should compare as unequal", function (t) {
+tap.test('Unequal buffers should compare as unequal', function (t) {
 	t.notOk(timingSafeCompare(a, c));
 	t.notOk(timingSafeCompare(a, empty));
 	t.end();

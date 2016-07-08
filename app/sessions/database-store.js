@@ -1,11 +1,11 @@
-"use strict";
+'use strict';
 
-var bluebird = require("bluebird");
-var crypto = require("crypto");
+var bluebird = require('bluebird');
+var crypto = require('crypto');
 
-var Session = require("./session").Session;
-var SessionStore = require("./store").SessionStore;
-var timingSafeCompare = require("../timing-safe-compare").timingSafeCompare;
+var Session = require('./session').Session;
+var SessionStore = require('./store').SessionStore;
+var timingSafeCompare = require('../timing-safe-compare').timingSafeCompare;
 
 var SESSION_ID_SIZE = 18;
 var SESSION_KEY_SIZE = 18;
@@ -18,7 +18,7 @@ var USER_COOKIE_SIZE =
 	SESSION_MAC_SIZE;
 
 function signSession(macKey, sessionId, sessionKey) {
-	return crypto.createHmac("sha256", macKey)
+	return crypto.createHmac('sha256', macKey)
 		.update(sessionId)
 		.update(sessionKey)
 		.digest()
@@ -27,7 +27,7 @@ function signSession(macKey, sessionId, sessionKey) {
 
 function getSelectSessionQuery(sessionId) {
 	return {
-		name: "select_session",
+		name: 'select_session',
 		text: 'SELECT key, next_key, "user", updated FROM sessions WHERE id = $1',
 		values: [sessionId],
 	};
@@ -35,7 +35,7 @@ function getSelectSessionQuery(sessionId) {
 
 function getInsertSessionQuery(sessionId, sessionKey, userId) {
 	return {
-		name: "insert_session",
+		name: 'insert_session',
 		text: 'INSERT INTO sessions (id, key, "user") VALUES ($1, $2, $3)',
 		values: [sessionId, sessionKey, userId],
 	};
@@ -43,31 +43,31 @@ function getInsertSessionQuery(sessionId, sessionKey, userId) {
 
 function getDeleteSessionQuery(sessionId) {
 	return {
-		name: "delete_session",
-		text: "DELETE FROM sessions WHERE id = $1",
+		name: 'delete_session',
+		text: 'DELETE FROM sessions WHERE id = $1',
 		values: [sessionId],
 	};
 }
 
 function getUpdateKeyQuery(sessionId, nextKey) {
 	return {
-		name: "update_session_key",
-		text: "UPDATE sessions SET key = next_key, next_key = NULL, updated = NOW() WHERE id = $1 AND next_key = $2",
+		name: 'update_session_key',
+		text: 'UPDATE sessions SET key = next_key, next_key = NULL, updated = NOW() WHERE id = $1 AND next_key = $2',
 		values: [sessionId, nextKey],
 	};
 }
 
 function getUpdateNextKeyQuery(sessionId, nextKey) {
 	return {
-		name: "update_session_next_key",
-		text: "UPDATE sessions SET next_key = $2 WHERE id = $1",
+		name: 'update_session_next_key',
+		text: 'UPDATE sessions SET next_key = $2 WHERE id = $1',
 		values: [sessionId, nextKey],
 	};
 }
 
 function getDeleteExpiredSessionsQuery(userSessionLifetime) {
 	return {
-		name: "delete_expired_sessions",
+		name: 'delete_expired_sessions',
 		text: "DELETE FROM sessions WHERE created < NOW() - $1 * INTERVAL '1 SECOND'",
 		values: [userSessionLifetime],
 	};
@@ -77,7 +77,7 @@ function DatabaseSessionStore(options) {
 	SessionStore.call(this, options);
 
 	if (options.macKey.length !== 32) {
-		throw new Error("Session MAC key should be 32 bytes");
+		throw new Error('Session MAC key should be 32 bytes');
 	}
 
 	this.macKey = options.macKey;
@@ -134,7 +134,7 @@ DatabaseSessionStore.prototype.getCookie =
 		var sessionKey = session.sessionKey;
 
 		if (session.userId === null) {
-			return sessionId.toString("base64");
+			return sessionId.toString('base64');
 		} else {
 			var mac = signSession(
 				this.macKey,
@@ -146,7 +146,7 @@ DatabaseSessionStore.prototype.getCookie =
 				sessionId,
 				sessionKey,
 				mac,
-			]).toString("base64");
+			]).toString('base64');
 		}
 	};
 
@@ -154,7 +154,7 @@ DatabaseSessionStore.prototype.readCookie =
 	function readCookie(sessionCookie) {
 		var sessionStore = this;
 		var database = this.database;
-		var cookieBytes = Buffer.from(sessionCookie, "base64");
+		var cookieBytes = Buffer.from(sessionCookie, 'base64');
 
 		if (cookieBytes.length === GUEST_COOKIE_SIZE) {
 			return bluebird.resolve({
@@ -266,22 +266,22 @@ DatabaseSessionStore.prototype.getCookieHeader =
 	function getCookieHeader(session) {
 		var responseCookie = this.getCookie(session);
 		var cookieHeaderParts = [
-			this.cookieName + "=" + responseCookie,
-			"Path=/",
+			this.cookieName + '=' + responseCookie,
+			'Path=/',
 		];
 
 		if (this.cookieSecure) {
-			cookieHeaderParts.push("Secure");
+			cookieHeaderParts.push('Secure');
 		}
 
 		if (session.userId !== null) {
-			cookieHeaderParts.push("Max-Age=" + this.userSessionLifetime);
+			cookieHeaderParts.push('Max-Age=' + this.userSessionLifetime);
 		}
 
-		cookieHeaderParts.push("HttpOnly");
-		cookieHeaderParts.push("SameSite=Strict");
+		cookieHeaderParts.push('HttpOnly');
+		cookieHeaderParts.push('SameSite=Strict');
 
-		return cookieHeaderParts.join("; ");
+		return cookieHeaderParts.join('; ');
 	};
 
 exports.DatabaseSessionStore = DatabaseSessionStore;

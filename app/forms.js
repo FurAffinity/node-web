@@ -1,26 +1,26 @@
-"use strict";
+'use strict';
 
-var Busboy = require("busboy");
-var bluebird = require("bluebird");
-var crypto = require("crypto");
+var Busboy = require('busboy');
+var bluebird = require('bluebird');
+var crypto = require('crypto');
 
-var ApplicationError = require("./errors").ApplicationError;
-var config = require("./config");
-var timingSafeCompare = require("./timing-safe-compare").timingSafeCompare;
+var ApplicationError = require('./errors').ApplicationError;
+var config = require('./config');
+var timingSafeCompare = require('./timing-safe-compare').timingSafeCompare;
 
 var disallowedFieldNames = [
-	"hasOwnProperty",
-	"addError",
-	"valid",
-	"errors",
-	"form",
+	'hasOwnProperty',
+	'addError',
+	'valid',
+	'errors',
+	'form',
 ];
 
-var one = Symbol("one");
-var many = Symbol("many");
+var one = Symbol('one');
+var many = Symbol('many');
 
-var csrfTokenName = "t";
-var csrfMacKey = Buffer.from(config.forms.csrf_mac_key, "base64");
+var csrfTokenName = 't';
+var csrfMacKey = Buffer.from(config.forms.csrf_mac_key, 'base64');
 
 function FormError(message) {
 	ApplicationError.call(this, message);
@@ -47,7 +47,7 @@ function Form(fields) {
 			} else if (type.count === many) {
 				this[name] = [];
 			} else {
-				throw new TypeError("Expected field type to be one or many");
+				throw new TypeError('Expected field type to be one or many');
 			}
 
 			this.errors[name] = [];
@@ -56,21 +56,21 @@ function Form(fields) {
 }
 
 Form.prototype.addError = function (error, field) {
-	this.errors[field || "form"].push(error);
+	this.errors[field || 'form'].push(error);
 	this.valid = false;
 };
 
 function getCsrfKey(session, endpoint) {
-	return crypto.createHmac("sha256", csrfMacKey)
+	return crypto.createHmac('sha256', csrfMacKey)
 		.update(session.sessionId)
-		.update(endpoint, "utf8")
+		.update(endpoint, 'utf8')
 		.digest();
 }
 
 function getReader(schema) {
 	disallowedFieldNames.forEach(function (name) {
 		if (Object.prototype.hasOwnProperty.call(schema.fields, name)) {
-			throw new Error("Invalid field name: " + name);
+			throw new Error('Invalid field name: ' + name);
 		}
 	});
 
@@ -96,11 +96,11 @@ function getReader(schema) {
 			}
 
 			if (valueTruncated) {
-				busboy.removeListener("field", readField);
-				busboy.removeListener("file", readFile);
-				busboy.removeListener("finish", readFinish);
+				busboy.removeListener('field', readField);
+				busboy.removeListener('file', readFile);
+				busboy.removeListener('finish', readFinish);
 
-				next(new FormError("Field too large"));
+				next(new FormError('Field too large'));
 				return;
 			}
 
@@ -158,27 +158,27 @@ function getReader(schema) {
 				return;
 			}
 
-			busboy.removeListener("field", csrfField);
-			busboy.removeListener("finish", csrfFinish);
+			busboy.removeListener('field', csrfField);
+			busboy.removeListener('finish', csrfFinish);
 
-			var csrfKey = Buffer.from(value, "base64");
+			var csrfKey = Buffer.from(value, 'base64');
 
 			if (!timingSafeCompare(expectedCsrfKey, csrfKey)) {
-				next(new CsrfError("CSRF token invalid"));
+				next(new CsrfError('CSRF token invalid'));
 				return;
 			}
 
-			busboy.on("field", readField);
-			busboy.on("file", readFile);
-			busboy.on("finish", readFinish);
+			busboy.on('field', readField);
+			busboy.on('file', readFile);
+			busboy.on('finish', readFinish);
 		}
 
 		function csrfFinish() {
-			next(new CsrfError("CSRF token missing"));
+			next(new CsrfError('CSRF token missing'));
 		}
 
-		busboy.on("field", csrfField);
-		busboy.on("finish", csrfFinish);
+		busboy.on('field', csrfField);
+		busboy.on('finish', csrfFinish);
 
 		request.pipe(busboy);
 	};

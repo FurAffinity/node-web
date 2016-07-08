@@ -1,26 +1,26 @@
-"use strict";
+'use strict';
 
-var bluebird = require("bluebird");
+var bluebird = require('bluebird');
 
-var database = require("./database");
-var errors = require("./errors");
-var files = require("./files");
-var types = require("./files/types");
+var database = require('./database');
+var errors = require('./errors');
+var files = require('./files');
+var types = require('./files/types');
 
 var guestViewer = {
 	id: null,
-	ratingPreference: "general",
+	ratingPreference: 'general',
 };
 
 function SubmissionNotFoundError() {
-	errors.ApplicationError.call(this, "Submission not found");
+	errors.ApplicationError.call(this, 'Submission not found');
 }
 
 errors.ApplicationError.extend(SubmissionNotFoundError);
 
 function getSelectPendingSubmissionsQuery(userId) {
 	return {
-		name: "select_pending_submissions",
+		name: 'select_pending_submissions',
 		text: `
 			SELECT
 				submissions.id, submissions.type, title, description, rating,
@@ -39,15 +39,15 @@ function getSelectPendingSubmissionsQuery(userId) {
 
 function getPublishSubmissionQuery(userId, submissionInfo) {
 	return {
-		name: "insert_submission",
-		text: "UPDATE submissions SET title = $3, description = $4, rating = $5, published = TRUE WHERE id = $2 AND owner = $1",
+		name: 'insert_submission',
+		text: 'UPDATE submissions SET title = $3, description = $4, rating = $5, published = TRUE WHERE id = $2 AND owner = $1',
 		values: [userId, submissionInfo.id, submissionInfo.title, submissionInfo.description, submissionInfo.rating],
 	};
 }
 
 function getCreatePendingSubmissionQuery(submissionInfo) {
 	return {
-		name: "create_pending_submission",
+		name: 'create_pending_submission',
 		text: "INSERT INTO submissions (owner, type, title, description, thumbnail, thumbnail_type, waveform) VALUES ($1, $2, $3, '', $4, $5, $6) RETURNING id",
 		values: [submissionInfo.owner, submissionInfo.type, submissionInfo.title, submissionInfo.thumbnail, submissionInfo.thumbnailType, submissionInfo.waveform],
 	};
@@ -55,15 +55,15 @@ function getCreatePendingSubmissionQuery(submissionInfo) {
 
 function getAssociateTagsQuery(submissionId, tagNames) {
 	return {
-		name: "associate_tags",
-		text: "WITH t AS (INSERT INTO tags (name) SELECT name FROM UNNEST ($2::TEXT[]) AS name ON CONFLICT (name) DO UPDATE SET name = tags.name RETURNING $1::INTEGER, id) INSERT INTO submission_tags (submission, tag) SELECT * FROM t",
+		name: 'associate_tags',
+		text: 'WITH t AS (INSERT INTO tags (name) SELECT name FROM UNNEST ($2::TEXT[]) AS name ON CONFLICT (name) DO UPDATE SET name = tags.name RETURNING $1::INTEGER, id) INSERT INTO submission_tags (submission, tag) SELECT * FROM t',
 		values: [submissionId, tagNames],
 	};
 }
 
 function getAssociateFilesQuery(submissionId, submissionFiles) {
 	return {
-		name: "associate_files",
+		name: 'associate_files',
 		text: `
 			INSERT INTO submission_files (submission, type, file, original)
 				SELECT $1, type, file, original
@@ -84,7 +84,7 @@ function getAssociateFilesQuery(submissionId, submissionFiles) {
 
 function getCreateFolderQuery(userId, title) {
 	return {
-		name: "create_folder",
+		name: 'create_folder',
 		text: 'INSERT INTO folders (owner, title, "order") VALUES ($1, $2, (SELECT COALESCE(MAX("order"), 0) + 1 FROM folders WHERE owner = $1)) RETURNING id',
 		values: [userId, title],
 	};
@@ -92,7 +92,7 @@ function getCreateFolderQuery(userId, title) {
 
 function getSelectFoldersQuery(userId) {
 	return {
-		name: "select_folders",
+		name: 'select_folders',
 		text: `
 			SELECT
 				folders.id, folders.title, folders.hidden,
@@ -119,7 +119,7 @@ function getSelectFoldersQuery(userId) {
 
 function getAssociateFoldersQuery(submissionId, userId, folders) {
 	return {
-		name: "associate_folders",
+		name: 'associate_folders',
 		text: 'INSERT INTO submission_folders (submission, folder, "order") SELECT $1, f, COALESCE(MAX(submission_folders.order), 0) + 1 FROM UNNEST ($3::INTEGER[]) AS f INNER JOIN folders ON f = folders.id LEFT JOIN submission_folders ON f = submission_folders.folder WHERE folders.owner = $2 GROUP BY f',
 		values: [submissionId, userId, folders],
 	};
@@ -127,7 +127,7 @@ function getAssociateFoldersQuery(submissionId, userId, folders) {
 
 function getViewSubmissionQuery(submissionId) {
 	return {
-		name: "view_submission",
+		name: 'view_submission',
 		text: `
 			SELECT
 				owner, users.display_username AS owner_name, user_files.hash AS owner_image_hash, users.image_type AS owner_image_type,
@@ -153,15 +153,15 @@ function getViewSubmissionQuery(submissionId) {
 
 function getSelectSubmissionFilesQuery(submissionId) {
 	return {
-		name: "select_submission_files",
-		text: "SELECT submission_files.type, files.hash FROM submission_files INNER JOIN files ON submission_files.file = files.id WHERE submission_files.submission = $1",
+		name: 'select_submission_files',
+		text: 'SELECT submission_files.type, files.hash FROM submission_files INNER JOIN files ON submission_files.file = files.id WHERE submission_files.submission = $1',
 		values: [submissionId],
 	};
 }
 
 function getSelectCommentsQuery(submissionId) {
 	return {
-		name: "select_comments",
+		name: 'select_comments',
 		text: `
 			SELECT
 				comments.id, comments.parent, comments.owner, comments.text, comments.created,
@@ -178,23 +178,23 @@ function getSelectCommentsQuery(submissionId) {
 
 function getInsertCommentQuery(submissionId, userId, text) {
 	return {
-		name: "insert_comment",
-		text: "INSERT INTO comments (submission, parent, owner, text) VALUES ($1, NULL, $2, $3) RETURNING id",
+		name: 'insert_comment',
+		text: 'INSERT INTO comments (submission, parent, owner, text) VALUES ($1, NULL, $2, $3) RETURNING id',
 		values: [submissionId, userId, text],
 	};
 }
 
 function getInsertReplyQuery(submissionId, parentId, userId, text) {
 	return {
-		name: "insert_reply",
-		text: "INSERT INTO comments (submission, parent, owner, text) VALUES ($1, (SELECT id FROM comments WHERE id = $2 AND submission = $1), $3, $4) RETURNING id",
+		name: 'insert_reply',
+		text: 'INSERT INTO comments (submission, parent, owner, text) VALUES ($1, (SELECT id FROM comments WHERE id = $2 AND submission = $1), $3, $4) RETURNING id',
 		values: [submissionId, parentId, userId, text],
 	};
 }
 
 function getSelectRecentSubmissionsQuery(viewer) {
 	return {
-		name: "select_recent_submissions",
+		name: 'select_recent_submissions',
 		text: `
 			SELECT
 				submissions.id, submissions.title, submissions.rating, files.hash AS thumbnail_hash, submissions.thumbnail_type
@@ -215,23 +215,23 @@ function getSelectRecentSubmissionsQuery(viewer) {
 
 function getHideSubmissionQuery(viewerId, submissionId) {
 	return {
-		name: "hide_submission",
-		text: "INSERT INTO hidden_submissions (hidden_by, submission) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+		name: 'hide_submission',
+		text: 'INSERT INTO hidden_submissions (hidden_by, submission) VALUES ($1, $2) ON CONFLICT DO NOTHING',
 		values: [viewerId, submissionId],
 	};
 }
 
 function getUnhideSubmissionQuery(viewerId, submissionId) {
 	return {
-		name: "unhide_submission",
-		text: "DELETE FROM hidden_submissions WHERE hidden_by = $1 AND submission = $2",
+		name: 'unhide_submission',
+		text: 'DELETE FROM hidden_submissions WHERE hidden_by = $1 AND submission = $2',
 		values: [viewerId, submissionId],
 	};
 }
 
 function getSelectRecentUserSubmissionsQuery(viewer, userId) {
 	return {
-		name: "select_recent_user_submissions",
+		name: 'select_recent_user_submissions',
 		text: `
 			SELECT
 				submissions.id, submissions.title, submissions.rating, files.hash AS thumbnail_hash, submissions.thumbnail_type
@@ -256,7 +256,7 @@ function normalizeTagName(tagName) {
 		tagName
 			.trim()
 			.toLowerCase()
-			.normalize("NFC")
+			.normalize('NFC')
 	);
 }
 
@@ -266,7 +266,7 @@ function uniqueTags(tagNames) {
 
 function parseTags(tagString) {
 	return uniqueTags(
-		tagString.split(",")
+		tagString.split(',')
 			.map(normalizeTagName)
 			.filter(Boolean)
 	);
@@ -283,7 +283,7 @@ function createSubmission(userId, submissionInfo) {
 		return client.query(getPublishSubmissionQuery(userId, submissionInfo))
 			.then(function (result) {
 				if (result.rowCount !== 1) {
-					return bluebird.reject(new Error("Submission does not exist or is not owned by the user"));
+					return bluebird.reject(new Error('Submission does not exist or is not owned by the user'));
 				}
 
 				return bluebird.resolve();
@@ -349,8 +349,8 @@ function viewSubmission(submissionId) {
 				return bluebird.map(
 					result.rows,
 					function (row) {
-						if (row.type === "html") {
-							return files.readFile(row.hash, "utf8")
+						if (row.type === 'html') {
+							return files.readFile(row.hash, 'utf8')
 								.then(function (contents) {
 									row.contents = contents;
 									return row;

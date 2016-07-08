@@ -1,6 +1,6 @@
-"use strict";
+'use strict';
 
-def("button", [], function () {
+def('button', [], function () {
 	function empty(node) {
 		var child;
 
@@ -24,7 +24,7 @@ def("button", [], function () {
 	}
 
 	function transitionButtonText(button, newText, upwards) {
-		var currentTransition = button.getElementsByClassName("text-transition")[0];
+		var currentTransition = button.getElementsByClassName('text-transition')[0];
 
 		if (currentTransition) {
 			button.style.width = defaultView.getComputedStyle(button).width;
@@ -41,18 +41,18 @@ def("button", [], function () {
 		var textOut = oldText.substring(prefix.length);
 		var textIn = newText.substring(prefix.length);
 
-		var transitionContainer = document.createElement("span");
-		transitionContainer.className = "text-transition";
+		var transitionContainer = document.createElement('span');
+		transitionContainer.className = 'text-transition';
 
-		var textOutElement = document.createElement("span");
-		textOutElement.className = "text-transition-out";
+		var textOutElement = document.createElement('span');
+		textOutElement.className = 'text-transition-out';
 		textOutElement.textContent = textOut;
 
-		var textInElement = document.createElement("span");
-		textInElement.className = upwards ? "text-transition-in text-transition-up" : "text-transition-in";
+		var textInElement = document.createElement('span');
+		textInElement.className = upwards ? 'text-transition-in text-transition-up' : 'text-transition-in';
 		textInElement.textContent = textIn;
 
-		textInElement.addEventListener("animationend", function () {
+		textInElement.addEventListener('animationend', function () {
 			button.style.width = defaultView.getComputedStyle(button).width;
 			button.replaceChild(textInElement.firstChild, transitionContainer);
 		});

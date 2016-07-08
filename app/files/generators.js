@@ -1,13 +1,13 @@
-"use strict";
+'use strict';
 
-var bluebird = require("bluebird");
-var fs = require("fs");
-var sharp = require("sharp");
+var bluebird = require('bluebird');
+var fs = require('fs');
+var sharp = require('sharp');
 
-var spawn = require("child_process").spawn;
+var spawn = require('child_process').spawn;
 var unlinkAsync = bluebird.promisify(fs.unlink);
 
-var files = require("./");
+var files = require('./');
 
 var PROFILE_IMAGE_PIXEL_LIMIT = 8000 * 8000;
 var BANNER_PIXEL_LIMIT = 8000 * 8000;
@@ -17,7 +17,7 @@ function createProfileImage(originalPath, originalType) {
 	return sharp(originalPath)
 		.limitInputPixels(PROFILE_IMAGE_PIXEL_LIMIT)
 		.rotate()
-		.resize(200, 200, { interpolator: "nohalo" })
+		.resize(200, 200, { interpolator: 'nohalo' })
 		.withoutEnlargement()
 		.crop(sharp.strategy.entropy)
 		.compressionLevel(9)
@@ -28,7 +28,7 @@ function createProfileImage(originalPath, originalType) {
 		.then(files.insertBuffer)
 		.tap(function (file) {
 			file.type = originalType;
-			file.role = "profileImage";
+			file.role = 'profileImage';
 		});
 }
 
@@ -53,7 +53,7 @@ function createBanner(originalPath, originalType) {
 			return sharp(originalPath)
 				.limitInputPixels(BANNER_PIXEL_LIMIT)
 				.rotate()
-				.resize(resizeWidth, resizeHeight, { interpolator: "nohalo" })
+				.resize(resizeWidth, resizeHeight, { interpolator: 'nohalo' })
 				.withoutEnlargement()
 				.crop()
 				.compressionLevel(9)
@@ -64,7 +64,7 @@ function createBanner(originalPath, originalType) {
 				.then(files.insertBuffer)
 				.tap(function (file) {
 					file.type = originalType;
-					file.role = "banner";
+					file.role = 'banner';
 				});
 		});
 }
@@ -73,7 +73,7 @@ function createThumbnail(originalPath, originalType) {
 	return sharp(originalPath)
 		.limitInputPixels(SUBMISSION_PIXEL_LIMIT)
 		.rotate()
-		.resize(200, 200, { interpolator: "nohalo" })
+		.resize(200, 200, { interpolator: 'nohalo' })
 		.max()
 		.withoutEnlargement()
 		.compressionLevel(9)
@@ -84,7 +84,7 @@ function createThumbnail(originalPath, originalType) {
 		.then(files.insertBuffer)
 		.tap(function (file) {
 			file.type = originalType;
-			file.role = "thumbnail";
+			file.role = 'thumbnail';
 		});
 }
 
@@ -92,18 +92,18 @@ function createWaveform(originalPath) {
 	return new bluebird.Promise(function (resolve, reject) {
 		var temporaryPath = files.getTemporaryPath();
 
-		var waveformProcess = spawn("fa-waveform", [originalPath, temporaryPath], {
-			stdio: "ignore",
+		var waveformProcess = spawn('fa-waveform', [originalPath, temporaryPath], {
+			stdio: 'ignore',
 		});
 
 		function insertFile() {
 			return files.getFileInfo(temporaryPath)
 				.then(function (fileInfo) {
-					var hexDigest = fileInfo.digest.toString("hex");
+					var hexDigest = fileInfo.digest.toString('hex');
 					return files.insertFile(hexDigest, fileInfo.byteSize, temporaryPath);
 				})
 				.tap(function (file) {
-					file.role = "waveform";
+					file.role = 'waveform';
 				});
 		}
 
@@ -111,7 +111,7 @@ function createWaveform(originalPath) {
 			var insertion =
 				exitCode === 0 ?
 					insertFile() :
-					bluebird.reject(new Error("fa-waveform exited with code " + exitCode));
+					bluebird.reject(new Error('fa-waveform exited with code ' + exitCode));
 
 			resolve(
 				insertion.finally(function () {
@@ -121,12 +121,12 @@ function createWaveform(originalPath) {
 		}
 
 		function errorListener(error) {
-			waveformProcess.removeListener("close", closeListener);
+			waveformProcess.removeListener('close', closeListener);
 			reject(error);
 		}
 
-		waveformProcess.on("error", errorListener);
-		waveformProcess.on("close", closeListener);
+		waveformProcess.on('error', errorListener);
+		waveformProcess.on('close', closeListener);
 	});
 }
 
@@ -134,19 +134,19 @@ function createOgg(originalPath) {
 	return new bluebird.Promise(function (resolve, reject) {
 		var temporaryPath = files.getTemporaryPath();
 
-		var transcodeProcess = spawn("ffmpeg", ["-nostdin", "-timelimit", "300", "-i", originalPath, "-vn", "-f", "ogg", temporaryPath], {
-			stdio: "ignore",
+		var transcodeProcess = spawn('ffmpeg', ['-nostdin', '-timelimit', '300', '-i', originalPath, '-vn', '-f', 'ogg', temporaryPath], {
+			stdio: 'ignore',
 		});
 
 		function insertFile() {
 			return files.getFileInfo(temporaryPath)
 				.then(function (fileInfo) {
-					var hexDigest = fileInfo.digest.toString("hex");
+					var hexDigest = fileInfo.digest.toString('hex');
 					return files.insertFile(hexDigest, fileInfo.byteSize, temporaryPath);
 				})
 				.tap(function (file) {
-					file.type = "ogg";
-					file.role = "submission";
+					file.type = 'ogg';
+					file.role = 'submission';
 				});
 		}
 
@@ -154,7 +154,7 @@ function createOgg(originalPath) {
 			var insertion =
 				exitCode === 0 ?
 					insertFile() :
-					bluebird.reject(new Error("ffmpeg exited with code " + exitCode));
+					bluebird.reject(new Error('ffmpeg exited with code ' + exitCode));
 
 			resolve(
 				insertion.finally(function () {
@@ -164,18 +164,18 @@ function createOgg(originalPath) {
 		}
 
 		function errorListener(error) {
-			transcodeProcess.removeListener("close", closeListener);
+			transcodeProcess.removeListener('close', closeListener);
 			reject(error);
 		}
 
-		transcodeProcess.on("error", errorListener);
-		transcodeProcess.on("close", closeListener);
+		transcodeProcess.on('error', errorListener);
+		transcodeProcess.on('close', closeListener);
 	});
 }
 
 function createHtml(originalPath, originalType) {
-	var pandocProcess = spawn("pandoc", ["-f", originalType, "-t", "html", originalPath], {
-		stdio: ["ignore", "pipe", "ignore"],
+	var pandocProcess = spawn('pandoc', ['-f', originalType, '-t', 'html', originalPath], {
+		stdio: ['ignore', 'pipe', 'ignore'],
 	});
 
 	return new bluebird.Promise(function (resolve, reject) {
@@ -183,27 +183,27 @@ function createHtml(originalPath, originalType) {
 
 		function closeListener(exitCode) {
 			if (exitCode !== 0) {
-				reject(new Error("pandoc exited with code " + exitCode));
+				reject(new Error('pandoc exited with code ' + exitCode));
 				return;
 			}
 
 			resolve(
 				files.insertBuffer(Buffer.concat(parts)).tap(function (file) {
-					file.type = "html";
-					file.role = "submission";
+					file.type = 'html';
+					file.role = 'submission';
 				})
 			);
 		}
 
 		function errorListener(error) {
-			pandocProcess.removeListener("close", closeListener);
+			pandocProcess.removeListener('close', closeListener);
 			reject(error);
 		}
 
-		pandocProcess.on("error", errorListener);
-		pandocProcess.on("close", closeListener);
+		pandocProcess.on('error', errorListener);
+		pandocProcess.on('close', closeListener);
 
-		pandocProcess.stdout.on("data", function (part) {
+		pandocProcess.stdout.on('data', function (part) {
 			parts.push(part);
 		});
 	});

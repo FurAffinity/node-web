@@ -1,46 +1,46 @@
-"use strict";
+'use strict';
 
-var htmlparser = require("htmlparser2");
-var url = require("url");
+var htmlparser = require('htmlparser2');
+var url = require('url');
 
 var voidTags = new Set([
-	"area", "base", "br", "col", "command", "embed", "hr", "img", "input",
-	"keygen", "link", "meta", "param", "source", "track", "wbr",
+	'area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input',
+	'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr',
 ]);
 
 var tagWhitelist = new Set([
-	"section", "nav", "article", "aside",
-	"h1", "h2", "h3", "h4", "h5", "h6",
-	"header", "footer",
-	"address",
-	"p", "hr", "pre", "blockquote", "ol", "ul", "li", "dl", "dt", "dd",
-	"figure", "figcaption", "div",
-	"a", "em", "strong", "small", "s", "cite", "q", "dfn", "abbr",
-	"data", "time", "code", "var", "samp", "kbd", "sub", "sup",
-	"i", "b", "u", "mark",
-	"ruby", "rt", "rp", "bdi", "bdo",
-	"span", "br", "wbr",
-	"ins", "del",
-	"table", "caption", "tbody", "thead", "tfoot", "tr", "td", "th",
+	'section', 'nav', 'article', 'aside',
+	'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+	'header', 'footer',
+	'address',
+	'p', 'hr', 'pre', 'blockquote', 'ol', 'ul', 'li', 'dl', 'dt', 'dd',
+	'figure', 'figcaption', 'div',
+	'a', 'em', 'strong', 'small', 's', 'cite', 'q', 'dfn', 'abbr',
+	'data', 'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup',
+	'i', 'b', 'u', 'mark',
+	'ruby', 'rt', 'rp', 'bdi', 'bdo',
+	'span', 'br', 'wbr',
+	'ins', 'del',
+	'table', 'caption', 'tbody', 'thead', 'tfoot', 'tr', 'td', 'th',
 ]);
 
 var schemeWhitelist = new Set([
-	null, "http:", "https:",
+	null, 'http:', 'https:',
 ]);
 
 var internalHostname = /(^|\.)furaffinity\.net/i;
 
 function escapeAttributeValue(text) {
 	return text
-		.replace(/&/g, "&amp;")
-		.replace(/"/g, "&quot;");
+		.replace(/&/g, '&amp;')
+		.replace(/"/g, '&quot;');
 }
 
 function escapeContent(text) {
 	return text
-		.replace(/&/g, "&amp;")
-		.replace(/</g, "&lt;")
-		.replace(/>/g, "&gt;");
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;');
 }
 
 function isSafeLink(uri) {
@@ -52,7 +52,7 @@ function isInternalLink(uri) {
 }
 
 function cleanAttribute(safeAttributes, tagName, name, value) {
-	if (tagName === "a" && name.toLowerCase() === "href") {
+	if (tagName === 'a' && name.toLowerCase() === 'href') {
 		var parsed = url.parse(value, false, true);
 
 		if (!isSafeLink(parsed)) {
@@ -62,7 +62,7 @@ function cleanAttribute(safeAttributes, tagName, name, value) {
 		safeAttributes.href = value;
 
 		if (!isInternalLink(parsed)) {
-			safeAttributes.rel = "external nofollow";
+			safeAttributes.rel = 'external nofollow';
 		}
 	}
 }
@@ -76,12 +76,12 @@ function cleanAttributes(tagName, attributes) {
 
 	return Object.keys(safeAttributes).map(function (name) {
 		var value = safeAttributes[name];
-		return " " + name + '="' + escapeAttributeValue(value) + '"';
-	}).join("");
+		return ' ' + name + '="' + escapeAttributeValue(value) + '"';
+	}).join('');
 }
 
 function clean(html) {
-	var output = "";
+	var output = '';
 	var open = [];
 
 	function addOpenTag(name, attributes) {
@@ -89,7 +89,7 @@ function clean(html) {
 			return;
 		}
 
-		output += "<" + name + cleanAttributes(name, attributes) + ">";
+		output += '<' + name + cleanAttributes(name, attributes) + '>';
 
 		if (!voidTags.has(name)) {
 			open.push(name);
@@ -105,7 +105,7 @@ function clean(html) {
 
 		do {
 			closed = open.pop();
-			output += "</" + closed + ">";
+			output += '</' + closed + '>';
 		} while (closed !== name);
 	}
 
@@ -127,7 +127,7 @@ function clean(html) {
 	parser.parseComplete(html);
 
 	for (var i = open.length - 1; i >= 0; i--) {
-		output += "</" + open[i] + ">";
+		output += '</' + open[i] + '>';
 	}
 
 	return output;

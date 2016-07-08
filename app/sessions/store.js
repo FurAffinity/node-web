@@ -1,6 +1,6 @@
-"use strict";
+'use strict';
 
-var bluebird = require("bluebird");
+var bluebird = require('bluebird');
 
 function getReplaceWithUser(sessionStore, request, response) {
 	return function replaceWithUser(userId) {
@@ -9,7 +9,7 @@ function getReplaceWithUser(sessionStore, request, response) {
 		return sessionStore.createUserSession(userId).then(function (newSession) {
 			var newCookieHeader = sessionStore.getCookieHeader(newSession);
 
-			response.setHeader("Set-Cookie", newCookieHeader);
+			response.setHeader('Set-Cookie', newCookieHeader);
 			request.session = newSession;
 
 			if (session.userId === null) {
@@ -32,7 +32,7 @@ function getReplaceWithGuest(sessionStore, request, response) {
 		return sessionStore.createGuestSession().then(function (newSession) {
 			var newCookieHeader = sessionStore.getCookieHeader(newSession);
 
-			response.setHeader("Set-Cookie", newCookieHeader);
+			response.setHeader('Set-Cookie', newCookieHeader);
 			request.session = newSession;
 
 			return sessionStore.deleteUserSession(session.sessionId);
@@ -43,14 +43,14 @@ function getReplaceWithGuest(sessionStore, request, response) {
 function getMiddleware(sessionStore) {
 	return function (request, response, next) {
 		function nextWithSession(session) {
-			Object.defineProperty(session, "replaceWithUser", {
+			Object.defineProperty(session, 'replaceWithUser', {
 				enumerable: false,
 				configurable: true,
 				writable: true,
 				value: getReplaceWithUser(sessionStore, request, response),
 			});
 
-			Object.defineProperty(session, "replaceWithGuest", {
+			Object.defineProperty(session, 'replaceWithGuest', {
 				enumerable: false,
 				configurable: true,
 				writable: true,
@@ -63,7 +63,7 @@ function getMiddleware(sessionStore) {
 
 		function nextWithUpdatedSession(session) {
 			var cookieHeader = sessionStore.getCookieHeader(session);
-			response.setHeader("Set-Cookie", cookieHeader);
+			response.setHeader('Set-Cookie', cookieHeader);
 
 			nextWithSession(session);
 		}
@@ -102,7 +102,7 @@ function SessionStore(options) {
 	this.cookieSecure = options.cookieSecure;
 }
 
-Object.defineProperty(SessionStore.prototype, "middleware", {
+Object.defineProperty(SessionStore.prototype, 'middleware', {
 	configurable: true,
 	get: function () {
 		return getMiddleware(this);

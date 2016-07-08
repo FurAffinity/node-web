@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 function extend(constructor) {
 	constructor.prototype = Object.create(this.prototype, {
@@ -18,7 +18,7 @@ function extend(constructor) {
 			configurable: true,
 			enumerable: false,
 			writable: true,
-			value: "",
+			value: '',
 		},
 	});
 
@@ -27,7 +27,7 @@ function extend(constructor) {
 
 function ApplicationError(message) {
 	if (message !== undefined) {
-		Object.defineProperty(this, "message", {
+		Object.defineProperty(this, 'message', {
 			configurable: true,
 			enumerable: false,
 			writable: true,
@@ -55,7 +55,7 @@ ApplicationError.prototype = Object.create(Error.prototype, {
 		configurable: true,
 		enumerable: false,
 		writable: true,
-		value: "",
+		value: '',
 	},
 });
 

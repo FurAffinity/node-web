@@ -1,17 +1,17 @@
-"use strict";
+'use strict';
 
-var bluebird = require("bluebird");
-var crypto = require("crypto");
-var spawn = require("child_process").spawn;
+var bluebird = require('bluebird');
+var crypto = require('crypto');
+var spawn = require('child_process').spawn;
 
-var timingSafeCompare = require("./timing-safe-compare").timingSafeCompare;
+var timingSafeCompare = require('./timing-safe-compare').timingSafeCompare;
 
 var secretLength = 20;
-var base32Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+var base32Alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
 
 function base32Encode(buffer) {
 	var i;
-	var result = "";
+	var result = '';
 
 	for (i = 0; i < buffer.length - 4; i += 5) {
 		result += base32Alphabet.charAt(buffer[i] >> 3);
@@ -66,26 +66,26 @@ function dt(digest) {
 
 function hotp(key, counter) {
 	if (!Number.isSafeInteger(counter)) {
-		throw new TypeError("counter must be a safe integer");
+		throw new TypeError('counter must be a safe integer');
 	}
 
 	if (counter < 0) {
-		throw new RangeError("counter must be a non-negative integer");
+		throw new RangeError('counter must be a non-negative integer');
 	}
 
 	if (counter >= Math.pow(2, 48)) {
-		throw new RangeError("counter must be less than 2^48");
+		throw new RangeError('counter must be less than 2^48');
 	}
 
 	var counterBuffer = Buffer.alloc(8);
 	counterBuffer.writeUIntBE(counter, 2, 6);
 
 	var digest =
-		crypto.createHmac("sha1", key)
+		crypto.createHmac('sha1', key)
 			.update(counterBuffer)
 			.digest();
 
-	return ("00000" + dt(digest)).slice(-6);
+	return ('00000' + dt(digest)).slice(-6);
 }
 
 function getCodeCounter(key, code) {
@@ -107,8 +107,8 @@ function getCodeCounter(key, code) {
 }
 
 function getBarcode(data) {
-	var encodeProcess = spawn("qrencode", ["-o", "-"], {
-		stdio: ["pipe", "pipe", "ignore"],
+	var encodeProcess = spawn('qrencode', ['-o', '-'], {
+		stdio: ['pipe', 'pipe', 'ignore'],
 	});
 
 	return new bluebird.Promise(function (resolve, reject) {
@@ -116,7 +116,7 @@ function getBarcode(data) {
 
 		function closeListener(exitCode) {
 			if (exitCode !== 0) {
-				reject(new Error("qrencode exited with code " + exitCode));
+				reject(new Error('qrencode exited with code ' + exitCode));
 				return;
 			}
 
@@ -124,28 +124,28 @@ function getBarcode(data) {
 		}
 
 		function errorListener(error) {
-			encodeProcess.removeListener("close", closeListener);
+			encodeProcess.removeListener('close', closeListener);
 			reject(error);
 		}
 
-		encodeProcess.on("error", errorListener);
-		encodeProcess.on("close", closeListener);
+		encodeProcess.on('error', errorListener);
+		encodeProcess.on('close', closeListener);
 
-		encodeProcess.stdout.on("data", function (part) {
+		encodeProcess.stdout.on('data', function (part) {
 			parts.push(part);
 		});
 
-		encodeProcess.stdin.end(data, "utf8");
+		encodeProcess.stdin.end(data, 'utf8');
 	});
 }
 
 function getKeyBarcode(issuer, user, base32Key) {
 	var barcodeData =
-		"otpauth://totp/" + encodeURIComponent(issuer) + ":" + encodeURIComponent(user) +
-		"?secret=" + base32Key + "&issuer=" + encodeURIComponent(issuer);
+		'otpauth://totp/' + encodeURIComponent(issuer) + ':' + encodeURIComponent(user) +
+		'?secret=' + base32Key + '&issuer=' + encodeURIComponent(issuer);
 
 	return getBarcode(barcodeData).then(function (imageData) {
-		return "data:image/png;base64," + imageData.toString("base64");
+		return 'data:image/png;base64,' + imageData.toString('base64');
 	});
 }
 

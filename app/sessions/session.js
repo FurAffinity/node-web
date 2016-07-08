@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 function Session(sessionId, sessionKey, userId) {
 	this.sessionId = sessionId;

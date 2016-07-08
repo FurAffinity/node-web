@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 function Duration(seconds) {
 	this.seconds = seconds;

@@ -1,10 +1,10 @@
-"use strict";
+'use strict';
 
-var crypto = require("crypto");
+var crypto = require('crypto');
 var COMPARISON_KEY = crypto.randomBytes(32);
 
 function getComparisonDigest(buffer) {
-	return crypto.createHmac("sha256", COMPARISON_KEY)
+	return crypto.createHmac('sha256', COMPARISON_KEY)
 		.update(buffer)
 		.digest();
 }

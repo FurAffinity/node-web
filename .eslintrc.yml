@@ -76,7 +76,7 @@ rules:
   one-var: [2, never]
   operator-linebreak: [2, after]
   padded-blocks: [2, never]
-  quotes: [2, double, avoid-escape]
+  quotes: [2, single, avoid-escape]
   semi: [2, always]
   semi-spacing: 2
   space-before-function-paren:

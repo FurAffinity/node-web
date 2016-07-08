@@ -1,14 +1,14 @@
-"use strict";
+'use strict';
 
-def("editor", [], function () {
-	var prosemirror = require("prosemirror");
-	var model = require("prosemirror/dist/model");
-	var format = require("prosemirror/dist/format");
+def('editor', [], function () {
+	var prosemirror = require('prosemirror');
+	var model = require('prosemirror/dist/model');
+	var format = require('prosemirror/dist/format');
 
 	var hasStorage = (function () {
 		try {
-			localStorage.setItem("_test", "1");
-			localStorage.removeItem("_test");
+			localStorage.setItem('_test', '1');
+			localStorage.removeItem('_test');
 			return true;
 		} catch (e) {
 			return false;
@@ -52,7 +52,7 @@ def("editor", [], function () {
 	function animateSlide(canvas) {
 		var canvasWidth = canvas.width;
 		var canvasHeight = canvas.height;
-		var g = canvas.getContext("2d");
+		var g = canvas.getContext('2d');
 
 		var circleParticles = [];
 		var circleOnlyParticles = [];
@@ -131,7 +131,7 @@ def("editor", [], function () {
 			var green = 200 + 55 * brightness | 0;
 			var blue = 255 * brightness | 0;
 
-			g.fillStyle = "rgba(255, " + green + ", " + blue + ", " + opacity + ")";
+			g.fillStyle = 'rgba(255, ' + green + ', ' + blue + ', ' + opacity + ')';
 			g.fillRect(particle.x + offset, particle.y, 1, 1);
 		}
 
@@ -222,35 +222,35 @@ def("editor", [], function () {
 			configurable: true,
 			writable: true,
 			value: function (mark, s) {
-				return s.elt("span", {
-					"data-color": mark.attrs.color,
+				return s.elt('span', {
+					'data-color': mark.attrs.color,
 				});
 			},
 		},
 	});
 
-	ColorMark.register("command", "set", {
+	ColorMark.register('command', 'set', {
 		derive: {
 			params: [
-				{ label: "Color", attr: "color" },
+				{ label: 'Color', attr: 'color' },
 			],
 		},
-		label: "Set color",
+		label: 'Set color',
 	});
 
-	ColorMark.register("command", "unset", {
+	ColorMark.register('command', 'unset', {
 		derive: true,
-		label: "Remove color",
+		label: 'Remove color',
 	});
 
-	ColorMark.register("parseDOM", "span", {
+	ColorMark.register('parseDOM', 'span', {
 		parse: function (dom, state) {
 			state.wrapMark(
 				dom,
-				this.create({ color: dom.getAttribute("data-color") })
+				this.create({ color: dom.getAttribute('data-color') })
 			);
 		},
-		selector: "[data-color]",
+		selector: '[data-color]',
 	});
 
 	function UnderlineMark() {
@@ -269,32 +269,32 @@ def("editor", [], function () {
 			configurable: true,
 			writable: true,
 			value: function (mark, s) {
-				return s.elt("u");
+				return s.elt('u');
 			},
 		},
 	});
 
-	UnderlineMark.register("command", "set", {
+	UnderlineMark.register('command', 'set', {
 		derive: true,
-		label: "Set underline",
+		label: 'Set underline',
 	});
 
-	UnderlineMark.register("command", "unset", {
+	UnderlineMark.register('command', 'unset', {
 		derive: true,
-		label: "Unset underline",
+		label: 'Unset underline',
 	});
 
-	UnderlineMark.register("command", "toggle", {
+	UnderlineMark.register('command', 'toggle', {
 		derive: true,
-		label: "Toggle underline",
-		keys: ["Mod-U"],
+		label: 'Toggle underline',
+		keys: ['Mod-U'],
 	});
 
-	UnderlineMark.register("parseDOM", "u", { parse: "mark" });
-	UnderlineMark.register("parseDOM", "ins", { parse: "mark" });
-	UnderlineMark.register("parseDOMStyle", "text-decoration", {
+	UnderlineMark.register('parseDOM', 'u', { parse: 'mark' });
+	UnderlineMark.register('parseDOM', 'ins', { parse: 'mark' });
+	UnderlineMark.register('parseDOMStyle', 'text-decoration', {
 		parse: function (value, state, inner) {
-			if (value === "underline") {
+			if (value === 'underline') {
 				state.wrapMark(inner, this);
 			} else {
 				inner();
@@ -318,32 +318,32 @@ def("editor", [], function () {
 			configurable: true,
 			writable: true,
 			value: function (mark, s) {
-				return s.elt("del");
+				return s.elt('del');
 			},
 		},
 	});
 
-	DeleteMark.register("command", "set", {
+	DeleteMark.register('command', 'set', {
 		derive: true,
-		label: "Set deletion",
+		label: 'Set deletion',
 	});
 
-	DeleteMark.register("command", "unset", {
+	DeleteMark.register('command', 'unset', {
 		derive: true,
-		label: "Unset deletion",
+		label: 'Unset deletion',
 	});
 
-	DeleteMark.register("command", "toggle", {
+	DeleteMark.register('command', 'toggle', {
 		derive: true,
-		label: "Toggle deletion",
-		keys: ["Mod-S"],
+		label: 'Toggle deletion',
+		keys: ['Mod-S'],
 	});
 
-	DeleteMark.register("parseDOM", "s", { parse: "mark" });
-	DeleteMark.register("parseDOM", "del", { parse: "mark" });
-	DeleteMark.register("parseDOMStyle", "text-decoration", {
+	DeleteMark.register('parseDOM', 's', { parse: 'mark' });
+	DeleteMark.register('parseDOM', 'del', { parse: 'mark' });
+	DeleteMark.register('parseDOMStyle', 'text-decoration', {
 		parse: function (value, state, inner) {
-			if (value === "line-through") {
+			if (value === 'line-through') {
 				state.wrapMark(inner, this);
 			} else {
 				inner();
@@ -352,7 +352,7 @@ def("editor", [], function () {
 	});
 
 	function contentToBBCode(node) {
-		var result = "";
+		var result = '';
 
 		node.forEach(function (child) {
 			result += child.type.serializeBBCode(child);
@@ -365,19 +365,19 @@ def("editor", [], function () {
 		return contentToBBCode(doc).trim();
 	}
 
-	format.defineTarget("bbcode", toBBCode);
+	format.defineTarget('bbcode', toBBCode);
 
 	model.BlockQuote.prototype.serializeBBCode = function (node) {
-		return "[QUOTE]" + contentToBBCode(node) + "[/QUOTE]";
+		return '[QUOTE]' + contentToBBCode(node) + '[/QUOTE]';
 	};
 
-	model.HorizontalRule.prototype.serializeBBCode = const_("\n-----\n");
+	model.HorizontalRule.prototype.serializeBBCode = const_('\n-----\n');
 
 	model.Paragraph.prototype.serializeBBCode = function (node) {
-		return "\n" + contentToBBCode(node) + "\n";
+		return '\n' + contentToBBCode(node) + '\n';
 	};
 
-	model.HardBreak.prototype.serializeBBCode = const_("\n");
+	model.HardBreak.prototype.serializeBBCode = const_('\n');
 
 	model.Text.prototype.serializeBBCode = function (node) {
 		var open =
@@ -385,7 +385,7 @@ def("editor", [], function () {
 				.map(function (mark) {
 					return mark.type.openBBCode(mark);
 				})
-				.join("");
+				.join('');
 
 		var close =
 			node.marks
@@ -393,41 +393,41 @@ def("editor", [], function () {
 					return mark.type.closeBBCode(mark);
 				})
 				.reverse()
-				.join("");
+				.join('');
 
 		return open + node.text + close;
 	};
 
-	model.StrongMark.prototype.openBBCode = const_("[B]");
-	model.StrongMark.prototype.closeBBCode = const_("[/B]");
+	model.StrongMark.prototype.openBBCode = const_('[B]');
+	model.StrongMark.prototype.closeBBCode = const_('[/B]');
 
-	model.EmMark.prototype.openBBCode = const_("[I]");
-	model.EmMark.prototype.closeBBCode = const_("[/I]");
+	model.EmMark.prototype.openBBCode = const_('[I]');
+	model.EmMark.prototype.closeBBCode = const_('[/I]');
 
 	model.LinkMark.prototype.openBBCode = function (mark) {
-		var encodedHref = mark.attrs.href.replace(/"/g, "%22");
+		var encodedHref = mark.attrs.href.replace(/"/g, '%22');
 
 		return '[URL="' + encodedHref + '"]';
 	};
-	model.LinkMark.prototype.closeBBCode = const_("[/URL]");
+	model.LinkMark.prototype.closeBBCode = const_('[/URL]');
 
-	UnderlineMark.prototype.openBBCode = const_("[U]");
-	UnderlineMark.prototype.closeBBCode = const_("[/U]");
+	UnderlineMark.prototype.openBBCode = const_('[U]');
+	UnderlineMark.prototype.closeBBCode = const_('[/U]');
 
-	DeleteMark.prototype.openBBCode = const_("[S]");
-	DeleteMark.prototype.closeBBCode = const_("[/S]");
+	DeleteMark.prototype.openBBCode = const_('[S]');
+	DeleteMark.prototype.closeBBCode = const_('[/S]');
 
 	ColorMark.prototype.openBBCode = function (mark) {
-		return "[COLOR=" + mark.attrs.color + "]";
+		return '[COLOR=' + mark.attrs.color + ']';
 	};
-	ColorMark.prototype.closeBBCode = const_("[/COLOR]");
+	ColorMark.prototype.closeBBCode = const_('[/COLOR]');
 
 	var editorContainerTemplate = (function () {
-		var editor = document.createElement("div");
-		editor.className = "editor";
+		var editor = document.createElement('div');
+		editor.className = 'editor';
 
-		var editorToolbar = document.createElement("div");
-		editorToolbar.className = "editor-toolbar";
+		var editorToolbar = document.createElement('div');
+		editorToolbar.className = 'editor-toolbar';
 
 		editorToolbar.innerHTML =
 			'<button type="button" data-command="strong:toggle" class="editor-bold" title="Bold" tabindex="-1">B</button>' +
@@ -445,7 +445,7 @@ def("editor", [], function () {
 				'<button type="button" class="editor-color-option" title="Blue" tabindex="-1"><span style="background-color: blue; color: green;"></span></button>' +
 				'<button type="button" class="editor-color-option" title="Indigo" tabindex="-1"><span style="background-color: indigo; color: blue;"></span></button>' +
 				'<button type="button" class="editor-color-option" title="Violet" tabindex="-1"><span style="background-color: violet; color: indigo;"></span></button>' +
-			"</span>";
+			'</span>';
 
 		editor.appendChild(editorToolbar);
 
@@ -458,21 +458,21 @@ def("editor", [], function () {
 
 	function createEditor(textarea) {
 		var editorContainer = createEditorContainer();
-		var editorToolbar = editorContainer.getElementsByClassName("editor-toolbar")[0];
-		var colorPalette = editorToolbar.getElementsByClassName("editor-palette-colors")[0];
+		var editorToolbar = editorContainer.getElementsByClassName('editor-toolbar')[0];
+		var colorPalette = editorToolbar.getElementsByClassName('editor-palette-colors')[0];
 
 		var editor = new prosemirror.ProseMirror({
 			place: editorContainer,
 			schema: new model.Schema({
 				nodes: {
-					doc: { type: model.Doc, content: "block+" },
+					doc: { type: model.Doc, content: 'block+' },
 
-					paragraph: { type: model.Paragraph, content: "inline<_>*", group: "block" },
-					blockquote: { type: model.BlockQuote, content: "block+", group: "block" },
-					horizontal_rule: { type: model.HorizontalRule, group: "block" },
+					paragraph: { type: model.Paragraph, content: 'inline<_>*', group: 'block' },
+					blockquote: { type: model.BlockQuote, content: 'block+', group: 'block' },
+					horizontal_rule: { type: model.HorizontalRule, group: 'block' },
 
-					text: { type: model.Text, group: "inline" },
-					hard_break: { type: model.HardBreak, group: "inline" },
+					text: { type: model.Text, group: 'inline' },
+					hard_break: { type: model.HardBreak, group: 'inline' },
 				},
 				marks: {
 					em: model.EmMark,
@@ -485,20 +485,20 @@ def("editor", [], function () {
 			}),
 		});
 
-		if (textarea.value.substring(0, 8) === "[[html]]") {
-			editor.setContent(textarea.value.substring(8), "html");
+		if (textarea.value.substring(0, 8) === '[[html]]') {
+			editor.setContent(textarea.value.substring(8), 'html');
 		} else {
-			editor.setContent(textarea.value, "text");
+			editor.setContent(textarea.value, 'text');
 		}
 
 		var serializeTimer = null;
 
 		function serializeContent() {
-			textarea.value = "[[html]]" + editor.getContent("html");
+			textarea.value = '[[html]]' + editor.getContent('html');
 			serializeTimer = null;
 		}
 
-		editor.on("change", function () {
+		editor.on('change', function () {
 			if (serializeTimer === null) {
 				serializeTimer = setTimeout(serializeContent, 1000);
 			}
@@ -506,10 +506,10 @@ def("editor", [], function () {
 
 		function updateActiveMarks() {
 			var activeMarks = {
-				strong: editor.commands["strong:toggle"].active(editor),
-				em: editor.commands["em:toggle"].active(editor),
-				underline: editor.commands["underline:toggle"].active(editor),
-				del: editor.commands["del:toggle"].active(editor),
+				strong: editor.commands['strong:toggle'].active(editor),
+				em: editor.commands['em:toggle'].active(editor),
+				underline: editor.commands['underline:toggle'].active(editor),
+				del: editor.commands['del:toggle'].active(editor),
 			};
 
 			forEach(editor.activeMarks(), function (activeMark) {
@@ -526,83 +526,83 @@ def("editor", [], function () {
 			var strikeToggle = editorToolbar.children[3];
 			var linkToggle = editorToolbar.children[4];
 
-			boldToggle.classList.toggle("selected", !!activeMarks.strong);
-			italicsToggle.classList.toggle("selected", !!activeMarks.em);
-			underlineToggle.classList.toggle("selected", !!activeMarks.underline);
-			strikeToggle.classList.toggle("selected", !!activeMarks.del);
-			linkToggle.classList.toggle("selected", !editor.commands["link:set"].select(editor));
+			boldToggle.classList.toggle('selected', !!activeMarks.strong);
+			italicsToggle.classList.toggle('selected', !!activeMarks.em);
+			underlineToggle.classList.toggle('selected', !!activeMarks.underline);
+			strikeToggle.classList.toggle('selected', !!activeMarks.del);
+			linkToggle.classList.toggle('selected', !editor.commands['link:set'].select(editor));
 		}
 
-		editor.on("selectionChange", updateActiveMarks);
-		editor.on("activeMarkChange", updateActiveMarks);
+		editor.on('selectionChange', updateActiveMarks);
+		editor.on('activeMarkChange', updateActiveMarks);
 
-		editorToolbar.addEventListener("mousedown", function (e) {
+		editorToolbar.addEventListener('mousedown', function (e) {
 			e.preventDefault();
 		});
 
-		editorToolbar.addEventListener("click", function (e) {
+		editorToolbar.addEventListener('click', function (e) {
 			if (!isNormalClick(e)) {
 				return;
 			}
 
-			var button = findClosestByName(e.target, "BUTTON", editorToolbar);
+			var button = findClosestByName(e.target, 'BUTTON', editorToolbar);
 
 			if (!button) {
 				return;
 			}
 
-			var command = button.getAttribute("data-command");
+			var command = button.getAttribute('data-command');
 
 			if (command) {
-				editor.execCommand(button.getAttribute("data-command"));
-			} else if (button.classList.contains("editor-link")) {
-				if (button.classList.contains("selected")) {
-					editor.execCommand("link:unset");
+				editor.execCommand(button.getAttribute('data-command'));
+			} else if (button.classList.contains('editor-link')) {
+				if (button.classList.contains('selected')) {
+					editor.execCommand('link:unset');
 				} else {
-					editor.execCommand("link:set");
+					editor.execCommand('link:set');
 				}
-			} else if (button.classList.contains("editor-color")) {
+			} else if (button.classList.contains('editor-color')) {
 				colorPalette.hidden = !colorPalette.hidden;
-			} else if (button.classList.contains("editor-color-option")) {
+			} else if (button.classList.contains('editor-color-option')) {
 				var color = button.children[0].style.backgroundColor;
-				editor.execCommand("color:set", [color]);
+				editor.execCommand('color:set', [color]);
 			}
 		});
 
 		editor.content.tabIndex = textarea.tabIndex;
 
 		function addRainbowOption() {
-			var rainbowOptionInner = document.createElement("span");
-			rainbowOptionInner.className = "editor-color-option-rainbow";
+			var rainbowOptionInner = document.createElement('span');
+			rainbowOptionInner.className = 'editor-color-option-rainbow';
 
-			var rainbowOption = document.createElement("button");
-			rainbowOption.type = "button";
-			rainbowOption.className = "editor-color-option";
-			rainbowOption.title = "Rainbow";
+			var rainbowOption = document.createElement('button');
+			rainbowOption.type = 'button';
+			rainbowOption.className = 'editor-color-option';
+			rainbowOption.title = 'Rainbow';
 			rainbowOption.appendChild(rainbowOptionInner);
 
-			rainbowOption.addEventListener("click", function (e) {
+			rainbowOption.addEventListener('click', function (e) {
 				if (!isNormalClick(e)) {
 					return;
 				}
 
 				e.stopPropagation();
-				editor.execCommand("color:set", ["rainbow"]);
+				editor.execCommand('color:set', ['rainbow']);
 			});
 
 			colorPalette.appendChild(rainbowOption);
 		}
 
 		function createColorLine(target) {
-			var overlay = document.createElement("div");
-			overlay.className = "editor-color-line-overlay";
+			var overlay = document.createElement('div');
+			overlay.className = 'editor-color-line-overlay';
 
-			var canvas = document.createElement("canvas");
-			canvas.className = "editor-color-line";
+			var canvas = document.createElement('canvas');
+			canvas.className = 'editor-color-line';
 			canvas.width = 300;
 			canvas.height = 30;
 
-			target.parentNode.classList.add("editor-color-transform");
+			target.parentNode.classList.add('editor-color-transform');
 			target.parentNode.insertBefore(overlay, target);
 			target.parentNode.insertBefore(canvas, target);
 
@@ -625,8 +625,8 @@ def("editor", [], function () {
 			}
 
 			function slideUpListener(e) {
-				window.removeEventListener("mousemove", slideMoveListener);
-				window.removeEventListener("mouseup", slideUpListener);
+				window.removeEventListener('mousemove', slideMoveListener);
+				window.removeEventListener('mouseup', slideUpListener);
 
 				animation.stop();
 
@@ -638,18 +638,18 @@ def("editor", [], function () {
 				} while ((offsetElement = offsetElement.offsetParent));
 
 				if (animation.isComplete(e.clientX - trackStart)) {
-					editorContainer.removeEventListener("mousedown", createColorLineListener);
-					localStorage.setItem("rainbow", "1");
+					editorContainer.removeEventListener('mousedown', createColorLineListener);
+					localStorage.setItem('rainbow', '1');
 					addRainbowOption();
 				}
 
 				target.parentNode.removeChild(overlay);
 				target.parentNode.removeChild(canvas);
-				target.parentNode.classList.remove("editor-color-transform");
+				target.parentNode.classList.remove('editor-color-transform');
 			}
 
-			window.addEventListener("mousemove", slideMoveListener);
-			window.addEventListener("mouseup", slideUpListener);
+			window.addEventListener('mousemove', slideMoveListener);
+			window.addEventListener('mouseup', slideUpListener);
 		}
 
 		function createColorLineListener(e) {
@@ -660,8 +660,8 @@ def("editor", [], function () {
 			var target = e.target;
 
 			if (
-				!target.classList.contains("editor-color-option") &&
-				!(target = target.parentNode).classList.contains("editor-color-option")
+				!target.classList.contains('editor-color-option') &&
+				!(target = target.parentNode).classList.contains('editor-color-option')
 			) {
 				return;
 			}
@@ -687,24 +687,24 @@ def("editor", [], function () {
 			}
 
 			function removeListeners() {
-				target.removeEventListener("mousemove", moveListener);
-				window.removeEventListener("mouseup", removeListeners);
+				target.removeEventListener('mousemove', moveListener);
+				window.removeEventListener('mouseup', removeListeners);
 			}
 
-			target.addEventListener("mousemove", moveListener);
-			window.addEventListener("mouseup", removeListeners);
+			target.addEventListener('mousemove', moveListener);
+			window.addEventListener('mouseup', removeListeners);
 		}
 
 		if (hasStorage) {
-			if (localStorage.getItem("rainbow")) {
+			if (localStorage.getItem('rainbow')) {
 				addRainbowOption();
 			} else {
-				editorToolbar.addEventListener("mousedown", createColorLineListener);
+				editorToolbar.addEventListener('mousedown', createColorLineListener);
 			}
 		}
 
-		textarea.form.addEventListener("submit", function () {
-			textarea.value = editor.getContent("bbcode");
+		textarea.form.addEventListener('submit', function () {
+			textarea.value = editor.getContent('bbcode');
 
 			if (serializeTimer !== null) {
 				clearTimeout(serializeTimer);
@@ -712,7 +712,7 @@ def("editor", [], function () {
 		});
 
 		textarea.parentNode.insertBefore(editorContainer, textarea);
-		textarea.classList.add("editor-replaced");
+		textarea.classList.add('editor-replaced');
 	}
 
 	return {

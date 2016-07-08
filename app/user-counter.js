@@ -1,22 +1,22 @@
-"use strict";
+'use strict';
 
-var dgram = require("dgram");
-var ipaddr = require("ipaddr.js");
+var dgram = require('dgram');
+var ipaddr = require('ipaddr.js');
 
-var config = require("./config");
+var config = require('./config');
 
 var userCount = 0;
 
-var socket = dgram.createSocket("udp4");
+var socket = dgram.createSocket('udp4');
 
-socket.on("message", function (message) {
+socket.on('message', function (message) {
 	userCount = message.readUInt32BE(0);
 });
 
 socket.bind(config.user_counter.listen_host);
 
 function addUser(address) {
-	if (address.startsWith("[") && address.endsWith("]")) {
+	if (address.startsWith('[') && address.endsWith(']')) {
 		address = address.slice(1, -1);
 	}
 

@@ -1,9 +1,9 @@
-"use strict";
+'use strict';
 
-var bluebird = require("bluebird");
-var pg = require("pg");
+var bluebird = require('bluebird');
+var pg = require('pg');
 
-var config = require("./config");
+var config = require('./config');
 
 function ClientWrapper(client) {
 	this.client = client;
@@ -21,8 +21,8 @@ var pool = new pg.Pool(
 	)
 );
 
-pool.on("error", function (error) {
-	console.error("idle client error: " + error.stack);
+pool.on('error', function (error) {
+	console.error('idle client error: ' + error.stack);
 });
 
 pool.connectDisposer = function () {
@@ -33,17 +33,17 @@ pool.connectDisposer = function () {
 
 pool.withTransaction = function (useTransaction) {
 	return bluebird.using(this.connectDisposer(), function (client) {
-		return client.query("BEGIN").then(function () {
+		return client.query('BEGIN').then(function () {
 			return useTransaction(new ClientWrapper(client))
 				.tap(function () {
-					return client.query("COMMIT");
+					return client.query('COMMIT');
 				})
 				.catch(function (error) {
 					function throwOriginal() {
 						return bluebird.reject(error);
 					}
 
-					return client.query("ROLLBACK")
+					return client.query('ROLLBACK')
 						.then(throwOriginal, throwOriginal);
 				});
 		});

@@ -1,36 +1,36 @@
-"use strict";
+'use strict';
 
-var bluebird = require("bluebird");
-var crypto = require("crypto");
-var fs = require("fs");
-var path = require("path");
+var bluebird = require('bluebird');
+var crypto = require('crypto');
+var fs = require('fs');
+var path = require('path');
 
-var errors = require("./errors");
-var log = require("./log");
+var errors = require('./errors');
+var log = require('./log');
 
-var Duration = require("./duration").Duration;
-var redisClient = require("./redis").client;
+var Duration = require('./duration').Duration;
+var redisClient = require('./redis').client;
 
-var script = fs.readFileSync(path.join(__dirname, "../redis/rate-limit.lua"), "utf8");
+var script = fs.readFileSync(path.join(__dirname, '../redis/rate-limit.lua'), 'utf8');
 var scriptHash =
-	crypto.createHash("sha1")
+	crypto.createHash('sha1')
 		.update(script)
-		.digest("hex");
+		.digest('hex');
 
 var scriptReload = log.defineEvent({
-	name: "rate-limit script reload",
-	tags: ["rare"],
+	name: 'rate-limit script reload',
+	tags: ['rare'],
 });
 
 function RateError(counterName) {
-	errors.ApplicationError.call(this, "Rate limit exceeded: " + counterName);
+	errors.ApplicationError.call(this, 'Rate limit exceeded: ' + counterName);
 }
 
 errors.ApplicationError.extend(RateError);
 
 function RateLimit(name, limit, duration) {
 	if (!(duration instanceof Duration)) {
-		throw new TypeError("duration should be an instance of Duration");
+		throw new TypeError('duration should be an instance of Duration');
 	}
 
 	this.name = name;
@@ -40,7 +40,7 @@ function RateLimit(name, limit, duration) {
 
 RateLimit.prototype.attempt = function (identifier) {
 	var counter = this;
-	var key = "rate:" + this.name + ":" + identifier;
+	var key = 'rate:' + this.name + ':' + identifier;
 	var now = Date.now() / 1000 | 0;
 
 	return redisClient.evalshaAsync(scriptHash, 1, key, this.duration, this.limit, now)

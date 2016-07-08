@@ -1,21 +1,21 @@
-"use strict";
+'use strict';
 
-var express = require("express");
+var express = require('express');
 
 var r = String.raw;
 
-var forms = require("../forms");
-var submissions = require("../submissions");
+var forms = require('../forms');
+var submissions = require('../submissions');
 
-var hideFormReader = forms.getReader({ name: "hide", fields: [] });
+var hideFormReader = forms.getReader({ name: 'hide', fields: [] });
 var router = new express.Router();
 
 router.post(r`/api/submissions/:id(\d+)/hide`, hideFormReader, function (req, res, next) {
 	if (req.user === null) {
 		res
-			.type("text/plain")
+			.type('text/plain')
 			.status(401) // TODO
-			.send("Guests can’t hide submissions.");
+			.send('Guests can’t hide submissions.');
 		return;
 	}
 
@@ -23,7 +23,7 @@ router.post(r`/api/submissions/:id(\d+)/hide`, hideFormReader, function (req, re
 
 	submissions.hideSubmission(req.user.id, submissionId).done(
 		function () {
-			res.send("Submission hidden.");
+			res.send('Submission hidden.');
 		},
 		next
 	);
@@ -32,9 +32,9 @@ router.post(r`/api/submissions/:id(\d+)/hide`, hideFormReader, function (req, re
 router.post(r`/api/submissions/:id(\d+)/unhide`, hideFormReader, function (req, res, next) {
 	if (req.user === null) {
 		res
-			.type("text/plain")
+			.type('text/plain')
 			.status(401) // TODO
-			.send("Guests can’t hide submissions.");
+			.send('Guests can’t hide submissions.');
 		return;
 	}
 
@@ -42,7 +42,7 @@ router.post(r`/api/submissions/:id(\d+)/unhide`, hideFormReader, function (req, 
 
 	submissions.unhideSubmission(req.user.id, submissionId).done(
 		function () {
-			res.send("Submission unhidden.");
+			res.send('Submission unhidden.');
 		},
 		next
 	);
