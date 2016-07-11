@@ -3,7 +3,7 @@
 var bluebird = require('bluebird');
 var pg = require('pg');
 
-var config = require('./config');
+var config = require('../config');
 
 function ClientWrapper(client) {
 	this.client = client;

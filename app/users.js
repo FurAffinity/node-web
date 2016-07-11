@@ -10,7 +10,7 @@ var ApplicationError = require('./errors').ApplicationError;
 var config = require('./config');
 var database = require('./database');
 var email = require('./email');
-var postgresql = require('./postgresql');
+var postgresql = require('./database/postgresql');
 
 var sendAsync = bluebird.promisify(email.send);
 var timingSafeCompare = require('./timing-safe-compare').timingSafeCompare;

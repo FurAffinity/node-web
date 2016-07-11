@@ -4,7 +4,7 @@ var bluebird = require('bluebird');
 var tap = require('tap');
 
 var database = require('../app/database');
-var postgresql = require('../app/postgresql');
+var postgresql = require('../app/database/postgresql');
 
 tap.tearDown(function () {
 	return database.end();
