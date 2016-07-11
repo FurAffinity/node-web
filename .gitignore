@@ -1,4 +1,5 @@
 /config/config.toml
 /files
 /node_modules
+/public/js/editor.js
 /tmp
