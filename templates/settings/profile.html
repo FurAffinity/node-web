@@ -32,7 +32,7 @@
 		<div class="field-horizontal">
 			<label class="field">
 				<span class="label">Full name</span>
-				<input class="text" type="text" name="full-name" value="{{ profile.fullName }}" placeholder="{{ user.displayUsername | capitalize }}" />
+				<input class="text" type="text" name="full-name" value="{{ profile.fullName }}" placeholder="{{ request.user.displayUsername | capitalize }}" />
 			</label>
 
 			<label class="field">

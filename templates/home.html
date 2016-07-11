@@ -32,7 +32,7 @@
 		</div>
 	</section>
 
-	{% if user %}
+	{% if request.user %}
 		<form action="/logout" method="POST">
 			{{ csrf("logout") }}
 			<button>Log out</button>

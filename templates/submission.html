@@ -160,7 +160,7 @@
 								<span class="comment-actions">
 									<a href="#comment-{{ comment.id }}" rel="bookmark">link</a>
 									<a class="comment-action-collapse" href="javascript:void 0">collapse</a>
-									{% if user %}
+									{% if request.user %}
 										<a class="comment-action-reply" href="/submissions/{{ submission.id }}/comments/{{ comment.id }}/reply">reply</a>
 									{% endif %}
 								</span>
@@ -183,7 +183,7 @@
 			{{ comment_box(comment) }}
 		{% endfor %}
 
-		{% if user %}
+		{% if request.user %}
 			<form id="new-comment" class="new-comment" method="POST" action="/submissions/{{ submission.id }}/comments/">
 				{{ csrf("comment") }}
 

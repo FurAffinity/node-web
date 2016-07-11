@@ -1,20 +1,28 @@
 'use strict';
 
-var express = require('express');
-
 var duration = require('../duration');
 var rateLimit = require('../rate-limit');
 var submissions = require('../submissions');
 
-var router = new express.Router();
+var NunjucksRenderer = require('../render').NunjucksRenderer;
+var Ok = require('../respond').Ok;
 
-router.get('/', rateLimit.byAddress('home', 5, duration.seconds(20)), function (req, res, next) {
-	submissions.getRecentSubmissions(req.user).done(
-		function (recentSubmissions) {
-			res.render('home.html', { recentSubmissions: recentSubmissions });
-		},
-		next
-	);
-});
+var homeRoute = {
+	path: '/',
+	middleware: [
+		rateLimit.byAddress('home', 5, duration.seconds(20)),
+	],
+	renderers: [
+		new NunjucksRenderer('home.html'),
+	],
+	get: function (request) {
+		return submissions.getRecentSubmissions(request.user)
+			.then(function (recentSubmissions) {
+				return new Ok({ recentSubmissions: recentSubmissions });
+			});
+	},
+};
 
-exports.router = router;
+exports.routes = [
+	homeRoute,
+];

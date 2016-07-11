@@ -2,20 +2,16 @@
 
 var bluebird = require('bluebird');
 var express = require('express');
-var nunjucks = require('nunjucks');
 var strictCookieParser = require('strict-cookie-parser');
 
 var config = require('./config');
 var database = require('./database');
 var errors = require('./errors');
-var filters = require('./filters');
-var types = require('./files/types');
+var render = require('./render');
 var userCounter = require('./user-counter');
 var users = require('./users');
-var version = require('./version');
 
 var DatabaseSessionStore = require('./sessions/database-store').DatabaseSessionStore;
-var getCsrfKey = require('./forms').getCsrfKey;
 
 var app = express();
 
@@ -28,33 +24,7 @@ var sessionStorage = new DatabaseSessionStore({
 	userSessionLifetime: config.sessions.user_session_lifetime,
 });
 
-var templateLoader = new nunjucks.FileSystemLoader('templates', { watch: true });
-
-var env = new nunjucks.Environment(
-	templateLoader,
-	{
-		autoescape: true,
-		throwOnUndefined: true,
-	}
-);
-
-version.getGitRevision().then(function (gitRevision) {
-	env.addGlobal('siteRevision', gitRevision);
-});
-
-env.addFilter('type_name', function (fileType) {
-	return types.byId(fileType).description;
-});
-
-env.addFilter('bbcode', filters.bbcode);
-env.addFilter('bbcodeWithExcerpt', filters.bbcodeWithExcerpt);
-env.addFilter('clean_html', filters.cleanHtml);
-env.addFilter('file_path', filters.filePath);
-env.addFilter('file_size', filters.formatFileSize);
-env.addFilter('relative_date', filters.relativeDate);
-env.addFilter('user_path', filters.userPath);
-
-env.express(app);
+render.nunjucksEnvironment.express(app);
 
 // Let’s not allow users to put arbitrary structures in `req.query`.
 app.set('query parser', 'simple');
@@ -85,13 +55,7 @@ function withUserMeta(request, response, next) {
 }
 
 function templateLocals(request, response, next) {
-	response.locals.getCsrfToken = function (endpoint) {
-		return getCsrfKey(request.session, endpoint).toString('base64');
-	};
-
 	response.locals.request = request;
-	response.locals.user = request.user;
-
 	next();
 }
 
@@ -109,7 +73,43 @@ app.use(withUserMeta);
 app.use(templateLocals);
 app.use(userCounter.middleware);
 
-app.use(require('./routes/home').router);
+function wrapHandler(middleware, renderers, handler) {
+	if (renderers) {
+		handler = render.renderWith(renderers, handler);
+	}
+
+	return middleware.concat([
+		function (request, httpResponse, next) {
+			handler(request)
+				.then(function (response) {
+					return response.send(httpResponse);
+				})
+				.catch(next);
+		},
+	]);
+}
+
+function addRoute(route) {
+	var middleware = route.middleware || [];
+	var expressRoute = app.route(route.path);
+
+	if (route.get) {
+		expressRoute.get.apply(expressRoute, wrapHandler(middleware, route.renderers, route.get));
+	}
+}
+
+function flatten(arrays) {
+	return arrays.reduce(function (m, n) {
+		return m.concat(n);
+	}, []);
+}
+
+var routes = flatten([
+	require('./routes/home').routes,
+]);
+
+routes.forEach(addRoute);
+
 app.use(require('./routes/login').router);
 app.use(require('./routes/logout').router);
 app.use(require('./routes/profile').router);

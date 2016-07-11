@@ -1,5 +1,5 @@
 {%- macro csrf(endpoint) -%}
-	<input type="hidden" name="t" value="{{ getCsrfToken(endpoint) }}" />
+	<input type="hidden" name="t" value="{{ getCsrfToken(request, endpoint) }}" />
 {%- endmacro -%}
 
 {%- macro active(page) -%}
@@ -34,7 +34,7 @@
 
 <!DOCTYPE html>
 
-<html lang="en"{% if user %} data-hide-csrf="{{ getCsrfToken("hide") }}"{% endif %}>
+<html lang="en"{% if request.user %} data-hide-csrf="{{ getCsrfToken(request, "hide") }}"{% endif %}>
 	<head>
 		<meta charset="utf-8" />
 
@@ -136,7 +136,7 @@
 					<li><a href="javascript:void 0"{{ active("browse") }}>Browse</a></li>
 					<li><a href="javascript:void 0" rel="search"{{ active("search") }}>Search</a></li>
 
-					{% if user %}
+					{% if request.user %}
 						<li><a href="/submissions/new"{{ active("upload") }}>Upload</a></li>
 					{% endif %}
 				</ul>
@@ -146,7 +146,7 @@
 
 			<nav id="navigation-right" class="header-navigation">
 				<ul>
-					{% if user %}
+					{% if request.user %}
 						<li><a href="javascript:void 0"{{ active("notifications") }}>Notifications<span class="notification-indicator"></span></a></li>
 						<li><a href="/settings/profile">Settings</a></li>
 					{% else %}
@@ -177,7 +177,7 @@
 				{% else %}
 					<span id="site-revision">unknown revision</span>
 				{% endif %} ·
-				<span id="online-count">{{ userCount }} user{% if userCount != 1 %}s{% endif %} online</span>
+				<span id="online-count">{{ request.userCount }} user{% if request.userCount != 1 %}s{% endif %} online</span>
 			</div>
 		</footer>
 	</body>

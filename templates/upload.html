@@ -26,7 +26,7 @@
 
 		<div id="upload-list">
 			<label class="upload-new">
-				<input id="upload-file" type="file" multiple accesskey="u" data-csrf="{{ getCsrfToken("upload") }}" accept="image/*,audio/*,video/*,.docx,.epub" />
+				<input id="upload-file" type="file" multiple accesskey="u" data-csrf="{{ getCsrfToken(request, "upload") }}" accept="image/*,audio/*,video/*,.docx,.epub" />
 				<span class="button">Upload file</span>
 			</label>
 

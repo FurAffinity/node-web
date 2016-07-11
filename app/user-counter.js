@@ -29,6 +29,6 @@ exports.middleware = function (req, res, next) {
 		addUser(req.forwarded.for);
 	}
 
-	res.locals.userCount = userCount;
+	req.userCount = userCount;
 	next();
 };
