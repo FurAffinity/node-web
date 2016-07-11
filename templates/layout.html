@@ -173,10 +173,9 @@
 
 			<div id="footer-stats">
 				{% if siteRevision %}
-					<span id="site-revision" title="{{ siteRevision }}">{{ siteRevision.substring(0, 8) }}</span>
-				{% else %}
-					<span id="site-revision">unknown revision</span>
-				{% endif %} ·
+					<a id="site-revision" title="{{ siteRevision }}" href="https://github.com/FurAffinity/node-web/commit/{{ siteRevision }}">{{ siteRevision.substring(0, 8) }}</a>
+				{% endif %}
+
 				<span id="online-count">{{ request.userCount }} user{% if request.userCount != 1 %}s{% endif %} online</span>
 			</div>
 		</footer>
