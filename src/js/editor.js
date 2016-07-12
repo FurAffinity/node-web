@@ -638,7 +638,7 @@ def('editor', [], function () {
 				} while ((offsetElement = offsetElement.offsetParent));
 
 				if (animation.isComplete(e.clientX - trackStart)) {
-					editorContainer.removeEventListener('mousedown', createColorLineListener);
+					editorToolbar.removeEventListener('mousedown', createColorLineListener);
 					localStorage.setItem('rainbow', '1');
 					addRainbowOption();
 				}
