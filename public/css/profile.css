@@ -45,6 +45,7 @@
 }
 
 #profile-banner + #profile-above-banner #profile-header {
+	margin-bottom: -3.5em;
 	top: -3.5em;
 }
 
