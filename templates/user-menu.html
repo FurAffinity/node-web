@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+{% set current_page = "user_menu" %}
+
+{% block title -%}
+	Menu
+{%- endblock %}
+
+{% block stylesheets %}
+	{{ super() }}
+	<link rel="stylesheet" href="/css/user-menu.css" />
+{% endblock %}
+
+{% block body %}
+	<div class="main-menu-container">
+		<div class="main-menu">
+			<header>
+				<img src="{{ request.user.image | file_path }}" alt="" />
+				<h1>{{ request.user.displayUsername }}</h1>
+			</header>
+
+			<nav>
+				<ul>
+					<li><a class="menu-item" href="{{ request.user | user_path }}">View profile</a></li>
+					<li><a class="menu-item" href="/settings/profile">Profile settings</a></li>
+					<li><a class="menu-item" href="/settings/browsing">Browsing settings</a></li>
+					<li><a class="menu-item" href="/settings/account">Account settings</a></li>
+					<li>
+						<form class="menu-item-container" action="/logout" method="POST">
+							{{ csrf("logout") }}
+							<button class="menu-item">Log out</button>
+						</form>
+					</li>
+				</ul>
+			</nav>
+		</div>
+	</div>
+{% endblock %}

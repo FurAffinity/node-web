@@ -1,5 +1,6 @@
 'use strict';
 
+var _ = require('./utilities');
 var bluebird = require('bluebird');
 var express = require('express');
 var strictCookieParser = require('strict-cookie-parser');
@@ -98,13 +99,7 @@ function addRoute(route) {
 	}
 }
 
-function flatten(arrays) {
-	return arrays.reduce(function (m, n) {
-		return m.concat(n);
-	}, []);
-}
-
-var routes = flatten([
+var routes = _.concat([
 	require('./routes/home').routes,
 ]);
 

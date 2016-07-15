@@ -147,8 +147,12 @@
 			<nav id="navigation-right" class="header-navigation">
 				<ul>
 					{% if request.user %}
+						<li id="user-menu">
+							<a href="/user-menu" data-href="{{ request.user | user_path }}" class="user-menu-image">
+								<img src="{{ request.user.image | file_path }}" alt="{{ request.user.displayUsername }}’s profile image" title="{{ request.user.displayUsername }}" />
+							</a>
+						</li>
 						<li><a href="javascript:void 0"{{ active("notifications") }}>Notifications<span class="notification-indicator"></span></a></li>
-						<li><a href="/settings/profile">Settings</a></li>
 					{% else %}
 						<li><a href="/users/new"{{ active("register") }}>Register</a></li>
 						<li><a href="/login"{{ active("login") }}>Log in</a></li>

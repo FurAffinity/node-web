@@ -7,6 +7,8 @@ var errors = require('./errors');
 var files = require('./files');
 var types = require('./files/types');
 
+var DisplayFile = files.DisplayFile;
+
 var guestViewer = {
 	id: null,
 	ratingPreference: 'general',
@@ -272,12 +274,6 @@ function parseTags(tagString) {
 	);
 }
 
-function getFile(hash, type) {
-	return hash === null ?
-		null :
-		{ hash: hash, type: type };
-}
-
 function createSubmission(userId, submissionInfo) {
 	function useTransaction(client) {
 		return client.query(getPublishSubmissionQuery(userId, submissionInfo))
@@ -322,7 +318,7 @@ function getFolders(userId) {
 						submissions: row.submissions.map(function (submission) {
 							return {
 								title: submission.title,
-								thumbnail: getFile(
+								thumbnail: DisplayFile.from(
 									submission.thumbnail_hash,
 									submission.thumbnail_type
 								),
@@ -372,7 +368,7 @@ function viewSubmission(submissionId) {
 						author: {
 							id: row.owner,
 							displayUsername: row.display_username,
-							image: getFile(
+							image: DisplayFile.from(
 								row.owner_image_hash,
 								row.owner_image_type
 							),
@@ -409,7 +405,7 @@ function viewSubmission(submissionId) {
 			owner: {
 				id: submissionRow.owner,
 				displayUsername: submissionRow.owner_name,
-				image: getFile(
+				image: DisplayFile.from(
 					submissionRow.owner_image_hash,
 					submissionRow.owner_image_type
 				),
@@ -441,7 +437,7 @@ function getRecentSubmissions(viewer) {
 					id: row.id,
 					title: row.title,
 					rating: row.rating,
-					thumbnail: getFile(
+					thumbnail: DisplayFile.from(
 						row.thumbnail_hash,
 						row.thumbnail_type
 					),
@@ -460,7 +456,7 @@ function getPendingSubmissions(userId) {
 					title: row.title,
 					description: row.description,
 					rating: row.rating,
-					thumbnail: getFile(
+					thumbnail: DisplayFile.from(
 						row.thumbnail_hash,
 						row.thumbnail_type
 					),

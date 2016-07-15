@@ -15,6 +15,35 @@ var identify = require('./identify').identify;
 
 var MODE_OWNER_READ_WRITE = parseInt('0600', 8);
 
+function DisplayFile(hash, type) {
+	this.hash = hash;
+	this.type = type;
+}
+
+DisplayFile.from = function (hash, type) {
+	return hash === null ?
+		null :
+		new DisplayFile(hash, type);
+};
+
+DisplayFile.serialize = function (displayFile) {
+	return displayFile === null ?
+		'' :
+		displayFile.hash + ':' + displayFile.type;
+};
+
+DisplayFile.unserialize = function (s) {
+	if (s === '') {
+		return null;
+	}
+
+	var i = s.indexOf(':');
+	var hash = s.substring(0, i);
+	var type = s.substring(i + 1);
+
+	return new DisplayFile(hash, type);
+};
+
 function getSelectFileQuery(hexDigest) {
 	return {
 		name: 'select_file',
@@ -272,6 +301,7 @@ function readFile(hexDigest, encoding) {
 	return readFileAsync(getStoragePath(hexDigest), encoding);
 }
 
+exports.DisplayFile = DisplayFile;
 exports.getTemporaryPath = getTemporaryPath;
 exports.getFileInfo = getFileInfo;
 exports.insertBuffer = insertBuffer;

@@ -1,5 +1,7 @@
 'use strict';
 
+var bluebird = require('bluebird');
+
 var nunjucks = require('./nunjucks');
 
 function renderWith(renderers, source) {
@@ -10,9 +12,10 @@ function renderWith(renderers, source) {
 
 		var renderer = renderers[0];
 
-		return source(request).then(function (response) {
-			return renderer.transform(request, response);
-		});
+		return bluebird.resolve(source(request))
+			.then(function (response) {
+				return renderer.transform(request, response);
+			});
 	};
 }
 

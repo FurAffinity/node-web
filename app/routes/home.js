@@ -1,6 +1,9 @@
 'use strict';
 
+var _ = require('../utilities');
+
 var duration = require('../duration');
+var permissions = require('../permissions');
 var rateLimit = require('../rate-limit');
 var submissions = require('../submissions');
 
@@ -23,6 +26,18 @@ var homeRoute = {
 	},
 };
 
+var userMenuRoute = {
+	path: '/user-menu',
+	middleware: [
+		permissions.user.middleware,
+	],
+	renderers: [
+		new NunjucksRenderer('user-menu.html'),
+	],
+	get: _.const(new Ok()),
+};
+
 exports.routes = [
 	homeRoute,
+	userMenuRoute,
 ];

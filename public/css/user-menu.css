@@ -1,0 +1,50 @@
+.main-menu-container {
+	text-align: center;
+}
+
+.main-menu {
+	display: inline-block;
+	width: 14.9em;
+	text-align: left;
+}
+
+.main-menu header {
+	margin-bottom: 1em;
+	text-align: center;
+}
+
+.main-menu h1 {
+	margin: 0.2em 0;
+}
+
+.main-menu ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.main-menu .menu-item-container {
+	display: block;
+}
+
+.main-menu .menu-item {
+	background: #13171a;
+	border: none;
+	box-sizing: border-box;
+	color: white;
+	display: block;
+	cursor: pointer;
+	font-family: inherit;
+	font-size: 1em;
+	margin: 0;
+	outline: none;
+	padding: 0.6em 1.2em;
+	text-align: left;
+	text-decoration: none;
+	width: 100%;
+}
+
+.main-menu .menu-item::-moz-focus-inner {
+	border: none;
+	padding: 0;
+}

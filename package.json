@@ -8,9 +8,9 @@
 		"ipaddr.js": "1.1.1",
 		"mmmagic": "0.4.4",
 		"nunjucks": "2.4.2",
-		"pg": "6.0.1",
+		"pg": "6.0.2",
 		"redis": "2.6.2",
-		"sharp": "0.15.0",
+		"sharp": "0.15.1",
 		"strict-cookie-parser": "1.0.0",
 		"toml": "2.3.0"
 	},

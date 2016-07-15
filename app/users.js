@@ -10,8 +10,10 @@ var ApplicationError = require('./errors').ApplicationError;
 var config = require('./config');
 var database = require('./database');
 var email = require('./email');
+var files = require('./files');
 var postgresql = require('./database/postgresql');
 
+var DisplayFile = files.DisplayFile;
 var sendAsync = bluebird.promisify(email.send);
 var timingSafeCompare = require('./timing-safe-compare').timingSafeCompare;
 var redisClient = require('./redis').client;
@@ -68,7 +70,7 @@ function getFile(hash, type) {
 function getSelectUserMetaQuery(userId) {
 	return {
 		name: 'select_user_meta',
-		text: 'SELECT username, display_username, rating_preference FROM users WHERE id = $1',
+		text: 'SELECT username, display_username, rating_preference, files.hash AS image_hash, image_type FROM users LEFT JOIN files ON users.image = files.id WHERE users.id = $1',
 		values: [userId],
 	};
 }
@@ -230,12 +232,14 @@ function getUserMeta(userId) {
 	return bluebird.all([
 		redisClient.hgetAsync('display_usernames', userId),
 		redisClient.hgetAsync('rating_preferences', userId),
-	]).spread(function (displayUsername, ratingPreference) {
-		if (displayUsername && ratingPreference) {
+		redisClient.hgetAsync('user_images', userId),
+	]).spread(function (displayUsername, ratingPreference, userImage) {
+		if (displayUsername && ratingPreference && userImage) {
 			return {
 				id: userId,
 				username: getCanonicalUsername(displayUsername),
 				displayUsername: displayUsername,
+				image: DisplayFile.unserialize(userImage),
 				ratingPreference: ratingPreference,
 			};
 		}
@@ -247,10 +251,12 @@ function getUserMeta(userId) {
 				}
 
 				var row = result.rows[0];
+				var image = DisplayFile.from(row.image_hash, row.image_type);
 
 				return {
 					id: userId,
 					username: row.username,
+					image: image,
 					displayUsername: row.display_username,
 					ratingPreference: row.rating_preference,
 				};
@@ -258,6 +264,7 @@ function getUserMeta(userId) {
 			.tap(function (userMeta) {
 				redisClient.hsetAsync('display_usernames', userId, userMeta.displayUsername);
 				redisClient.hsetAsync('rating_preferences', userId, userMeta.ratingPreference);
+				redisClient.hsetAsync('user_images', userId, DisplayFile.serialize(userMeta.image));
 			});
 	});
 }
@@ -388,12 +395,14 @@ function viewProfile(userId) {
 }
 
 function updateProfile(userId, profileInfo) {
-	return database.query(getUpdateProfileQuery(userId, profileInfo))
-		.then(function (result) {
-			return result.rowCount === 1 ?
-				bluebird.resolve() :
-				bluebird.reject(new Error('Expected user'));
-		});
+	return bluebird.all([
+		database.query(getUpdateProfileQuery(userId, profileInfo)),
+		redisClient.hdelAsync('user_images', userId),
+	]).spread(function (result) {
+		return result.rowCount === 1 ?
+			bluebird.resolve() :
+			bluebird.reject(new Error('Expected user'));
+	});
 }
 
 function updatePreferences(userId, preferences) {
