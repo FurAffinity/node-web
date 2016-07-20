@@ -86,6 +86,11 @@ tap.test('Safe external links should be assigned rel="external nofollow"', funct
 		'<a href="//example.com/" rel="external nofollow">safe link</a>'
 	);
 
+	t.equal(
+		clean('<a href="https://furaffinity.net.example.com/">safe link</a>'),
+		'<a href="https://furaffinity.net.example.com/" rel="external nofollow">safe link</a>'
+	);
+
 	t.end();
 });
 

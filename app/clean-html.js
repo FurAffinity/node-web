@@ -28,7 +28,7 @@ var schemeWhitelist = new Set([
 	null, 'http:', 'https:',
 ]);
 
-var internalHostname = /(^|\.)furaffinity\.net/i;
+var internalHostname = /(^|\.)furaffinity\.net$/i;
 
 function escapeAttributeValue(text) {
 	return text
