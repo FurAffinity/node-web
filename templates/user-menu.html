@@ -14,7 +14,7 @@
 	<div class="main-menu-container">
 		<div class="main-menu">
 			<header>
-				<img src="{{ request.user.image | file_path }}" alt="" />
+				<img src="{{ request.user.image | file_path('profile') }}" alt="" />
 				<h1>{{ request.user.displayUsername }}</h1>
 			</header>
 
