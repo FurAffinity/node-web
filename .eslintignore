@@ -1,2 +1,6 @@
+/.nyc_output
+/coverage
 /bbcode
+/files
 /public/js/editor.js
+/tmp

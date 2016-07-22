@@ -67,12 +67,6 @@ function toPathSafeBase64(buffer) {
 	);
 }
 
-function getFile(hash, type) {
-	return hash === null ?
-		null :
-		{ hash: hash, type: type };
-}
-
 function getSelectUserMetaQuery(userId) {
 	return {
 		name: 'select_user_meta',
@@ -245,7 +239,7 @@ function getUserMeta(userId) {
 				id: userId,
 				username: getCanonicalUsername(displayUsername),
 				displayUsername: displayUsername,
-				image: DisplayFile.unserialize(userImage),
+				image: DisplayFile.deserialize(userImage),
 				ratingPreference: ratingPreference,
 			};
 		}
@@ -394,8 +388,8 @@ function viewProfile(userId) {
 				profileText: row.profile_text,
 				profileType: row.profile_type,
 				created: row.created,
-				image: getFile(row.image_hash, row.image_type),
-				banner: getFile(row.banner_hash, row.banner_type),
+				image: DisplayFile.from(row.image_hash, row.image_type),
+				banner: DisplayFile.from(row.banner_hash, row.banner_type),
 			};
 		});
 }

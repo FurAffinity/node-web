@@ -16,6 +16,14 @@ var identify = require('./identify').identify;
 var MODE_OWNER_READ_WRITE = parseInt('0600', 8);
 
 function DisplayFile(hash, type) {
+	if (typeof hash !== 'string') {
+		throw new TypeError('File hash should be a string');
+	}
+
+	if (typeof type !== 'string') {
+		throw new TypeError('File type should be a string');
+	}
+
 	this.hash = hash;
 	this.type = type;
 }
@@ -32,7 +40,7 @@ DisplayFile.serialize = function (displayFile) {
 		displayFile.hash + ':' + displayFile.type;
 };
 
-DisplayFile.unserialize = function (s) {
+DisplayFile.deserialize = function (s) {
 	if (s === '') {
 		return null;
 	}
