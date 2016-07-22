@@ -52,6 +52,12 @@ function RegistrationKeyInvalidError() {
 
 ApplicationError.extend(RegistrationKeyInvalidError);
 
+function hashKey(sessionKey) {
+	return crypto.createHash('sha256')
+		.update(sessionKey)
+		.digest();
+}
+
 function toPathSafeBase64(buffer) {
 	return (
 		buffer.toString('base64')
@@ -91,18 +97,18 @@ function getFindConflictingUserQuery(canonicalEmail) {
 	};
 }
 
-function getInsertRegistrationKeyQuery(userId, registrationKey) {
+function getInsertRegistrationKeyQuery(userId, registrationKeyHash) {
 	return {
 		name: 'insert_registration_key',
-		text: 'INSERT INTO registration_keys ("user", key) VALUES ($1, $2)',
-		values: [userId, registrationKey],
+		text: 'INSERT INTO registration_keys ("user", key_hash) VALUES ($1, $2)',
+		values: [userId, registrationKeyHash],
 	};
 }
 
 function getDeleteRegistrationKeyQuery(userId) {
 	return {
 		name: 'select_registration_key',
-		text: 'DELETE FROM registration_keys WHERE "user" = $1 RETURNING key',
+		text: 'DELETE FROM registration_keys WHERE "user" = $1 RETURNING key_hash',
 		values: [userId],
 	};
 }
@@ -320,7 +326,7 @@ function registerUser(userInfo) {
 					var userId = result.rows[0].id;
 					var registrationKey = crypto.randomBytes(config.registration.registration_key_size);
 
-					return client.query(getInsertRegistrationKeyQuery(userId, registrationKey))
+					return client.query(getInsertRegistrationKeyQuery(userId, hashKey(registrationKey)))
 						.then(function () {
 							return sendAsync({
 								to: canonicalEmail,
@@ -356,9 +362,9 @@ function verifyRegistrationKey(userId, key) {
 					return bluebird.reject(new RegistrationKeyInvalidError());
 				}
 
-				var expectedKey = result.rows[0].key;
+				var expectedKeyHash = result.rows[0].key_hash;
 
-				if (!timingSafeCompare(expectedKey, key)) {
+				if (!timingSafeCompare(expectedKeyHash, hashKey(key))) {
 					return bluebird.reject(new RegistrationKeyInvalidError());
 				}
 

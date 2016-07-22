@@ -87,7 +87,7 @@ CREATE INDEX ON sessions ("user");
 
 CREATE TABLE registration_keys (
 	"user" INTEGER PRIMARY KEY REFERENCES users (id),
-	key BYTEA NOT NULL
+	key_hash BYTEA NOT NULL
 );
 
 CREATE TABLE submissions (
