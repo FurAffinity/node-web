@@ -1,10 +1,9 @@
 'use strict';
 
 var bbcode = require('../bbcode');
-var htmlparser = require('htmlparser2');
 var nunjucks = require('nunjucks');
 
-var clean = require('./clean-html').clean;
+var ht = require('./html');
 var relativeDate = require('./relative-date').relativeDate;
 var users = require('./users');
 
@@ -25,8 +24,6 @@ var MONTH_NAMES = [
 	'November',
 	'December',
 ];
-
-var VOID_TAGS = new Set(['br', 'img']);
 
 var DEFAULT_PATHS = {
 	profile: '/images/default-profile.gif',
@@ -100,66 +97,9 @@ function renderBBCode(text) {
 	return new nunjucks.runtime.SafeString(html);
 }
 
-function escapeContent(content) {
-	return content
-		.replace(/&/g, '&amp;')
-		.replace(/</g, '&lt;')
-		.replace(/>/g, '&gt;');
-}
-
-function escapeAttributeValue(attributeValue) {
-	return attributeValue
-		.replace(/&/g, '&amp;')
-		.replace(/"/g, '&quot;');
-}
-
 function renderBBCodeWithExcerpt(input, maximumExcerptLength) {
 	var html = bbcode.render(input, { automaticParagraphs: true });
-	var excerpt = '';
-	var remainingLength = maximumExcerptLength;
-	var openTags = [];
-
-	var parser = new htmlparser.Parser({
-		onopentag: function (name, attributes) {
-			excerpt += '<' + name + Object.keys(attributes).map(function (attributeName) {
-				return ' ' + attributeName + '="' + escapeAttributeValue(attributes[attributeName]) + '"';
-			}).join('') + '>';
-
-			if (!VOID_TAGS.has(name)) {
-				openTags.push(name);
-			}
-		},
-		ontext: function (text) {
-			if (text.length > remainingLength) {
-				excerpt += escapeContent(text.substring(0, remainingLength - 1)) + '…';
-			} else if (text.length === remainingLength) {
-				excerpt += escapeContent(text);
-			} else {
-				excerpt += escapeContent(text);
-				remainingLength -= text.length;
-				return;
-			}
-
-			for (var i = openTags.length - 1; i >= 0; i--) {
-				excerpt += '</' + openTags[i] + '>';
-			}
-
-			parser.reset();
-		},
-		onclosetag: function (name) {
-			if (!VOID_TAGS.has(name)) {
-				excerpt += '</' + name + '>';
-				openTags.pop();
-			}
-
-			if (name === 'p') {
-				parser.reset();
-			}
-		},
-	}, { decodeEntities: true });
-
-	parser.write(html);
-	parser.end();
+	var excerpt = ht.getExcerpt(html, maximumExcerptLength);
 
 	return {
 		excerpt: new nunjucks.runtime.SafeString(excerpt),
@@ -172,7 +112,7 @@ function userPath(user) {
 }
 
 function cleanHtml(html) {
-	return new nunjucks.runtime.SafeString(clean(html));
+	return new nunjucks.runtime.SafeString(ht.clean(html));
 }
 
 exports.bbcode = renderBBCode;

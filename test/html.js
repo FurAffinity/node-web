@@ -2,26 +2,26 @@
 
 var tap = require('tap');
 
-var clean = require('../app/clean-html').clean;
+var ht = require('../app/html');
 
 tap.test('Safe HTML should be retained', function (t) {
 	t.equal(
-		clean('plain text'),
+		ht.clean('plain text'),
 		'plain text'
 	);
 
 	t.equal(
-		clean('<em>safe</em> formatting'),
+		ht.clean('<em>safe</em> formatting'),
 		'<em>safe</em> formatting'
 	);
 
 	t.equal(
-		clean('safe<br>void tags'),
+		ht.clean('safe<br>void tags'),
 		'safe<br>void tags'
 	);
 
 	t.equal(
-		clean('<SpAN>mixed-case tags</sPan>'),
+		ht.clean('<SpAN>mixed-case tags</sPan>'),
 		'<span>mixed-case tags</span>'
 	);
 
@@ -30,17 +30,17 @@ tap.test('Safe HTML should be retained', function (t) {
 
 tap.test('Unsafe HTML should be removed', function (t) {
 	t.equal(
-		clean('<script>alert(1)</script>'),
+		ht.clean('<script>alert(1)</script>'),
 		'alert(1)'
 	);
 
 	t.equal(
-		clean('<a href="javascript:alert(1)">link</a>'),
+		ht.clean('<a href="javascript:alert(1)">link</a>'),
 		'<a>link</a>'
 	);
 
 	t.equal(
-		clean('<span i="unknown attribute">test</span>'),
+		ht.clean('<span i="unknown attribute">test</span>'),
 		'<span>test</span>'
 	);
 
@@ -49,7 +49,7 @@ tap.test('Unsafe HTML should be removed', function (t) {
 
 tap.test('Characters should be encoded and decoded as appropriate', function (t) {
 	t.equal(
-		clean("'\"&<>"),
+		ht.clean("'\"&<>"),
 		"'\"&amp;&lt;&gt;"
 	);
 
@@ -58,17 +58,17 @@ tap.test('Characters should be encoded and decoded as appropriate', function (t)
 
 tap.test('Bad nesting shouldn’t leak out', function (t) {
 	t.equal(
-		clean('<b>unclosed'),
+		ht.clean('<b>unclosed'),
 		'<b>unclosed</b>'
 	);
 
 	t.equal(
-		clean('<b><i>badly nested</b></i>'),
+		ht.clean('<b><i>badly nested</b></i>'),
 		'<b><i>badly nested</i></b>'
 	);
 
 	t.equal(
-		clean('too closed</b>'),
+		ht.clean('too closed</b>'),
 		'too closed'
 	);
 
@@ -77,17 +77,17 @@ tap.test('Bad nesting shouldn’t leak out', function (t) {
 
 tap.test('Safe external links should be assigned rel="external nofollow"', function (t) {
 	t.equal(
-		clean('<a href="https://example.com/">safe link</a>'),
+		ht.clean('<a href="https://example.com/">safe link</a>'),
 		'<a href="https://example.com/" rel="external nofollow">safe link</a>'
 	);
 
 	t.equal(
-		clean('<a href="//example.com/">safe link</a>'),
+		ht.clean('<a href="//example.com/">safe link</a>'),
 		'<a href="//example.com/" rel="external nofollow">safe link</a>'
 	);
 
 	t.equal(
-		clean('<a href="https://furaffinity.net.example.com/">safe link</a>'),
+		ht.clean('<a href="https://furaffinity.net.example.com/">safe link</a>'),
 		'<a href="https://furaffinity.net.example.com/" rel="external nofollow">safe link</a>'
 	);
 
@@ -96,17 +96,17 @@ tap.test('Safe external links should be assigned rel="external nofollow"', funct
 
 tap.test('Safe internal links should be retained', function (t) {
 	t.equal(
-		clean('<a href="https://furaffinity.net/help">safe link</a>'),
+		ht.clean('<a href="https://furaffinity.net/help">safe link</a>'),
 		'<a href="https://furaffinity.net/help">safe link</a>'
 	);
 
 	t.equal(
-		clean('<a href="//www.furaffinity.net/help">safe link</a>'),
+		ht.clean('<a href="//www.furaffinity.net/help">safe link</a>'),
 		'<a href="//www.furaffinity.net/help">safe link</a>'
 	);
 
 	t.equal(
-		clean('<a href="/help">safe link</a>'),
+		ht.clean('<a href="/help">safe link</a>'),
 		'<a href="/help">safe link</a>'
 	);
 

@@ -133,4 +133,55 @@ function clean(html) {
 	return output;
 }
 
+function getExcerpt(html, maximumLength) {
+	var excerpt = '';
+	var remainingLength = maximumLength;
+	var openTags = [];
+
+	var parser = new htmlparser.Parser({
+		onopentag: function (name, attributes) {
+			excerpt += '<' + name + Object.keys(attributes).map(function (attributeName) {
+				return ' ' + attributeName + '="' + escapeAttributeValue(attributes[attributeName]) + '"';
+			}).join('') + '>';
+
+			if (!voidTags.has(name)) {
+				openTags.push(name);
+			}
+		},
+		ontext: function (text) {
+			if (text.length > remainingLength) {
+				excerpt += escapeContent(text.substring(0, remainingLength - 1)) + '…';
+			} else if (text.length === remainingLength) {
+				excerpt += escapeContent(text);
+			} else {
+				excerpt += escapeContent(text);
+				remainingLength -= text.length;
+				return;
+			}
+
+			for (var i = openTags.length - 1; i >= 0; i--) {
+				excerpt += '</' + openTags[i] + '>';
+			}
+
+			parser.reset();
+		},
+		onclosetag: function (name) {
+			if (!voidTags.has(name)) {
+				excerpt += '</' + name + '>';
+				openTags.pop();
+			}
+
+			if (name === 'p') {
+				parser.reset();
+			}
+		},
+	}, { decodeEntities: true });
+
+	parser.write(html);
+	parser.end();
+
+	return excerpt;
+}
+
 exports.clean = clean;
+exports.getExcerpt = getExcerpt;
