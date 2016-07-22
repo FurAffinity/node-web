@@ -17,6 +17,12 @@ var USER_COOKIE_SIZE =
 	SESSION_KEY_SIZE +
 	SESSION_MAC_SIZE;
 
+function hashKey(sessionKey) {
+	return crypto.createHash('sha256')
+		.update(sessionKey)
+		.digest();
+}
+
 function signSession(macKey, sessionId, sessionKey) {
 	return crypto.createHmac('sha256', macKey)
 		.update(sessionId)
@@ -28,16 +34,16 @@ function signSession(macKey, sessionId, sessionKey) {
 function getSelectSessionQuery(sessionId) {
 	return {
 		name: 'select_session',
-		text: 'SELECT key, next_key, "user", updated FROM sessions WHERE id = $1',
+		text: 'SELECT key_hash, next_key_hash, "user", updated FROM sessions WHERE id = $1',
 		values: [sessionId],
 	};
 }
 
-function getInsertSessionQuery(sessionId, sessionKey, userId) {
+function getInsertSessionQuery(sessionId, sessionKeyHash, userId) {
 	return {
 		name: 'insert_session',
-		text: 'INSERT INTO sessions (id, key, "user") VALUES ($1, $2, $3)',
-		values: [sessionId, sessionKey, userId],
+		text: 'INSERT INTO sessions (id, key_hash, "user") VALUES ($1, $2, $3)',
+		values: [sessionId, sessionKeyHash, userId],
 	};
 }
 
@@ -49,19 +55,19 @@ function getDeleteSessionQuery(sessionId) {
 	};
 }
 
-function getUpdateKeyQuery(sessionId, nextKey) {
+function getUpdateKeyQuery(sessionId, nextKeyHash) {
 	return {
 		name: 'update_session_key',
-		text: 'UPDATE sessions SET key = next_key, next_key = NULL, updated = NOW() WHERE id = $1 AND next_key = $2',
-		values: [sessionId, nextKey],
+		text: 'UPDATE sessions SET key_hash = next_key_hash, next_key_hash = NULL, updated = NOW() WHERE id = $1 AND next_key_hash = $2',
+		values: [sessionId, nextKeyHash],
 	};
 }
 
-function getUpdateNextKeyQuery(sessionId, nextKey) {
+function getUpdateNextKeyQuery(sessionId, nextKeyHash) {
 	return {
 		name: 'update_session_next_key',
-		text: 'UPDATE sessions SET next_key = $2 WHERE id = $1',
-		values: [sessionId, nextKey],
+		text: 'UPDATE sessions SET next_key_hash = $2 WHERE id = $1',
+		values: [sessionId, nextKeyHash],
 	};
 }
 
@@ -103,7 +109,7 @@ DatabaseSessionStore.prototype.createUserSession =
 		var sessionKey = randomBytes.slice(SESSION_ID_SIZE);
 
 		return (
-			database.query(getInsertSessionQuery(sessionId, sessionKey, userId))
+			database.query(getInsertSessionQuery(sessionId, hashKey(sessionKey), userId))
 				.return(new Session(sessionId, sessionKey, userId))
 		);
 	};
@@ -186,9 +192,11 @@ DatabaseSessionStore.prototype.readCookie =
 			});
 		}
 
+		var sessionKeyHash = hashKey(sessionKey);
+
 		function confirmSessionKey(userId) {
 			return (
-				database.query(getUpdateKeyQuery(sessionId, sessionKey))
+				database.query(getUpdateKeyQuery(sessionId, sessionKeyHash))
 					.return({
 						modified: false,
 						session: new Session(sessionId, sessionKey, userId),
@@ -200,7 +208,7 @@ DatabaseSessionStore.prototype.readCookie =
 			var nextKey = crypto.randomBytes(SESSION_KEY_SIZE);
 
 			return (
-				database.query(getUpdateNextKeyQuery(sessionId, nextKey))
+				database.query(getUpdateNextKeyQuery(sessionId, hashKey(nextKey)))
 					.return({
 						modified: true,
 						session: new Session(sessionId, nextKey, userId),
@@ -233,14 +241,14 @@ DatabaseSessionStore.prototype.readCookie =
 		}
 
 		function handleRow(row) {
-			var expectedKey = row.key;
-			var expectedNextKey = row.next_key;
+			var expectedKeyHash = row.key_hash;
+			var expectedNextKeyHash = row.next_key_hash;
 			var updated = row.updated;
 			var userId = row.user;
 
-			if (expectedNextKey !== null && timingSafeCompare(expectedNextKey, sessionKey)) {
+			if (expectedNextKeyHash !== null && timingSafeCompare(expectedNextKeyHash, sessionKeyHash)) {
 				return confirmSessionKey(userId);
-			} else if (timingSafeCompare(expectedKey, sessionKey)) {
+			} else if (timingSafeCompare(expectedKeyHash, sessionKeyHash)) {
 				return refreshSessionKeyIfStale(userId, updated);
 			} else {
 				return deleteForkedSession();
