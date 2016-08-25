@@ -288,8 +288,8 @@ function createSubmission(userId, submissionInfo) {
 				var tags = parseTags(submissionInfo.tags);
 
 				return bluebird.all([
-					database.query(getAssociateTagsQuery(submissionInfo.id, tags)),
-					database.query(getAssociateFoldersQuery(submissionInfo.id, userId, submissionInfo.folders)),
+					client.query(getAssociateTagsQuery(submissionInfo.id, tags)),
+					client.query(getAssociateFoldersQuery(submissionInfo.id, userId, submissionInfo.folders)),
 				]);
 			});
 	}
