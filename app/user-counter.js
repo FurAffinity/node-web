@@ -20,7 +20,18 @@ function addUser(address) {
 		address = address.slice(1, -1);
 	}
 
-	var message = Buffer.from(ipaddr.parse(address).toByteArray());
+	var addressBytes = Buffer.from(ipaddr.parse(address).toByteArray());
+	var message;
+
+	if (addressBytes.length === 4) {
+		message = Buffer.alloc(16);
+		message[10] = 0xff;
+		message[11] = 0xff;
+		addressBytes.copy(message, 12);
+	} else {
+		message = addressBytes;
+	}
+
 	socket.send(message, config.user_counter.port, config.user_counter.host);
 }
 
