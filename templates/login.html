@@ -16,9 +16,12 @@
 
 		{{ form_errors() }}
 
+		{% set focus_username = not form.username or form and form.errorTypes.has('NoUserError') %}
+
 		<label class="field">
 			<span class="label">Username</span>
-			<input type="text" name="username" value="{{ form.username or "" }}" class="text" autofocus autocomplete="username" inputmode="verbatim" required />
+			<input type="text" name="username" value="{{ form.username or "" }}" class="text" autocomplete="username" inputmode="verbatim" required
+				{%- if focus_username %} autofocus{% endif %} />
 
 			<div class="field-aside">
 				{{ field_errors("username") }}
@@ -27,7 +30,8 @@
 
 		<label class="field">
 			<span class="label">Password</span>
-			<input type="password" name="password" value="{{ form.password or "" }}" maxlength="72" class="text" autocomplete="current-password" required />
+			<input type="password" name="password" value="{{ form.password or "" }}" maxlength="72" class="text" autocomplete="current-password" required
+				{%- if not focus_username %} autofocus{% endif %} />
 
 			<div class="field-aside">
 				{{ field_errors("password") }}

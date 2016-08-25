@@ -37,6 +37,7 @@ FormError.extend(CsrfError);
 function Form(fields) {
 	this.valid = true;
 	this.errors = { form: [] };
+	this.errorTypes = new Set();
 
 	for (var name in fields) {
 		if (fields.hasOwnProperty(name)) {
@@ -58,6 +59,13 @@ function Form(fields) {
 Form.prototype.addError = function (error, field) {
 	this.errors[field || 'form'].push(error);
 	this.valid = false;
+
+	var typed = error;
+
+	do {
+		this.errorTypes.add(typed.constructor.name);
+		typed = Object.getPrototypeOf(typed);
+	} while (typed);
 };
 
 function getCsrfKey(session, endpoint) {

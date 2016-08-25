@@ -55,7 +55,7 @@ var post = wrap([
 				},
 				function (error) {
 					if (error instanceof ApplicationError) {
-						form.addError(error.message);
+						form.addError(error);
 						res.locals.form = form;
 						res.render('login.html');
 					} else {

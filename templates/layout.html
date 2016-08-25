@@ -10,7 +10,7 @@
 	{% if form and form.errors.form.length != 0 %}
 		<ul class="form-status form-errors">
 			{% for error in form.errors.form %}
-				<li>{{ error }}</li>
+				<li role="alert">{{ error.message or error }}</li>
 			{% endfor %}
 		</ul>
 	{% endif %}
@@ -18,7 +18,7 @@
 
 {%- macro field_errors(field) -%}
 	{%- for error in form.errors[field] -%}
-		<div class="field-error">{{ error }}</div>
+		<div class="field-error" role="alert">{{ error.message or error }}</div>
 	{%- endfor -%}
 {%- endmacro -%}
 
@@ -26,7 +26,7 @@
 	{% if form and form.errors[field].length != 0 %}
 		<ul class="form-status form-errors">
 			{% for error in form.errors[field] %}
-				<li>{{ error }}</li>
+				<li role="alert">{{ error.message or error }}</li>
 			{% endfor %}
 		</ul>
 	{% endif %}
