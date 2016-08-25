@@ -52,9 +52,9 @@ function RegistrationKeyInvalidError() {
 
 ApplicationError.extend(RegistrationKeyInvalidError);
 
-function hashKey(sessionKey) {
+function hashKey(key) {
 	return crypto.createHash('sha256')
-		.update(sessionKey)
+		.update(key)
 		.digest();
 }
 
