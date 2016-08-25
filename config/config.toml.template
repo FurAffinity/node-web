@@ -29,14 +29,6 @@ max_size = 100_000_000
 cookie_name = 's'
 cookie_secure = {cookie_secure!t}
 
-# Session MACs prevent sessions from being invalidated given only the session
-# id. With random session ids, this doesn’t matter as much, but keep this key
-# safe anyway.
-session_mac_key = {session_mac_key!t}
-
-# The time between session key regenerations, in seconds.
-user_session_rekey_time = 300
-
 # The time a session is valid, in seconds.
 user_session_lifetime = 15768000
 

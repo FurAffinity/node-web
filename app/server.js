@@ -9,21 +9,19 @@ var config = require('./config');
 var database = require('./database');
 var errors = require('./errors');
 var render = require('./render');
+var sessions = require('./sessions');
 var userCounter = require('./user-counter');
 var users = require('./users');
 
-var DatabaseSessionStore = require('./sessions/database-store').DatabaseSessionStore;
-
 var app = express();
 
-var sessionStorage = new DatabaseSessionStore({
-	database: database,
-	macKey: Buffer.from(config.sessions.session_mac_key, 'base64'),
+var sessionStorage = new sessions.SessionStorage({
 	cookieName: config.sessions.cookie_name,
 	cookieSecure: config.sessions.cookie_secure,
-	userSessionRekeyTime: config.sessions.user_session_rekey_time,
 	userSessionLifetime: config.sessions.user_session_lifetime,
 });
+
+app.sessionStorage = sessionStorage;
 
 render.nunjucksEnvironment.express(app);
 
@@ -60,10 +58,12 @@ function templateLocals(request, response, next) {
 	next();
 }
 
-app.use(function (req, res, next) {
-	req.forwarded = {
-		for: req.headers['x-forwarded-for'],
+app.use(function (request, response, next) {
+	request.forwarded = {
+		for: request.headers['x-forwarded-for'],
 	};
+
+	request.database = database;
 
 	next();
 });

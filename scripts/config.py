@@ -67,7 +67,6 @@ formatter = TomlFormatter()
 config = formatter.format(
 	template,
 	cookie_secure=params["root"].startswith("https:"),
-	session_mac_key=generate_key(),
 	csrf_mac_key=generate_key(),
 	**params,
 )

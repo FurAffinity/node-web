@@ -46,10 +46,11 @@ var post = wrap([
 
 		authentication.authenticate(form.username, form.password)
 			.then(function (userId) {
-				return req.session.replaceWithUser(userId);
+				return req.app.sessionStorage.createUserSession(req, userId);
 			})
 			.done(
-				function () {
+				function (newSession) {
+					res.setSession(newSession);
 					res.redirect('/');
 				},
 				function (error) {

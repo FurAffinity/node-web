@@ -7,8 +7,9 @@ var forms = require('../forms');
 var router = new express.Router();
 
 router.post('/logout', forms.getReader({ name: 'logout', fields: {} }), function (req, res, next) {
-	req.session.replaceWithGuest().done(
-		function () {
+	req.app.sessionStorage.createGuestSession(req).done(
+		function (newSession) {
+			res.setSession(newSession);
 			res.redirect('/');
 		},
 		next
