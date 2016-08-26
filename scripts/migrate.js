@@ -5,7 +5,11 @@ var bluebird = require('bluebird');
 var fs = require('fs');
 var path = require('path');
 
-var database = require('../app/database');
+var config = require('../app/config');
+
+var Pool = require('../app/database').Pool;
+
+var database = new Pool(config.database);
 
 var MIGRATION_ROOT = path.join(__dirname, '../migrations');
 var MIGRATION_ORDER = path.join(MIGRATION_ROOT, 'order');

@@ -2,7 +2,6 @@
 
 var bluebird = require('bluebird');
 
-var database = require('./database');
 var errors = require('./errors');
 var files = require('./files');
 var types = require('./files/types');
@@ -274,7 +273,7 @@ function parseTags(tagString) {
 	);
 }
 
-function createSubmission(userId, submissionInfo) {
+function createSubmission(context, userId, submissionInfo) {
 	function useTransaction(client) {
 		return client.query(getPublishSubmissionQuery(userId, submissionInfo))
 			.then(function (result) {
@@ -294,21 +293,21 @@ function createSubmission(userId, submissionInfo) {
 			});
 	}
 
-	return database.withTransaction(useTransaction);
+	return context.database.withTransaction(useTransaction);
 }
 
-function createFolder(userId, folderName) {
+function createFolder(context, userId, folderName) {
 	return (
-		database.query(getCreateFolderQuery(userId, folderName))
+		context.database.query(getCreateFolderQuery(userId, folderName))
 			.then(function (result) {
 				return result.rows[0].id;
 			})
 	);
 }
 
-function getFolders(userId) {
+function getFolders(context, userId) {
 	return (
-		database.query(getSelectFoldersQuery(userId))
+		context.database.query(getSelectFoldersQuery(userId))
 			.then(function (result) {
 				return result.rows.map(function (row) {
 					return {
@@ -330,9 +329,9 @@ function getFolders(userId) {
 	);
 }
 
-function viewSubmission(submissionId) {
+function viewSubmission(context, submissionId) {
 	return bluebird.all([
-		database.query(getViewSubmissionQuery(submissionId))
+		context.database.query(getViewSubmissionQuery(submissionId))
 			.then(function (result) {
 				if (result.rows.length !== 1) {
 					return bluebird.reject(new SubmissionNotFoundError());
@@ -340,7 +339,7 @@ function viewSubmission(submissionId) {
 
 				return result.rows[0];
 			}),
-		database.query(getSelectSubmissionFilesQuery(submissionId))
+		context.database.query(getSelectSubmissionFilesQuery(submissionId))
 			.then(function (result) {
 				return bluebird.map(
 					result.rows,
@@ -357,7 +356,7 @@ function viewSubmission(submissionId) {
 					}
 				);
 			}),
-		database.query(getSelectCommentsQuery(submissionId))
+		context.database.query(getSelectCommentsQuery(submissionId))
 			.then(function (result) {
 				var comments = [];
 				var commentLookup = new Map();
@@ -417,20 +416,20 @@ function viewSubmission(submissionId) {
 	});
 }
 
-function createComment(submissionId, parentId, userId, text) {
+function createComment(context, submissionId, parentId, userId, text) {
 	var query =
 		parentId === null ?
 			getInsertCommentQuery(submissionId, userId, text) :
 			getInsertReplyQuery(submissionId, parentId, userId, text);
 
-	return database.query(query)
+	return context.database.query(query)
 		.then(function (result) {
 			return result.rows[0].id;
 		});
 }
 
-function getRecentSubmissions(viewer) {
-	return database.query(getSelectRecentSubmissionsQuery(viewer || guestViewer))
+function getRecentSubmissions(context, viewer) {
+	return context.database.query(getSelectRecentSubmissionsQuery(viewer || guestViewer))
 		.then(function (result) {
 			return result.rows.map(function (row) {
 				return {
@@ -446,8 +445,8 @@ function getRecentSubmissions(viewer) {
 		});
 }
 
-function getPendingSubmissions(userId) {
-	return database.query(getSelectPendingSubmissionsQuery(userId))
+function getPendingSubmissions(context, userId) {
+	return context.database.query(getSelectPendingSubmissionsQuery(userId))
 		.then(function (result) {
 			return result.rows.map(function (row) {
 				return {
@@ -467,7 +466,7 @@ function getPendingSubmissions(userId) {
 		});
 }
 
-function createPendingSubmission(userId, submissionFiles) {
+function createPendingSubmission(context, userId, submissionFiles) {
 	var original = submissionFiles.submission.find(f => f.original);
 
 	function useTransaction(client) {
@@ -496,19 +495,19 @@ function createPendingSubmission(userId, submissionFiles) {
 		);
 	}
 
-	return database.withTransaction(useTransaction);
+	return context.database.withTransaction(useTransaction);
 }
 
-function hideSubmission(viewerId, submissionId) {
-	return database.query(getHideSubmissionQuery(viewerId, submissionId));
+function hideSubmission(context, viewerId, submissionId) {
+	return context.database.query(getHideSubmissionQuery(viewerId, submissionId));
 }
 
-function unhideSubmission(viewerId, submissionId) {
-	return database.query(getUnhideSubmissionQuery(viewerId, submissionId));
+function unhideSubmission(context, viewerId, submissionId) {
+	return context.database.query(getUnhideSubmissionQuery(viewerId, submissionId));
 }
 
-function getRecentUserSubmissions(viewer, userId) {
-	return database.query(getSelectRecentUserSubmissionsQuery(viewer || guestViewer, userId))
+function getRecentUserSubmissions(context, viewer, userId) {
+	return context.database.query(getSelectRecentUserSubmissionsQuery(viewer || guestViewer, userId))
 		.then(function (result) {
 			return result.rows;
 		});

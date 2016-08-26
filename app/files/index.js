@@ -1,16 +1,15 @@
 'use strict';
 
-var bluebird = require('bluebird');
+var Promise = require('bluebird');
 var crypto = require('crypto');
 var fs = require('fs');
 var path = require('path');
 var stream = require('stream');
 
-var readFileAsync = bluebird.promisify(fs.readFile);
-var unlinkAsync = bluebird.promisify(fs.unlink);
+var readFileAsync = Promise.promisify(fs.readFile);
+var unlinkAsync = Promise.promisify(fs.unlink);
 
 var config = require('../config');
-var database = require('../database');
 var identify = require('./identify').identify;
 
 var MODE_OWNER_READ_WRITE = parseInt('0600', 8);
@@ -87,7 +86,7 @@ function getTemporaryPath() {
 }
 
 function getTemporary() {
-	return new bluebird.Promise(function (resolve, reject) {
+	return new Promise(function (resolve, reject) {
 		var temporaryPath = getTemporaryPath();
 		var temporaryStream = fs.createWriteStream(temporaryPath, {
 			flags: 'wx',
@@ -111,7 +110,7 @@ function getTemporary() {
 }
 
 function getFileInfo(filePath) {
-	return new bluebird.Promise(function (resolve, reject) {
+	return new Promise(function (resolve, reject) {
 		var byteSize = 0;
 		var hash = crypto.createHash('sha256');
 		var readStream = fs.createReadStream(filePath);
@@ -133,7 +132,7 @@ function getFileInfo(filePath) {
 	});
 }
 
-function insertObject(hexDigest, byteSize, writer) {
+function insertObject(context, hexDigest, byteSize, writer) {
 	var storagePath = getStoragePath(hexDigest);
 
 	function useTransaction(client) {
@@ -156,7 +155,7 @@ function insertObject(hexDigest, byteSize, writer) {
 					mode: MODE_OWNER_READ_WRITE,
 				});
 
-				return new bluebird.Promise(function (resolve, reject) {
+				return new Promise(function (resolve, reject) {
 					storageStream.on('error', reject);
 
 					storageStream.on('finish', function () {
@@ -177,31 +176,31 @@ function insertObject(hexDigest, byteSize, writer) {
 			});
 	}
 
-	return database.withTransaction(useTransaction);
+	return context.database.withTransaction(useTransaction);
 }
 
-function insertFile(hexDigest, byteSize, temporaryPath) {
-	return insertObject(hexDigest, byteSize, function (storageStream, errorCallback) {
+function insertFile(context, hexDigest, byteSize, temporaryPath) {
+	return insertObject(context, hexDigest, byteSize, function (storageStream, errorCallback) {
 		var temporaryStream = fs.createReadStream(temporaryPath);
 		temporaryStream.on('error', errorCallback);
 		temporaryStream.pipe(storageStream);
 	});
 }
 
-function insertBuffer(buffer) {
+function insertBuffer(context, buffer) {
 	var hexDigest =
 		crypto.createHash('sha256')
 			.update(buffer)
 			.digest('hex');
 
-	return insertObject(hexDigest, buffer.length, function (storageStream) {
+	return insertObject(context, hexDigest, buffer.length, function (storageStream) {
 		storageStream.end(buffer);
 	});
 }
 
 function getOriginalGenerator(hexDigest, byteSize) {
-	return function (originalPath, originalType) {
-		return insertFile(hexDigest, byteSize, originalPath).tap(function (file) {
+	return function (context, originalPath, originalType) {
+		return insertFile(context, hexDigest, byteSize, originalPath).tap(function (file) {
 			file.type = originalType;
 			file.role = 'submission';
 			file.original = true;
@@ -209,9 +208,9 @@ function getOriginalGenerator(hexDigest, byteSize) {
 	};
 }
 
-function storeUpload(uploadStream, typeGenerators) {
-	return bluebird.using(getTemporary(), function (temporary) {
-		return new bluebird.Promise(function (resolve, reject) {
+function storeUpload(context, uploadStream, typeGenerators) {
+	return Promise.using(getTemporary(), function (temporary) {
+		return new Promise(function (resolve, reject) {
 			var hash = crypto.createHash('sha256');
 			var byteSize = 0;
 
@@ -221,7 +220,7 @@ function storeUpload(uploadStream, typeGenerators) {
 				var hexDigest = hash.read().toString('hex');
 
 				if (!typeGenerators.hasOwnProperty(fileType.id)) {
-					return bluebird.reject(new Error('Unexpected file type: ' + fileType.id));
+					return Promise.reject(new Error('Unexpected file type: ' + fileType.id));
 				}
 
 				var generators =
@@ -229,8 +228,8 @@ function storeUpload(uploadStream, typeGenerators) {
 						.concat(typeGenerators[fileType.id]);
 
 				return (
-					bluebird.map(generators, function (generator) {
-						return generator(temporary.path, fileType.id);
+					Promise.map(generators, function (generator) {
+						return generator(context, temporary.path, fileType.id);
 					})
 						.then(function (generatedFiles) {
 							var result = {
@@ -282,8 +281,8 @@ function storeUpload(uploadStream, typeGenerators) {
 	});
 }
 
-function storeUploadOrEmpty(uploadStream, typeGenerators) {
-	return new bluebird.Promise(function (resolve) {
+function storeUploadOrEmpty(context, uploadStream, typeGenerators) {
+	return new Promise(function (resolve) {
 		function endListener() {
 			resolve(null);
 		}
@@ -297,7 +296,7 @@ function storeUploadOrEmpty(uploadStream, typeGenerators) {
 			passthrough.write(data);
 			uploadStream.pipe(passthrough);
 
-			resolve(storeUpload(passthrough, typeGenerators));
+			resolve(storeUpload(context, passthrough, typeGenerators));
 		}
 
 		uploadStream.on('data', dataListener);

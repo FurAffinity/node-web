@@ -140,7 +140,7 @@ function getReader(schema) {
 			var fileReader = type.reader;
 
 			reads.push(
-				fileReader(stream, filename)
+				fileReader(request, stream, filename)
 					.then(function (value) {
 						if (type.count === many) {
 							form[name].push(value);

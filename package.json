@@ -1,7 +1,7 @@
 {
 	"dependencies": {
 		"bcrypt-small": "1.0.2",
-		"bluebird": "3.4.2",
+		"bluebird": "3.4.3",
 		"busboy": "0.2.13",
 		"express": "4.14.0",
 		"htmlparser2": "3.9.1",

@@ -44,7 +44,7 @@ var post = wrap([
 			return;
 		}
 
-		authentication.authenticate(form.username, form.password)
+		authentication.authenticate(req.context, form.username, form.password)
 			.then(function (userId) {
 				return req.app.sessionStorage.createUserSession(req, userId);
 			})

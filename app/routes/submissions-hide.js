@@ -21,7 +21,7 @@ router.post(r`/api/submissions/:id(\d+)/hide`, hideFormReader, function (req, re
 
 	var submissionId = req.params.id | 0;
 
-	submissions.hideSubmission(req.user.id, submissionId).done(
+	submissions.hideSubmission(req.context, req.user.id, submissionId).done(
 		function () {
 			res.send('Submission hidden.');
 		},
@@ -40,7 +40,7 @@ router.post(r`/api/submissions/:id(\d+)/unhide`, hideFormReader, function (req, 
 
 	var submissionId = req.params.id | 0;
 
-	submissions.unhideSubmission(req.user.id, submissionId).done(
+	submissions.unhideSubmission(req.context, req.user.id, submissionId).done(
 		function () {
 			res.send('Submission unhidden.');
 		},

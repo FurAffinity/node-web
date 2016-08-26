@@ -19,7 +19,7 @@ var homeRoute = {
 		new NunjucksRenderer('home.html'),
 	],
 	get: function (request) {
-		return submissions.getRecentSubmissions(request.user)
+		return submissions.getRecentSubmissions(request.context, request.user)
 			.then(function (recentSubmissions) {
 				return new Ok({ recentSubmissions: recentSubmissions });
 			});

@@ -21,22 +21,22 @@ var validRatings = new Set([
 
 var router = new express.Router();
 
-function readProfileImage(stream) {
-	return files.storeUploadOrEmpty(stream, types.profileImageGenerators)
+function readProfileImage(request, stream) {
+	return files.storeUploadOrEmpty(request.context, stream, types.profileImageGenerators)
 		.then(function (generatedFiles) {
 			return generatedFiles && generatedFiles.profileImage;
 		});
 }
 
-function readBanner(stream) {
-	return files.storeUploadOrEmpty(stream, types.bannerGenerators)
+function readBanner(request, stream) {
+	return files.storeUploadOrEmpty(request.context, stream, types.bannerGenerators)
 		.then(function (generatedFiles) {
 			return generatedFiles && generatedFiles.banner;
 		});
 }
 
 router.get('/settings/profile', permissions.user.middleware, function (req, res, next) {
-	users.viewProfile(req.user.id).done(
+	users.viewProfile(req.context, req.user.id).done(
 		function (profile) {
 			res.render('settings/profile.html', {
 				profile: profile,
@@ -62,6 +62,7 @@ router.post('/settings/profile',
 		var form = req.form;
 
 		users.updateProfile(
+			req.context,
 			req.user.id,
 			{
 				banner: form.banner,
@@ -98,7 +99,7 @@ router.post('/settings/browsing',
 			return;
 		}
 
-		users.updatePreferences(req.user.id, form).done(
+		users.updatePreferences(req.context, req.user.id, form).done(
 			function () {
 				req.user.ratingPreference = form.rating;
 				res.render('settings/browsing.html', { updated: true });
@@ -163,23 +164,21 @@ router.post('/settings/account/two-factor',
 
 			var encodedKey = totp.base32Encode(key);
 
-			totp.getKeyBarcode(config.totp.issuer, req.user.displayUsername, encodedKey).done(
-				function (barcodeUri) {
+			totp.getKeyBarcode(config.totp.issuer, req.user.displayUsername, encodedKey)
+				.then(function (barcodeUri) {
 					res.render('settings/two-factor.html', {
 						barcodeUri: barcodeUri,
 						key: key,
 						encodedKey: encodedKey,
 					});
-				},
-				next
-			);
+				})
+				.asCallback(next);
 		} else {
-			users.setupTwoFactor(req.user.id, key, counter).done(
-				function () {
+			users.setupTwoFactor(req.context, req.user.id, key, counter)
+				.then(function () {
 					res.redirect('/settings/account');
-				},
-				next
-			);
+				})
+				.asCallback(next);
 		}
 	});
 

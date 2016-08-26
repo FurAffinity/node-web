@@ -50,7 +50,7 @@ var post = wrap([
 			return;
 		}
 
-		users.registerUser(req.form).done(
+		users.registerUser(req.context, req.form).done(
 			function (canonicalEmail) {
 				res.render('registration-email-sent.html', {
 					email: canonicalEmail,

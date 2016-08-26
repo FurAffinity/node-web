@@ -17,7 +17,7 @@ router.post(r`/users/:id(\d+)/\+verify`, forms.getReader({ name: 'register-verif
 	var userId = req.params.id | 0;
 	var key = Buffer.from(String(req.query.key), 'base64');
 
-	users.verifyRegistrationKey(userId, key).done(
+	users.verifyRegistrationKey(req.context, userId, key).done(
 		function () {
 			res.redirect('/login');
 		},

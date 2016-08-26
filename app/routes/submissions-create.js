@@ -18,8 +18,8 @@ var get = wrap([
 	permissions.submit.middleware,
 	function (req, res, next) {
 		bluebird.all([
-			submissions.getPendingSubmissions(req.user.id),
-			submissions.getFolders(req.user.id),
+			submissions.getPendingSubmissions(req.context, req.user.id),
+			submissions.getFolders(req.context, req.user.id),
 		])
 			.spread(function (pendingSubmissions, folders) {
 				res.render('upload.html', {
@@ -83,13 +83,13 @@ var post = wrap([
 		}
 
 		if (f[f.length - 1] === 0) {
-			f[f.length - 1] = submissions.createFolder(req.user.id, form['new-folder']);
+			f[f.length - 1] = submissions.createFolder(req.context, req.user.id, form['new-folder']);
 		}
 
 		bluebird.all(f)
 			.then(function (folders) {
 				form.folders = folders;
-				return submissions.createSubmission(req.user.id, form);
+				return submissions.createSubmission(req.context, req.user.id, form);
 			}).done(
 				function () {
 					res.redirect('/submissions/' + form.id);

@@ -14,9 +14,9 @@ router.get(r`/users/:id(\d+)/:username([\w.~-]+)`, function (req, res, next) {
 	var profileId = req.params.id | 0;
 
 	bluebird.all([
-		users.viewProfile(profileId),
-		users.getUserStatistics(profileId),
-		submissions.getRecentUserSubmissions(req.user, profileId),
+		users.viewProfile(req.context, profileId),
+		users.getUserStatistics(req.context, profileId),
+		submissions.getRecentUserSubmissions(req.context, req.user, profileId),
 	])
 		.spread(function (profile, statistics, recentSubmissions) {
 			return {

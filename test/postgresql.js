@@ -3,8 +3,12 @@
 var bluebird = require('bluebird');
 var tap = require('tap');
 
-var database = require('../app/database');
+var config = require('../app/config');
 var postgresql = require('../app/database/postgresql');
+
+var Pool = require('../app/database').Pool;
+
+var database = new Pool(config.database);
 
 tap.tearDown(function () {
 	return database.end();

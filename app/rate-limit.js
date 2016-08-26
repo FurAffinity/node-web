@@ -9,7 +9,6 @@ var errors = require('./errors');
 var log = require('./log');
 
 var Duration = require('./duration').Duration;
-var redisClient = require('./redis').client;
 
 var script = fs.readFileSync(path.join(__dirname, '../redis/rate-limit.lua'), 'utf8');
 var scriptHash =
@@ -38,15 +37,15 @@ function RateLimit(name, limit, duration) {
 	this.duration = duration.seconds;
 }
 
-RateLimit.prototype.attempt = function (identifier) {
+RateLimit.prototype.attempt = function (context, identifier) {
 	var counter = this;
 	var key = 'rate:' + this.name + ':' + identifier;
 	var now = Date.now() / 1000 | 0;
 
-	return redisClient.evalshaAsync(scriptHash, 1, key, this.duration, this.limit, now)
+	return context.redis.evalshaAsync(scriptHash, 1, key, this.duration, this.limit, now)
 		.catch(function () {
 			log.event(scriptReload);
-			return redisClient.evalAsync(script, 1, key, counter.duration, counter.limit, now);
+			return context.redis.evalAsync(script, 1, key, counter.duration, counter.limit, now);
 		})
 		.then(function (result) {
 			return result === 1 ?
@@ -59,7 +58,7 @@ function byAddress(name, limit, duration) {
 	var counter = new RateLimit(name, limit, duration);
 
 	return function middleware(req, res, next) {
-		counter.attempt(req.forwarded.for)
+		counter.attempt(req.context, req.forwarded.for)
 			.asCallback(next);
 	};
 }

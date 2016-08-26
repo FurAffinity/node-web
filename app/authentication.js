@@ -7,7 +7,6 @@ var compareAsync = bluebird.promisify(bcrypt.compare);
 var hashAsync = bluebird.promisify(bcrypt.hash);
 
 var config = require('./config');
-var database = require('./database');
 
 var ApplicationError = require('./errors').ApplicationError;
 
@@ -45,18 +44,18 @@ function getRehashPasswordQuery(userId, oldHash, newHash) {
 	};
 }
 
-function rehashIfNecessary(userId, password, passwordHash) {
+function rehashIfNecessary(context, userId, password, passwordHash) {
 	if (bcrypt.getRounds(passwordHash) === config.bcrypt.log_rounds) {
 		return bluebird.resolve();
 	}
 
 	return hashAsync(password, config.bcrypt.log_rounds).then(function (newHash) {
-		return database.query(getRehashPasswordQuery(userId, passwordHash, newHash));
+		return context.database.query(getRehashPasswordQuery(userId, passwordHash, newHash));
 	});
 }
 
-function authenticate(username, password) {
-	return database.query(getSelectPasswordQuery(username)).then(function (result) {
+function authenticate(context, username, password) {
+	return context.database.query(getSelectPasswordQuery(username)).then(function (result) {
 		if (result.rows.length !== 1) {
 			return bluebird.reject(new NoUserError());
 		}
@@ -72,7 +71,7 @@ function authenticate(username, password) {
 
 		return compareAsync(password, passwordHash).then(function (passwordCorrect) {
 			if (passwordCorrect) {
-				rehashIfNecessary(userId, password, passwordHash);
+				rehashIfNecessary(context, userId, password, passwordHash);
 				return userId;
 			} else {
 				return bluebird.reject(new InvalidCredentialsError());

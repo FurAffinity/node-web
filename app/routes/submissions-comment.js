@@ -30,7 +30,7 @@ function createComment(req, res, next) {
 			req.params.comment | 0 :
 			null;
 
-	submissions.createComment(submissionId, parentId, req.user.id, form.text).done(
+	submissions.createComment(req.context, submissionId, parentId, req.user.id, form.text).done(
 		function (commentId) {
 			res.redirect('/submissions/' + submissionId + '#comment-' + commentId);
 		},

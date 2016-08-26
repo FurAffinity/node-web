@@ -11,8 +11,8 @@ var submissions = require('../submissions');
 var types = require('../files/types');
 var wrap = require('./wrap').wrap;
 
-function readFile(stream, filename) {
-	return files.storeUpload(stream, types.submissionGenerators)
+function readFile(request, stream, filename) {
+	return files.storeUpload(request.context, stream, types.submissionGenerators)
 		.tap(function (submissionFiles) {
 			submissionFiles.filename = filename;
 		})
@@ -49,7 +49,7 @@ var post = wrap([
 				var original = submissionFiles.submission.find(f => f.original);
 
 				return (
-					submissions.createPendingSubmission(req.user.id, submissionFiles)
+					submissions.createPendingSubmission(req.context, req.user.id, submissionFiles)
 						.then(function (submissionId) {
 							return {
 								id: submissionId,

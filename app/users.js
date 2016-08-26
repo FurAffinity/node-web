@@ -8,7 +8,6 @@ var hashAsync = bluebird.promisify(bcrypt.hash);
 
 var ApplicationError = require('./errors').ApplicationError;
 var config = require('./config');
-var database = require('./database');
 var email = require('./email');
 var files = require('./files');
 var postgresql = require('./database/postgresql');
@@ -16,7 +15,6 @@ var postgresql = require('./database/postgresql');
 var DisplayFile = files.DisplayFile;
 var sendAsync = bluebird.promisify(email.send);
 var timingSafeCompare = require('./timing-safe-compare').timingSafeCompare;
-var redisClient = require('./redis').client;
 
 var POSTGRESQL_UNIQUE_VIOLATION = '23505';
 var POSTGRESQL_SERIALIZATION_FAILURE = '40001';
@@ -228,11 +226,11 @@ function isValidDisplayUsername(displayUsername) {
 	);
 }
 
-function getUserMeta(userId) {
+function getUserMeta(context, userId) {
 	return bluebird.all([
-		redisClient.hgetAsync('display_usernames', userId),
-		redisClient.hgetAsync('rating_preferences', userId),
-		redisClient.hgetAsync('user_images', userId),
+		context.redis.hgetAsync('display_usernames', userId),
+		context.redis.hgetAsync('rating_preferences', userId),
+		context.redis.hgetAsync('user_images', userId),
 	]).spread(function (displayUsername, ratingPreference, userImage) {
 		if (displayUsername && ratingPreference && userImage) {
 			return {
@@ -244,7 +242,7 @@ function getUserMeta(userId) {
 			};
 		}
 
-		return database.query(getSelectUserMetaQuery(userId))
+		return context.database.query(getSelectUserMetaQuery(userId))
 			.then(function (result) {
 				if (result.rows.length !== 1) {
 					return bluebird.reject(new Error('Expected user'));
@@ -262,14 +260,14 @@ function getUserMeta(userId) {
 				};
 			})
 			.tap(function (userMeta) {
-				redisClient.hsetAsync('display_usernames', userId, userMeta.displayUsername);
-				redisClient.hsetAsync('rating_preferences', userId, userMeta.ratingPreference);
-				redisClient.hsetAsync('user_images', userId, DisplayFile.serialize(userMeta.image));
+				context.redis.hsetAsync('display_usernames', userId, userMeta.displayUsername);
+				context.redis.hsetAsync('rating_preferences', userId, userMeta.ratingPreference);
+				context.redis.hsetAsync('user_images', userId, DisplayFile.serialize(userMeta.image));
 			});
 	});
 }
 
-function registerUser(userInfo) {
+function registerUser(context, userInfo) {
 	var displayUsername = userInfo.username;
 
 	if (!isValidDisplayUsername(displayUsername)) {
@@ -337,7 +335,7 @@ function registerUser(userInfo) {
 				.return(canonicalEmail);
 		}
 
-		return database.withTransaction(useTransaction)
+		return context.database.withTransaction(useTransaction)
 			.catch(function (error) {
 				if (error.code === POSTGRESQL_UNIQUE_VIOLATION && error.constraint === 'users_username_key') {
 					return bluebird.reject(new UsernameConflictError());
@@ -348,7 +346,7 @@ function registerUser(userInfo) {
 	});
 }
 
-function verifyRegistrationKey(userId, key) {
+function verifyRegistrationKey(context, userId, key) {
 	function useTransaction(client) {
 		return client.query(getDeleteRegistrationKeyQuery(userId))
 			.then(function (result) {
@@ -373,11 +371,11 @@ function verifyRegistrationKey(userId, key) {
 		return bluebird.reject(new RegistrationKeyInvalidError());
 	}
 
-	return database.withTransaction(useTransaction);
+	return context.database.withTransaction(useTransaction);
 }
 
-function viewProfile(userId) {
-	return database.query(getViewProfileQuery(userId))
+function viewProfile(context, userId) {
+	return context.database.query(getViewProfileQuery(userId))
 		.then(function (result) {
 			var row = result.rows[0];
 
@@ -394,10 +392,10 @@ function viewProfile(userId) {
 		});
 }
 
-function updateProfile(userId, profileInfo) {
+function updateProfile(context, userId, profileInfo) {
 	return bluebird.all([
-		database.query(getUpdateProfileQuery(userId, profileInfo)),
-		redisClient.hdelAsync('user_images', userId),
+		context.database.query(getUpdateProfileQuery(userId, profileInfo)),
+		context.redis.hdelAsync('user_images', userId),
 	]).spread(function (result) {
 		return result.rowCount === 1 ?
 			bluebird.resolve() :
@@ -405,10 +403,10 @@ function updateProfile(userId, profileInfo) {
 	});
 }
 
-function updatePreferences(userId, preferences) {
+function updatePreferences(context, userId, preferences) {
 	return bluebird.all([
-		database.query(getUpdatePreferencesQuery(userId, preferences)),
-		redisClient.hsetAsync('rating_preferences', userId, preferences.rating),
+		context.database.query(getUpdatePreferencesQuery(userId, preferences)),
+		context.redis.hsetAsync('rating_preferences', userId, preferences.rating),
 	]).spread(function (result) {
 		return result.rowCount === 1 ?
 			bluebird.resolve() :
@@ -416,8 +414,8 @@ function updatePreferences(userId, preferences) {
 	});
 }
 
-function getUserStatistics(userId) {
-	return database.query(getSelectUserStatisticsQuery(userId))
+function getUserStatistics(context, userId) {
+	return context.database.query(getSelectUserStatisticsQuery(userId))
 		.then(function (result) {
 			return result.rows[0];
 		});
@@ -433,20 +431,20 @@ function getRecoveryCodes() {
 	return recoveryCodes;
 }
 
-function setupTwoFactor(userId, key, lastUsedCounter) {
+function setupTwoFactor(context, userId, key, lastUsedCounter) {
 	var recoveryCodes = getRecoveryCodes();
 
-	return database.query(getSetupTwoFactorQuery(userId, key, lastUsedCounter))
+	return context.database.query(getSetupTwoFactorQuery(userId, key, lastUsedCounter))
 		.then(function (result) {
 			if (result.rowCount !== 1) {
 				return bluebird.reject(new Error('Two-factor authentication is already enabled for this account'));
 			}
 
-			return database.query(getInsertTwoFactorRecoveryQuery(userId, recoveryCodes));
+			return context.database.query(getInsertTwoFactorRecoveryQuery(userId, recoveryCodes));
 		});
 }
 
-function regenerateTwoFactorRecovery(userId) {
+function regenerateTwoFactorRecovery(context, userId) {
 	var recoveryCodes = getRecoveryCodes();
 
 	function useTransaction(client) {
@@ -460,7 +458,7 @@ function regenerateTwoFactorRecovery(userId) {
 	}
 
 	function executeAndRetry() {
-		return database.withTransaction(useTransaction)
+		return context.database.withTransaction(useTransaction)
 			.catch(function (error) {
 				if (error.code === POSTGRESQL_SERIALIZATION_FAILURE) {
 					return executeAndRetry();

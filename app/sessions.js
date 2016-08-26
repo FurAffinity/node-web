@@ -112,7 +112,7 @@ SessionStorage.prototype.readSession = function (request) {
 	var sessionKeyHash = hashKey(sessionKey);
 	var userSessionLifetime = this.userSessionLifetime;
 
-	return request.database.query(getSelectSessionQuery(sessionId, userSessionLifetime))
+	return request.context.database.query(getSelectSessionQuery(sessionId, userSessionLifetime))
 		.then(function (result) {
 			if (result.rows.length !== 1) {
 				return null;
@@ -128,7 +128,7 @@ SessionStorage.prototype.readSession = function (request) {
 };
 
 SessionStorage.prototype.deleteSession = function (request, session) {
-	return request.database.query(getDeleteSessionQuery(session.sessionId));
+	return request.context.database.query(getDeleteSessionQuery(session.sessionId));
 };
 
 SessionStorage.prototype.createGuestSession = function () {
@@ -142,7 +142,7 @@ SessionStorage.prototype.createUserSession = function (request, userId) {
 	var sessionKey = crypto.randomBytes(SESSION_KEY_SIZE);
 	var sessionKeyHash = hashKey(sessionKey);
 
-	return request.database.query(getCreateSessionQuery(sessionId, sessionKeyHash, userId))
+	return request.context.database.query(getCreateSessionQuery(sessionId, sessionKeyHash, userId))
 		.return(new UserSession(sessionId, sessionKey, userId));
 };
 

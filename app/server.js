@@ -3,15 +3,27 @@
 var _ = require('./utilities');
 var bluebird = require('bluebird');
 var express = require('express');
+var redis = require('redis');
 var strictCookieParser = require('strict-cookie-parser');
 
 var config = require('./config');
-var database = require('./database');
 var errors = require('./errors');
 var render = require('./render');
 var sessions = require('./sessions');
 var userCounter = require('./user-counter');
 var users = require('./users');
+
+var Pool = require('./database').Pool;
+
+bluebird.promisifyAll(redis.RedisClient.prototype);
+bluebird.promisifyAll(redis.Multi.prototype);
+
+var database = new Pool(config.database);
+var redisClient = redis.createClient(config.redis);
+
+database.on('error', function (error) {
+	console.error('idle client error: ' + error.stack);
+});
 
 var app = express();
 
@@ -44,7 +56,7 @@ function withUserMeta(request, response, next) {
 		return;
 	}
 
-	users.getUserMeta(userId).done(
+	users.getUserMeta(request.context, userId).done(
 		function (userMeta) {
 			request.user = userMeta;
 			next();
@@ -63,7 +75,14 @@ app.use(function (request, response, next) {
 		for: request.headers['x-forwarded-for'],
 	};
 
-	request.database = database;
+	next();
+});
+
+app.use(function (req, res, next) {
+	req.context = {
+		database: database,
+		redis: redisClient,
+	};
 
 	next();
 });
