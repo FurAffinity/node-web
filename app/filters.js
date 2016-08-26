@@ -4,26 +4,11 @@ var bbcode = require('../bbcode');
 var nunjucks = require('nunjucks');
 
 var ht = require('./html');
-var relativeDate = require('./relative-date').relativeDate;
+var dateFormat = require('./date-format');
 var users = require('./users');
 
 var SIZE_KB = 1000;
 var SIZE_MB = 1000 * SIZE_KB;
-
-var MONTH_NAMES = [
-	'January',
-	'February',
-	'March',
-	'April',
-	'May',
-	'June',
-	'July',
-	'August',
-	'September',
-	'October',
-	'November',
-	'December',
-];
 
 var DEFAULT_PATHS = {
 	profile: '/images/default-profile.gif',
@@ -56,38 +41,10 @@ function filePath(file, role) {
 		'/files/' + file.hash + '.' + file.type;
 }
 
-function getOrdinalSuffix(n) {
-	if (n % 100 >= 10 && n % 100 < 20) {
-		return 'th';
-	}
-
-	switch (n % 10) {
-	case 1:
-		return 'st';
-
-	case 2:
-		return 'nd';
-
-	case 3:
-		return 'rd';
-
-	default:
-		return 'th';
-	}
-}
-
-function withOrdinalSuffix(n) {
-	return n + getOrdinalSuffix(n);
-}
-
-function padZero2(n) {
-	return n < 10 ? '0' + n : '' + n;
-}
-
 function relativeDateFilter(date) {
 	var datetime = date.toISOString();
-	var relative = relativeDate(date);
-	var long = MONTH_NAMES[date.getUTCMonth()] + ' ' + withOrdinalSuffix(date.getUTCDate()) + ', ' + date.getUTCFullYear() + ' at ' + padZero2(date.getUTCHours()) + ':' + padZero2(date.getUTCMinutes()) + ':' + padZero2(date.getUTCSeconds()) + ' UTC';
+	var long = dateFormat.utc(date);
+	var relative = dateFormat.relative(date);
 
 	return new nunjucks.runtime.SafeString(`<time datetime="${datetime}" title="${long}">${relative}</time>`);
 }
