@@ -190,7 +190,11 @@ Object.defineProperty(SessionStorage.prototype, 'middleware', {
 
 						this.setHeader('Set-Cookie', updatedHeaders);
 
-						sessionStorage.deleteSession(request, session);
+						if (session !== null) {
+							sessionStorage.deleteSession(request, session);
+						}
+
+						session = newSession;
 					};
 
 					if (session) {
