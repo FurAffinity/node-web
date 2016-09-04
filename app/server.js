@@ -10,16 +10,21 @@ var config = require('./config');
 var errors = require('./errors');
 var render = require('./render');
 var sessions = require('./sessions');
-var userCounter = require('./user-counter');
 var users = require('./users');
 
 var Pool = require('./database').Pool;
+var UserCounter = require('./user-counter').UserCounter;
 
 bluebird.promisifyAll(redis.RedisClient.prototype);
 bluebird.promisifyAll(redis.Multi.prototype);
 
 var database = new Pool(config.database);
 var redisClient = redis.createClient(config.redis);
+var userCounter = new UserCounter({
+	listenHost: config.user_counter.listen_host,
+	host: config.user_counter.host,
+	port: config.user_counter.port,
+});
 
 database.on('error', function (error) {
 	console.error('idle client error: ' + error.stack);
