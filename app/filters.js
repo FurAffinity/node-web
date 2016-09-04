@@ -5,6 +5,7 @@ var nunjucks = require('nunjucks');
 
 var ht = require('./html');
 var dateFormat = require('./date-format');
+var types = require('./files/types');
 var users = require('./users');
 
 var SIZE_KB = 1000;
@@ -38,7 +39,7 @@ function formatFileSize(bytes) {
 function filePath(file, role) {
 	return file === null ?
 		DEFAULT_PATHS[role] :
-		'/files/' + file.hash + '.' + file.type;
+		'/files/' + file.hash + '.' + types.byId(file.type).extension;
 }
 
 function relativeDateFilter(date) {

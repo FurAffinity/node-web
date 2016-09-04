@@ -7,10 +7,10 @@ var duration = require('../duration');
 var files = require('../files');
 var filters = require('../filters');
 var forms = require('../forms');
+var generators = require('../files/generators');
 var permissions = require('../permissions');
 var rateLimit = require('../rate-limit');
 var totp = require('../totp');
-var types = require('../files/types');
 var users = require('../users');
 
 var validRatings = new Set([
@@ -22,14 +22,14 @@ var validRatings = new Set([
 var router = new express.Router();
 
 function readProfileImage(request, stream) {
-	return files.storeUploadOrEmpty(request.context, stream, types.profileImageGenerators)
+	return files.storeUploadOrEmpty(request.context, stream, generators.profileImageGenerators)
 		.then(function (generatedFiles) {
 			return generatedFiles && generatedFiles.profileImage;
 		});
 }
 
 function readBanner(request, stream) {
-	return files.storeUploadOrEmpty(request.context, stream, types.bannerGenerators)
+	return files.storeUploadOrEmpty(request.context, stream, generators.bannerGenerators)
 		.then(function (generatedFiles) {
 			return generatedFiles && generatedFiles.banner;
 		});

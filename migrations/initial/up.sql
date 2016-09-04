@@ -28,7 +28,8 @@ CREATE TYPE file_type AS ENUM (
 	'mid',
 	'wav',
 	'mp3',
-	'ogg',
+	'vorbis',
+	'opus',
 	'flac',
 	'm4a'
 );

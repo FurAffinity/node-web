@@ -32,6 +32,14 @@ env.addFilter('type_name', function (fileType) {
 	return types.byId(fileType).description;
 });
 
+env.addFilter('type_media_type', function (fileType) {
+	return types.byId(fileType).mediaType;
+});
+
+env.addFilter('type_extension', function (fileType) {
+	return types.byId(fileType).extension;
+});
+
 env.addFilter('bbcode', filters.bbcode);
 env.addFilter('bbcodeWithExcerpt', filters.bbcodeWithExcerpt);
 env.addFilter('clean_html', filters.cleanHtml);

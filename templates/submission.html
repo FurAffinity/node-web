@@ -46,8 +46,8 @@
 			<div id="submission-player">
 				<audio class="submission-audio" preload="auto" controls data-waveform="/files/{{ submission.waveformHash }}">
 					{% for file in submission.files %}
-						{% if file.type == "mp3" or file.type == "ogg" %}
-							<source type="audio/{{ file.type }}" src="/files/{{ file.hash }}.{{ file.type }}" />
+						{% if file.type == "mp3" or file.type == "vorbis" %}
+							<source type="{{ file.type | type_media_type }}" src="/files/{{ file.hash }}.{{ file.type | type_extension }}" />
 						{% endif %}
 					{% endfor %}
 				</audio>

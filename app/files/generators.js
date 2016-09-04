@@ -136,7 +136,7 @@ function createWaveform(context, originalPath) {
 	});
 }
 
-function createOgg(context, originalPath) {
+function createVorbis(context, originalPath) {
 	return new Promise(function (resolve, reject) {
 		var temporaryPath = files.getTemporaryPath();
 
@@ -151,7 +151,7 @@ function createOgg(context, originalPath) {
 					return files.insertFile(context, hexDigest, fileInfo.byteSize, temporaryPath);
 				})
 				.tap(function (file) {
-					file.type = 'ogg';
+					file.type = 'vorbis';
 					file.role = 'submission';
 				});
 		}
@@ -218,6 +218,28 @@ function createHtml(context, originalPath, originalType) {
 exports.banner = createBanner;
 exports.profileImage = createProfileImage;
 exports.thumbnail = createThumbnail;
-exports.ogg = createOgg;
+exports.vorbis = createVorbis;
 exports.waveform = createWaveform;
 exports.html = createHtml;
+
+exports.submissionGenerators = {
+	jpg: [createThumbnail],
+	png: [createThumbnail],
+	mp3: [createVorbis, createWaveform],
+	opus: [createVorbis, createWaveform],
+	vorbis: [createWaveform],
+	flac: [createVorbis, createWaveform],
+	m4a: [createVorbis, createWaveform],
+	docx: [createHtml],
+	epub: [createHtml],
+};
+
+exports.profileImageGenerators = {
+	jpg: [createProfileImage],
+	png: [createProfileImage],
+};
+
+exports.bannerGenerators = {
+	jpg: [createBanner],
+	png: [createBanner],
+};

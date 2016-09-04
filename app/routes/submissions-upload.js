@@ -6,13 +6,14 @@ var express = require('express');
 var ApplicationError = require('../errors').ApplicationError;
 var files = require('../files');
 var forms = require('../forms');
+var generators = require('../files/generators');
 var permissions = require('../permissions');
 var submissions = require('../submissions');
 var types = require('../files/types');
 var wrap = require('./wrap').wrap;
 
 function readFile(request, stream, filename) {
-	return files.storeUpload(request.context, stream, types.submissionGenerators)
+	return files.storeUpload(request.context, stream, generators.submissionGenerators)
 		.tap(function (submissionFiles) {
 			submissionFiles.filename = filename;
 		})
@@ -53,7 +54,7 @@ var post = wrap([
 						.then(function (submissionId) {
 							return {
 								id: submissionId,
-								thumbnail: thumbnail && (thumbnail.hexDigest + '.' + thumbnail.type),
+								thumbnail: thumbnail && (thumbnail.hexDigest + '.' + types.byId(thumbnail.type).extension),
 								upload_type: original.type,
 							};
 						})
