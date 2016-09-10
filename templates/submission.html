@@ -18,10 +18,10 @@
 	<script src="/js/editor.js" async></script>
 	<script src="/js/comments.js" async></script>
 
-	{% if submission.type == "audio" %}
+	{% if submission.type === "audio" %}
 		<script src="/js/main.js" async></script>
 		<script src="/js/audio.js" async></script>
-	{% elif submission.type == "text" %}
+	{% elif submission.type === "text" %}
 		<script src="/js/written.js" async></script>
 	{% endif %}
 {% endblock %}
@@ -35,18 +35,18 @@
 
 {% block body %}
 	<div id="submission-main">
-		{% if submission.type == "image" %}
+		{% if submission.type === "image" %}
 			<div class="submission-image-container">
 				{% set file = submission.files[0] %}
 				<a href="{{ file | file_path }}" class="submission-image">
 					<img src="{{ file | file_path }}" />
 				</a>
 			</div>
-		{% elif submission.type == "audio" %}
+		{% elif submission.type === "audio" %}
 			<div id="submission-player">
 				<audio class="submission-audio" preload="auto" controls data-waveform="/files/{{ submission.waveformHash }}">
 					{% for file in submission.files %}
-						{% if file.type == "mp3" or file.type == "vorbis" %}
+						{% if file.type === "mp3" or file.type === "vorbis" %}
 							<source type="{{ file.type | type_media_type }}" src="/files/{{ file.hash }}.{{ file.type | type_extension }}" />
 						{% endif %}
 					{% endfor %}
@@ -63,9 +63,9 @@
 				audio.createSubmissionPlayer(submissionPlayer);
 			});
 			</script>
-		{% elif submission.type == "text" %}
+		{% elif submission.type === "text" %}
 			{% for file in submission.files %}
-				{% if file.type == "html" %}
+				{% if file.type === "html" %}
 					<div class="submission-text-container">
 						<div class="submission-text-tools" style="display: none;">
 							<select>

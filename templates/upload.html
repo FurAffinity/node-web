@@ -56,7 +56,7 @@
 						<div class="upload-file-details">{{ upload.fileType | type_name }}, {{ upload.fileSize | file_size }}</div>
 					</div>
 
-					<input type="radio" name="id" value="{{ upload.id }}" class="upload-use" required{% if form.id == upload.id %} checked{% endif %} />
+					<input type="radio" name="id" value="{{ upload.id }}" class="upload-use" required{% if form.id === upload.id %} checked{% endif %} />
 				</label>
 			{% endfor %}
 
@@ -122,7 +122,7 @@
 					{{ field_errors_block("rating") }}
 
 					<label class="rating-option">
-						<input type="radio" name="rating" value="general" tabindex="{{ 6 + folders.length }}" required{% if form.rating == "general" %} checked{% endif %} />
+						<input type="radio" name="rating" value="general" tabindex="{{ 6 + folders.length }}" required{% if form.rating === "general" %} checked{% endif %} />
 
 						<span class="rating-info">
 							<span class="rating-name">General</span>
@@ -131,7 +131,7 @@
 					</label>
 
 					<label class="rating-option">
-						<input type="radio" name="rating" value="mature" tabindex="{{ 7 + folders.length }}" required{% if form.rating == "mature" %} checked{% endif %} />
+						<input type="radio" name="rating" value="mature" tabindex="{{ 7 + folders.length }}" required{% if form.rating === "mature" %} checked{% endif %} />
 
 						<span class="rating-info">
 							<span class="rating-name">Mature</span>
@@ -140,7 +140,7 @@
 					</label>
 
 					<label class="rating-option">
-						<input type="radio" name="rating" value="adult" tabindex="{{ 8 + folders.length }}" required{% if form.rating == "adult" %} checked{% endif %} />
+						<input type="radio" name="rating" value="adult" tabindex="{{ 8 + folders.length }}" required{% if form.rating === "adult" %} checked{% endif %} />
 
 						<span class="rating-info">
 							<span class="rating-name">Adult</span>

@@ -3,11 +3,11 @@
 {%- endmacro -%}
 
 {%- macro active(page) -%}
-	{% if page == current_page %} class="selected"{% endif %}
+	{% if page === current_page %} class="selected"{% endif %}
 {%- endmacro -%}
 
 {%- macro form_errors() -%}
-	{% if form and form.errors.form.length != 0 %}
+	{% if form and form.errors.form.length !== 0 %}
 		<ul class="form-status form-errors">
 			{% for error in form.errors.form %}
 				<li role="alert">{{ error.message or error }}</li>
@@ -23,7 +23,7 @@
 {%- endmacro -%}
 
 {%- macro field_errors_block(field) -%}
-	{% if form and form.errors[field].length != 0 %}
+	{% if form and form.errors[field].length !== 0 %}
 		<ul class="form-status form-errors">
 			{% for error in form.errors[field] %}
 				<li role="alert">{{ error.message or error }}</li>
@@ -180,7 +180,7 @@
 					<a id="site-revision" title="{{ siteRevision }}" href="https://github.com/FurAffinity/node-web/commit/{{ siteRevision }}">{{ siteRevision.substring(0, 8) }}</a>
 				{% endif %}
 
-				<span id="online-count">{{ request.userCount }} user{% if request.userCount != 1 %}s{% endif %} online</span>
+				<span id="online-count">{{ request.userCount }} user{% if request.userCount !== 1 %}s{% endif %} online</span>
 			</div>
 		</footer>
 	</body>

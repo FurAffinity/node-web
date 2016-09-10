@@ -70,10 +70,10 @@
 			</div>
 		</header>
 
-		<div id="profile-main"{% if recentSubmissions.length == 0 %} class="profile-right-only"{% endif %}>
-			{% if recentSubmissions.length != 0 %}
+		<div id="profile-main"{% if recentSubmissions.length === 0 %} class="profile-right-only"{% endif %}>
+			{% if recentSubmissions.length !== 0 %}
 				<div id="profile-left">
-					{% if recentSubmissions.length != 0 %}
+					{% if recentSubmissions.length !== 0 %}
 						<section class="profile-section">
 							<h2 class="thumbnail-section-header">Recent Work</h2>
 
