@@ -10,7 +10,7 @@ var version = require('../version');
 var getCsrfKey = require('../forms').getCsrfKey;
 
 var templateRoot = path.join(__dirname, '../../templates');
-var templateLoader = new nunjucks.FileSystemLoader(templateRoot, { watch: true });
+var templateLoader = new nunjucks.FileSystemLoader(templateRoot);
 
 var env = new nunjucks.Environment(
 	templateLoader,

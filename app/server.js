@@ -150,6 +150,26 @@ app.use(function (error, req, res, next) {
 	res.render('error.html', { error: error });
 });
 
-app.listen(5000, '127.0.0.1', function () {
-	console.log('Started up in ' + process.uptime().toFixed(3) + ' s');
+var server = app.listen(
+	process.env.LISTEN || 'app.sock',
+	process.env.LISTEN_ADDRESS || '::1',
+	function () {
+		var address = server.address();
+
+		var displayAddress =
+			typeof address === 'string' ? address :
+			address.family === 'IPv6' ? '[' + address.address + ']:' + address.port :
+			address.address + ':' + address.port;
+
+		console.error('Started up in ' + process.uptime().toFixed(3) + ' s');
+		console.error('Listening on ' + displayAddress);
+	}
+);
+
+process.once('SIGINT', function () {
+	console.error('Shutting down.');
+	server.close();
+	database.end();
+	redisClient.quit();
+	userCounter.close();
 });
