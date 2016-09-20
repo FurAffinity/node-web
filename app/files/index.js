@@ -12,7 +12,8 @@ var unlinkAsync = Promise.promisify(fs.unlink);
 var config = require('../config');
 var identify = require('./identify').identify;
 
-var MODE_OWNER_READ_WRITE = parseInt('0600', 8);
+var TEMPORARY_NAME_SIZE = 18;
+var MODE_OWNER_READ = parseInt('400', 8);
 
 function DisplayFile(hash, type) {
 	if (typeof hash !== 'string') {
@@ -81,7 +82,7 @@ function toPathSafeBase64(buffer) {
 }
 
 function getTemporaryPath() {
-	var randomName = toPathSafeBase64(crypto.randomBytes(config.files.temporary_name_size));
+	var randomName = toPathSafeBase64(crypto.randomBytes(TEMPORARY_NAME_SIZE));
 	return path.join(config.files.temporary_root, randomName);
 }
 
@@ -90,7 +91,7 @@ function getTemporary() {
 		var temporaryPath = getTemporaryPath();
 		var temporaryStream = fs.createWriteStream(temporaryPath, {
 			flags: 'wx',
-			mode: MODE_OWNER_READ_WRITE,
+			mode: MODE_OWNER_READ,
 		});
 
 		temporaryStream.on('error', reject);
@@ -152,7 +153,7 @@ function insertObject(context, hexDigest, byteSize, writer) {
 
 				var storageStream = fs.createWriteStream(storagePath, {
 					flags: 'wx',
-					mode: MODE_OWNER_READ_WRITE,
+					mode: MODE_OWNER_READ,
 				});
 
 				return new Promise(function (resolve, reject) {

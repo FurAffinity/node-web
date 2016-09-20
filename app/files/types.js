@@ -1,12 +1,12 @@
 'use strict';
 
-var errors = require('../errors');
+var ApplicationError = require('../errors').ApplicationError;
 
 function UnknownMediaTypeError(mediaType) {
-	errors.ApplicationError.call(this, 'Unknown media type: ' + mediaType);
+	ApplicationError.call(this, 'Unknown media type: ' + mediaType);
 }
 
-errors.ApplicationError.extend(UnknownMediaTypeError);
+ApplicationError.extend(UnknownMediaTypeError);
 
 var types = [
 	{

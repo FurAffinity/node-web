@@ -19,8 +19,6 @@ listen_host = '127.0.0.1'
 
 [files]
 temporary_root = 'tmp'
-temporary_name_size = 18
-
 storage_root = 'files'
 
 # The maximum uploaded file size, in bytes.
