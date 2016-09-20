@@ -36,7 +36,7 @@ class TomlFormatter(string.Formatter):
 
 
 questions = [
-	("database_host", "Database host", "localhost"),
+	("database_host", "Database host", "/var/run/postgresql"),
 	("database_user", "Database user", "fa_dev"),
 	("database_password", "Database password", ""),
 	("database_name", "Database name", "fa"),

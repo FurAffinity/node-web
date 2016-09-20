@@ -9,6 +9,7 @@ password = {database_password!t}
 database = {database_name!t}
 
 [redis]
+path = '/var/run/redis/redis.sock'
 prefix = 'fa:'
 
 [user_counter]
