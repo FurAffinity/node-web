@@ -42,7 +42,6 @@ log_rounds = 12
 
 [registration]
 from_address = 'support@furaffinity.net'
-registration_key_size = 18
 
 [totp]
 issuer = 'Fur Affinity'

@@ -22,7 +22,9 @@ var POSTGRESQL_SERIALIZATION_FAILURE = '40001';
 var NON_CANONICAL_USERNAME_CHARACTER = /_/g;
 var DISPLAY_USERNAME = /^[\w.~-]+$/;
 
-var recoveryCodeByteLength = 6;
+var REGISTRATION_KEY_SIZE = 18;
+var RECOVERY_CODE_BYTE_LENGTH = 6;
+
 var registrationEmailTemplate = email.templateEnvironment.getTemplate('registration', true);
 var registrationDuplicateEmailTemplate = email.templateEnvironment.getTemplate('registration-duplicate', true);
 
@@ -316,7 +318,7 @@ function registerUser(context, userInfo) {
 					}
 
 					var userId = result.rows[0].id;
-					var registrationKey = crypto.randomBytes(config.registration.registration_key_size);
+					var registrationKey = crypto.randomBytes(REGISTRATION_KEY_SIZE);
 
 					return client.query(getInsertRegistrationKeyQuery(userId, hashKey(registrationKey)))
 						.then(function () {
@@ -367,7 +369,7 @@ function verifyRegistrationKey(context, userId, key) {
 			});
 	}
 
-	if (key.length !== config.registration.registration_key_size) {
+	if (key.length !== REGISTRATION_KEY_SIZE) {
 		return bluebird.reject(new RegistrationKeyInvalidError());
 	}
 
@@ -425,7 +427,7 @@ function getRecoveryCodes() {
 	var recoveryCodes = [];
 
 	for (var i = 0; i < config.totp.recovery_codes; i++) {
-		recoveryCodes.push(crypto.randomBytes(recoveryCodeByteLength));
+		recoveryCodes.push(crypto.randomBytes(RECOVERY_CODE_BYTE_LENGTH));
 	}
 
 	return recoveryCodes;
