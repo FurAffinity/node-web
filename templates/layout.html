@@ -148,7 +148,7 @@
 				<ul>
 					{% if request.user %}
 						<li id="user-menu">
-							<a href="/user-menu" data-href="{{ request.user | user_path }}" class="user-menu-image">
+							<a href="/user-menu" data-href="{{ request.user | user_path }}" class="user-menu-image{% if current_page == 'user_menu' %} selected{% endif %}">
 								<img src="{{ request.user.image | file_path('profile') }}" alt="{{ request.user.displayUsername }}’s profile image" title="{{ request.user.displayUsername }}" />
 							</a>
 						</li>
