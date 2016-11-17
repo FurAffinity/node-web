@@ -29,9 +29,9 @@
 {% endblock %}
 
 {% block body %}
-	<div class="page-message page-message-danger">
+	{#<div class="page-message page-message-danger">
 		<strong>{{ profile.displayUsername }}</strong> has been blocked. Would you also like to <a href="javascript:void 0">report this user</a>?
-	</div>
+	</div>#}
 
 	{% if profile.banner %}
 		<img id="profile-banner" src="{{ profile.banner | file_path }}" alt="" />
