@@ -95,11 +95,13 @@
 
 								{% set more = statistics.submissions - recentSubmissions.length %}
 
-								<div class="thumbnail thumbnail-more">
-									<div class="thumbnail-more-inner">
-										<a href="javascript:void 0">{{ more }} more</a>
+								{% if more !== 0 %}
+									<div class="thumbnail thumbnail-more">
+										<div class="thumbnail-more-inner">
+											<a href="javascript:void 0">{{ more }} more</a>
+										</div>
 									</div>
-								</div>
+								{% endif %}
 							</div>
 						</section>
 					{% endif %}
