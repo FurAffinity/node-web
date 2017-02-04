@@ -45,3 +45,6 @@ from_address = 'support@furaffinity.net'
 [totp]
 issuer = 'Fur Affinity'
 recovery_codes = 5
+
+[rate_limits]
+enabled = true

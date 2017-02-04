@@ -5,6 +5,7 @@ var crypto = require('crypto');
 var fs = require('fs');
 var path = require('path');
 
+var config = require('./config');
 var httpErrors = require('./http-errors');
 var log = require('./log');
 
@@ -38,6 +39,10 @@ function RateLimit(name, limit, duration) {
 }
 
 RateLimit.prototype.attempt = function (context, identifier) {
+	if (!config.rate_limits.enabled) {
+		return bluebird.resolve();
+	}
+
 	var counter = this;
 	var key = 'rate:' + this.name + ':' + identifier;
 	var now = Date.now() / 1000 | 0;
