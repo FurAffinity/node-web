@@ -30,6 +30,10 @@ database.on('error', function (error) {
 	console.error('idle client error: ' + error.stack);
 });
 
+redisClient.on('error', function (error) {
+	console.error('redis client error: ' + error.stack);
+});
+
 var app = express();
 
 var sessionStorage = new sessions.SessionStorage({
