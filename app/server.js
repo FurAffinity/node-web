@@ -151,6 +151,7 @@ app.use(function (error, req, res, next) {
 		return;
 	}
 
+	res.statusCode = error.httpStatus;
 	res.render('error.html', { error: error });
 });
 

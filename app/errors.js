@@ -41,21 +41,23 @@ function ApplicationError(message) {
 ApplicationError.prototype = Object.create(Error.prototype, {
 	constructor: {
 		configurable: true,
-		enumerable: false,
 		writable: true,
 		value: ApplicationError,
 	},
 	name: {
 		configurable: true,
-		enumerable: false,
 		writable: true,
 		value: ApplicationError.name,
 	},
 	message: {
 		configurable: true,
-		enumerable: false,
 		writable: true,
 		value: '',
+	},
+	httpStatus: {
+		configurable: true,
+		writable: true,
+		value: 500,
 	},
 });
 

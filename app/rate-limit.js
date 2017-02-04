@@ -5,7 +5,7 @@ var crypto = require('crypto');
 var fs = require('fs');
 var path = require('path');
 
-var errors = require('./errors');
+var httpErrors = require('./http-errors');
 var log = require('./log');
 
 var Duration = require('./duration').Duration;
@@ -22,10 +22,10 @@ var scriptReload = log.defineEvent({
 });
 
 function RateError(counterName) {
-	errors.ApplicationError.call(this, 'Rate limit exceeded: ' + counterName);
+	httpErrors.TooManyRequestsError.call(this, 'Rate limit exceeded: ' + counterName);
 }
 
-errors.ApplicationError.extend(RateError);
+httpErrors.TooManyRequestsError.extend(RateError);
 
 function RateLimit(name, limit, duration) {
 	if (!(duration instanceof Duration)) {
