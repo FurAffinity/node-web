@@ -25,7 +25,7 @@ storage_root = 'files'
 max_size = 100_000_000
 
 [sessions]
-cookie_name = 's'
+cookie_name = '__Host-s'
 cookie_secure = {cookie_secure!t}
 
 # The time a session is valid, in seconds.

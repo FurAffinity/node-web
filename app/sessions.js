@@ -161,7 +161,7 @@ SessionStorage.prototype.getCookieHeader = function (session) {
 	}
 
 	parts.push('HttpOnly');
-	parts.push('SameSite=Strict');
+	parts.push('SameSite=Lax');
 
 	return parts.join('; ');
 };
