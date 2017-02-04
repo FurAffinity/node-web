@@ -1,22 +1,22 @@
 {
 	"dependencies": {
 		"bcrypt-small": "1.0.3",
-		"bluebird": "3.4.6",
-		"busboy": "0.2.13",
-		"express": "4.14.0",
+		"bluebird": "3.4.7",
+		"busboy": "0.2.14",
+		"express": "4.14.1",
 		"htmlparser2": "3.9.2",
-		"ipaddr.js": "1.1.1",
+		"ipaddr.js": "1.2.0",
 		"mmmagic": "0.4.5",
 		"nunjucks": "3.0.0",
-		"pg": "6.1.0",
-		"redis": "2.6.3",
-		"sharp-binaryless": "0.16.2",
+		"pg": "6.1.2",
+		"redis": "2.6.5",
+		"sharp-binaryless": "0.17.1",
 		"strict-cookie-parser": "1.1.0",
-		"toml": "2.3.0"
+		"toml": "2.3.1"
 	},
 	"devDependencies": {
-		"browserify": ">=13.0.0",
+		"browserify": "^14.0.0",
 		"prosemirror": "0.7.0",
-		"tap": "^8.0.0"
+		"tap": "^10.0.0"
 	}
 }
