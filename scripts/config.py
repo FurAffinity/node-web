@@ -40,7 +40,7 @@ questions = [
 	("database_user", "Database user", "fa_dev"),
 	("database_password", "Database password", ""),
 	("database_name", "Database name", "fa"),
-	("root", "Site root (no trailing slash)", "http://localhost"),
+	("root", "Site root (no trailing slash)", "https://localhost"),
 ]
 
 project_root = Path(__file__).parent.parent
