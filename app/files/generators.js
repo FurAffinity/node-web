@@ -2,7 +2,7 @@
 
 var Promise = require('bluebird');
 var fs = require('fs');
-var sharp = require('sharp');
+var sharp = require('sharp-binaryless');
 
 var spawn = require('child_process').spawn;
 var unlinkAsync = Promise.promisify(fs.unlink);
@@ -14,17 +14,19 @@ var BANNER_PIXEL_LIMIT = 8000 * 8000;
 var SUBMISSION_PIXEL_LIMIT = 8000 * 8000;
 
 function createProfileImage(context, originalPath, originalType) {
-	return sharp(originalPath)
-		.limitInputPixels(PROFILE_IMAGE_PIXEL_LIMIT)
-		.rotate()
-		.resize(200, 200, { interpolator: 'nohalo' })
-		.withoutEnlargement()
-		.crop(sharp.strategy.entropy)
-		.compressionLevel(9)
-		.quality(100)
-		.trellisQuantisation()
-		.optimiseScans()
-		.toBuffer()
+	return Promise.resolve(
+		sharp(originalPath)
+			.limitInputPixels(PROFILE_IMAGE_PIXEL_LIMIT)
+			.rotate()
+			.resize(200, 200, { interpolator: 'nohalo' })
+			.withoutEnlargement()
+			.crop(sharp.strategy.entropy)
+			.compressionLevel(9)
+			.quality(100)
+			.trellisQuantisation()
+			.optimiseScans()
+			.toBuffer()
+	)
 		.then(function (buffer) {
 			return files.insertBuffer(context, buffer);
 		})
@@ -35,8 +37,7 @@ function createProfileImage(context, originalPath, originalType) {
 }
 
 function createBanner(context, originalPath, originalType) {
-	return sharp(originalPath)
-		.metadata()
+	return Promise.resolve(sharp(originalPath).metadata())
 		.then(function (metadata) {
 			var width;
 			var height;
@@ -52,17 +53,19 @@ function createBanner(context, originalPath, originalType) {
 			var resizeWidth = Math.min(width, 3840);
 			var resizeHeight = Math.min(height, 910);
 
-			return sharp(originalPath)
-				.limitInputPixels(BANNER_PIXEL_LIMIT)
-				.rotate()
-				.resize(resizeWidth, resizeHeight, { interpolator: 'nohalo' })
-				.withoutEnlargement()
-				.crop()
-				.compressionLevel(9)
-				.quality(100)
-				.trellisQuantisation()
-				.optimiseScans()
-				.toBuffer()
+			return Promise.resolve(
+				sharp(originalPath)
+					.limitInputPixels(BANNER_PIXEL_LIMIT)
+					.rotate()
+					.resize(resizeWidth, resizeHeight, { interpolator: 'nohalo' })
+					.withoutEnlargement()
+					.crop()
+					.compressionLevel(9)
+					.quality(100)
+					.trellisQuantisation()
+					.optimiseScans()
+					.toBuffer()
+			)
 				.then(function (buffer) {
 					return files.insertBuffer(context, buffer);
 				})
@@ -74,17 +77,19 @@ function createBanner(context, originalPath, originalType) {
 }
 
 function createThumbnail(context, originalPath, originalType) {
-	return sharp(originalPath)
-		.limitInputPixels(SUBMISSION_PIXEL_LIMIT)
-		.rotate()
-		.resize(200, 200, { interpolator: 'nohalo' })
-		.max()
-		.withoutEnlargement()
-		.compressionLevel(9)
-		.quality(100)
-		.trellisQuantisation()
-		.optimiseScans()
-		.toBuffer()
+	return Promise.resolve(
+		sharp(originalPath)
+			.limitInputPixels(SUBMISSION_PIXEL_LIMIT)
+			.rotate()
+			.resize(200, 200, { interpolator: 'nohalo' })
+			.max()
+			.withoutEnlargement()
+			.compressionLevel(9)
+			.quality(100)
+			.trellisQuantisation()
+			.optimiseScans()
+			.toBuffer()
+	)
 		.then(function (buffer) {
 			return files.insertBuffer(context, buffer);
 		})
