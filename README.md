@@ -10,7 +10,7 @@
 ## Quick start
 
 ```shellsession
-$ npm install
+$ npm install --sharp-cxx11=1
 $ sudo -u postgres createuser --superuser fa_dev
 $ sudo -u postgres createdb --owner=fa_dev fa
 $ scripts/config.py

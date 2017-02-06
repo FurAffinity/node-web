@@ -12,36 +12,60 @@ CREATE TYPE submission_type AS ENUM (
 	'text'
 );
 
-CREATE TYPE file_type AS ENUM (
-	'jpg',
+CREATE TYPE representation_role AS ENUM (
+	'excerpt',
+	'waveform',
+	'thumbnail',
+	'thumbnail@2x',
+	'animated-thumbnail',
+	'animated-thumbnail@2x',
+	'preview',
+	'preview@2x',
+	'content'
+);
+
+CREATE TYPE user_representation_role AS ENUM (
+	'profile-image',
+	'profile-image@2x',
+	'banner'
+);
+
+CREATE TYPE representation_type AS ENUM (
 	'png',
+	'jpeg',
 	'gif',
-	'swf',
-	'doc',
-	'docx',
-	'epub',
-	'rtf',
-	'html',
-	'txt',
-	'pdf',
-	'odt',
-	'mid',
-	'wav',
-	'mp3',
+	'webp',
 	'vorbis',
 	'opus',
+	'aac',
+	'mp3',
 	'flac',
-	'm4a'
+	'h264',
+	'h265',
+	'vp9',
+	'swf',
+	'html',
+	'epub',
+	'docx',
+	'rtf',
+	'doc',
+	'txt'
+);
+
+CREATE TYPE submission_visibility AS ENUM (
+	'deleted',
+	'draft',
+	'public'
 );
 
 CREATE TABLE files (
 	id SERIAL PRIMARY KEY,
-	hash TEXT NOT NULL UNIQUE,
+	hash BYTEA NOT NULL UNIQUE,
 	size INTEGER NOT NULL
 );
 
 COMMENT ON COLUMN files.hash IS
-	'the file’s SHA-256 hash';
+	'a 128-bit prefix of the file’s SHA-512 hash';
 COMMENT ON COLUMN files.size IS
 	'the file’s size in bytes';
 
@@ -54,16 +78,10 @@ CREATE TABLE users (
 	full_name TEXT NOT NULL DEFAULT '',
 	profile_text TEXT NOT NULL DEFAULT '',
 	profile_type TEXT NOT NULL DEFAULT '',
-	image INTEGER REFERENCES files (id),
-	image_type file_type,
-	banner INTEGER REFERENCES files (id),
-	banner_type file_type,
 	rating_preference rating NOT NULL DEFAULT 'general',
 	views INTEGER NOT NULL DEFAULT 0,
 	created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-	active BOOLEAN NOT NULL DEFAULT FALSE,
-	CHECK ((image IS NULL) = (image_type IS NULL)),
-	CHECK ((banner IS NULL) = (banner_type IS NULL))
+	active BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 COMMENT ON COLUMN users.username IS
@@ -74,6 +92,14 @@ COMMENT ON COLUMN users.email IS
 	'the e-mail address associated with the account; NULL if the account is a placeholder due to an e-mail conflict';
 COMMENT ON COLUMN users.active IS
 	'whether the account has been activated; should reflect lack of entry in registration_keys';
+
+CREATE TABLE user_representations (
+	"user" INTEGER NOT NULL REFERENCES users (id),
+	role user_representation_role NOT NULL,
+	type representation_type NOT NULL,
+	file INTEGER NOT NULL REFERENCES files (id),
+	PRIMARY KEY ("user", role, type)
+);
 
 CREATE TABLE sessions (
 	id BYTEA PRIMARY KEY,
@@ -97,27 +123,26 @@ CREATE TABLE submissions (
 	description TEXT NOT NULL,
 	rating rating,
 	views INTEGER NOT NULL DEFAULT 0,
-	thumbnail INTEGER REFERENCES files (id),
-	thumbnail_type file_type,
-	waveform INTEGER REFERENCES files (id),
 	created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-	published BOOLEAN NOT NULL DEFAULT FALSE,
-	CHECK ((thumbnail IS NULL) = (thumbnail_type IS NULL)),
-	CHECK (NOT published OR rating IS NOT NULL)
+	updated TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+	visibility submission_visibility NOT NULL DEFAULT 'draft',
+	metadata JSONB NOT NULL DEFAULT '{}',
+	CHECK (visibility = 'draft' OR rating IS NOT NULL)
 );
+
+COMMENT ON COLUMN submissions.metadata IS
+	'various data calculated *only* from the submission files; should be considered public';
 
 CREATE INDEX ON submissions (owner);
-CREATE INDEX ON submissions (type, rating);
+CREATE INDEX ON submissions (updated, type, rating);
 
-CREATE TABLE submission_files (
+CREATE TABLE representations (
 	submission INTEGER NOT NULL REFERENCES submissions (id),
-	type file_type NOT NULL,
+	role representation_role NOT NULL,
+	type representation_type NOT NULL,
 	file INTEGER NOT NULL REFERENCES files (id),
-	original BOOLEAN NOT NULL,
-	PRIMARY KEY (submission, type)
+	PRIMARY KEY (submission, role, type)
 );
-
-CREATE UNIQUE INDEX ON submission_files (submission) WHERE original;
 
 CREATE TABLE hidden_submissions (
 	hidden_by INTEGER NOT NULL REFERENCES users (id),

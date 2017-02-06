@@ -4,13 +4,28 @@ var bluebird = require('bluebird');
 
 var errors = require('./errors');
 var files = require('./files');
-var types = require('./files/types');
 
 var DisplayFile = files.DisplayFile;
 
 var guestViewer = {
 	id: null,
 	ratingPreference: 'general',
+};
+
+const keyByRole = representations => {
+	const result = Object.create(null);
+
+	for (var i = 0; i < representations.length; i++) {
+		const rep = representations[i];
+
+		if (rep.role in result) {
+			result[rep.role].push(rep);
+		} else {
+			result[rep.role] = [rep];
+		}
+	}
+
+	return result;
 };
 
 function SubmissionNotFoundError() {
@@ -24,15 +39,20 @@ function getSelectPendingSubmissionsQuery(userId) {
 		name: 'select_pending_submissions',
 		text: `
 			SELECT
-				submissions.id, submissions.type, title, description, rating,
-				tf.hash AS thumbnail_hash, thumbnail_type,
-				submission_files.type AS file_type, sf.size AS file_size
+				submissions.id, submissions.type, title, description, rating, metadata,
+				jsonb_agg(
+					jsonb_build_object(
+						'role', representations.role,
+						'type', representations.type,
+						'hash', encode(files.hash, 'hex')
+					)
+				) AS representations
 			FROM submissions
-				LEFT JOIN files tf ON submissions.thumbnail = tf.id
-				LEFT JOIN submission_files ON submissions.id = submission_files.submission AND submission_files.original
-				LEFT JOIN files sf ON submission_files.file = sf.id
-			WHERE owner = $1 AND NOT published
-			ORDER BY id DESC
+				LEFT JOIN representations ON submissions.id = representations.submission
+				LEFT JOIN files ON representations.file = files.id
+			WHERE owner = $1 AND visibility = 'draft'
+			GROUP BY submissions.id
+			ORDER BY submissions.id DESC
 		`,
 		values: [userId],
 	};
@@ -41,7 +61,7 @@ function getSelectPendingSubmissionsQuery(userId) {
 function getPublishSubmissionQuery(userId, submissionInfo) {
 	return {
 		name: 'insert_submission',
-		text: 'UPDATE submissions SET title = $3, description = $4, rating = $5, published = TRUE WHERE id = $2 AND owner = $1',
+		text: "UPDATE submissions SET title = $3, description = $4, rating = $5, visibility = 'public' WHERE id = $2 AND owner = $1",
 		values: [userId, submissionInfo.id, submissionInfo.title, submissionInfo.description, submissionInfo.rating],
 	};
 }
@@ -49,8 +69,8 @@ function getPublishSubmissionQuery(userId, submissionInfo) {
 function getCreatePendingSubmissionQuery(submissionInfo) {
 	return {
 		name: 'create_pending_submission',
-		text: "INSERT INTO submissions (owner, type, title, description, thumbnail, thumbnail_type, waveform) VALUES ($1, $2, $3, '', $4, $5, $6) RETURNING id",
-		values: [submissionInfo.owner, submissionInfo.type, submissionInfo.title, submissionInfo.thumbnail, submissionInfo.thumbnailType, submissionInfo.waveform],
+		text: "INSERT INTO submissions (owner, type, title, description) VALUES ($1, $2, $3, '') RETURNING id",
+		values: [submissionInfo.owner, submissionInfo.type, submissionInfo.title],
 	};
 }
 
@@ -62,23 +82,23 @@ function getAssociateTagsQuery(submissionId, tagNames) {
 	};
 }
 
-function getAssociateFilesQuery(submissionId, submissionFiles) {
+function getAssociateFilesQuery(submissionId, representations) {
 	return {
 		name: 'associate_files',
 		text: `
-			INSERT INTO submission_files (submission, type, file, original)
-				SELECT $1, type, file, original
+			INSERT INTO representations (submission, role, type, file)
+				SELECT $1, role, type, file
 					FROM UNNEST (
-						$2::file_type[],
-						$3::INTEGER[],
-						$4::BOOLEAN[]
-					) AS t (type, file, original)
+						$2::representation_role[],
+						$3::representation_type[],
+						$4::INTEGER[]
+					) AS t (role, type, file)
 		`,
 		values: [
 			submissionId,
-			submissionFiles.map(f => f.type),
-			submissionFiles.map(f => f.id),
-			submissionFiles.map(f => f.original),
+			representations.map(r => r.role),
+			representations.map(r => r.type),
+			representations.map(r => r.file.id),
 		],
 	};
 }
@@ -96,23 +116,38 @@ function getSelectFoldersQuery(userId) {
 		name: 'select_folders',
 		text: `
 			SELECT
-				folders.id, folders.title, folders.hidden,
-				CASE WHEN COUNT(submissions.id) = 0 THEN
+				id, title, hidden,
+				coalesce(
+					jsonb_agg(
+						jsonb_build_object(
+							'title', submission_title,
+							'representations', representations
+						)
+						ORDER BY submission_id
+					) FILTER (WHERE submission_id IS NOT NULL),
 					'[]'
-				ELSE
-					json_agg(json_build_object(
-						'title', submissions.title,
-						'thumbnail_hash', files.hash,
-						'thumbnail_type', submissions.thumbnail_type
-					) ORDER BY submissions.id)
-				END AS submissions
-			FROM folders
-				LEFT JOIN submission_folders ON folders.id = submission_folders.folder
-				LEFT JOIN submissions ON submission_folders.submission = submissions.id
-				LEFT JOIN files ON submissions.thumbnail = files.id
-			WHERE folders.owner = $1
-			GROUP BY folders.id
-			ORDER BY folders."order"
+				) AS submissions
+			FROM (
+				SELECT
+					folders.id, folders.title, folders.hidden, folders."order",
+					submissions.id AS submission_id, submissions.title AS submission_title,
+					jsonb_agg(
+						jsonb_build_object(
+							'role', representations.role,
+							'type', representations.type,
+							'hash', encode(files.hash, 'hex')
+						)
+					) AS representations
+				FROM folders
+					LEFT JOIN submission_folders ON folders.id = submission_folders.folder
+					LEFT JOIN submissions ON submission_folders.submission = submissions.id
+					LEFT JOIN representations ON submissions.id = representations.submission
+					LEFT JOIN files ON representations.file = files.id
+				WHERE folders.owner = $1
+				GROUP BY folders.id, submissions.id
+			) AS t
+			GROUP BY id, title, hidden, "order"
+			ORDER BY "order"
 		`,
 		values: [userId],
 	};
@@ -131,31 +166,29 @@ function getViewSubmissionQuery(submissionId) {
 		name: 'view_submission',
 		text: `
 			SELECT
-				owner, users.display_username AS owner_name, user_files.hash AS owner_image_hash, users.image_type AS owner_image_type,
-				submissions.type, submissions.title, submissions.description, submissions.rating, submissions.views,
-				files.hash AS waveform_hash, submissions.created,
-				CASE WHEN COUNT(tags.name) = 0 THEN
-					'[]'
-				ELSE
-					json_agg(tags.name ORDER BY tags.name)
-				END AS tags
+				owner, users.display_username AS owner_name,
+				submissions.type, submissions.title, submissions.description, submissions.rating, submissions.views, submissions.created,
+				coalesce(json_agg(tags.name ORDER BY tags.name) FILTER (WHERE tags.name IS NOT NULL), '[]') AS tags,
+				(
+					SELECT
+						jsonb_agg(
+							jsonb_build_object(
+								'role', representations.role,
+								'type', representations.type,
+								'hash', encode(files.hash, 'hex')
+							)
+						) AS representations
+					FROM representations
+						LEFT JOIN files ON representations.file = files.id
+					WHERE submissions.id = representations.submission
+				)
 			FROM submissions
 				INNER JOIN users ON submissions.owner = users.id
 				LEFT JOIN submission_tags ON submissions.id = submission_tags.submission
 				LEFT JOIN tags ON submission_tags.tag = tags.id
-				LEFT JOIN files ON submissions.waveform = files.id
-				LEFT JOIN files user_files ON users.image = user_files.id
-			WHERE submissions.id = $1 AND submissions.published
-			GROUP BY submissions.id, users.id, files.id, user_files.id
+			WHERE submissions.id = $1 AND submissions.visibility = 'public'
+			GROUP BY submissions.id, users.id
 		`,
-		values: [submissionId],
-	};
-}
-
-function getSelectSubmissionFilesQuery(submissionId) {
-	return {
-		name: 'select_submission_files',
-		text: 'SELECT submission_files.type, files.hash FROM submission_files INNER JOIN files ON submission_files.file = files.id WHERE submission_files.submission = $1',
 		values: [submissionId],
 	};
 }
@@ -166,12 +199,21 @@ function getSelectCommentsQuery(submissionId) {
 		text: `
 			SELECT
 				comments.id, comments.parent, comments.owner, comments.text, comments.created,
-				users.display_username, files.hash AS owner_image_hash, users.image_type AS owner_image_type
+				users.display_username,
+				jsonb_agg(
+					jsonb_build_object(
+						'role', user_representations.role,
+						'type', user_representations.type,
+						'hash', encode(files.hash, 'hex')
+					)
+				) AS user_representations
 			FROM comments
 				INNER JOIN users ON comments.owner = users.id
-				LEFT JOIN files ON users.image = files.id
+				LEFT JOIN user_representations ON users.id = user_representations.user
+				LEFT JOIN files ON user_representations.file = files.id
 			WHERE submission = $1
-			ORDER BY id
+			GROUP BY comments.id, users.id
+			ORDER BY comments.id
 		`,
 		values: [submissionId],
 	};
@@ -198,12 +240,20 @@ function getSelectRecentSubmissionsQuery(viewer) {
 		name: 'select_recent_submissions',
 		text: `
 			SELECT
-				submissions.id, submissions.title, submissions.rating, files.hash AS thumbnail_hash, submissions.thumbnail_type
+				submissions.id, submissions.title, submissions.rating,
+				jsonb_agg(
+					jsonb_build_object(
+						'role', representations.role,
+						'type', representations.type,
+						'hash', encode(files.hash, 'hex')
+					)
+				) AS representations
 			FROM submissions
-				LEFT JOIN files ON submissions.thumbnail = files.id
+				LEFT JOIN representations ON submissions.id = representations.submission
+				LEFT JOIN files ON representations.file = files.id
 				LEFT JOIN hidden_submissions ON submissions.id = hidden_submissions.submission AND hidden_submissions.hidden_by = $1
 			WHERE
-				submissions.published AND
+				submissions.visibility = 'public' AND
 				submissions.rating <= $2
 			GROUP BY submissions.id, files.id
 			HAVING COUNT(hidden_submissions.submission) = 0
@@ -317,10 +367,7 @@ function getFolders(context, userId) {
 						submissions: row.submissions.map(function (submission) {
 							return {
 								title: submission.title,
-								thumbnail: DisplayFile.from(
-									submission.thumbnail_hash,
-									submission.thumbnail_type
-								),
+								representations: submission.representations,
 							};
 						}),
 					};
@@ -339,23 +386,6 @@ function viewSubmission(context, submissionId) {
 
 				return result.rows[0];
 			}),
-		context.database.query(getSelectSubmissionFilesQuery(submissionId))
-			.then(function (result) {
-				return bluebird.map(
-					result.rows,
-					function (row) {
-						if (row.type === 'html') {
-							return files.readFile(row.hash, 'utf8')
-								.then(function (contents) {
-									row.contents = contents;
-									return row;
-								});
-						} else {
-							return row;
-						}
-					}
-				);
-			}),
 		context.database.query(getSelectCommentsQuery(submissionId))
 			.then(function (result) {
 				var comments = [];
@@ -367,10 +397,7 @@ function viewSubmission(context, submissionId) {
 						author: {
 							id: row.owner,
 							displayUsername: row.display_username,
-							image: DisplayFile.from(
-								row.owner_image_hash,
-								row.owner_image_type
-							),
+							representations: keyByRole(row.user_representations),
 						},
 						text: row.text,
 						children: [],
@@ -391,7 +418,7 @@ function viewSubmission(context, submissionId) {
 
 				return comments;
 			}),
-	]).spread(function (submissionRow, submissionFiles, comments) {
+	]).spread(function (submissionRow, comments) {
 		return {
 			id: submissionId,
 			type: submissionRow.type,
@@ -399,18 +426,13 @@ function viewSubmission(context, submissionId) {
 			description: submissionRow.description,
 			rating: submissionRow.rating,
 			views: submissionRow.views,
-			waveformHash: submissionRow.waveform_hash,
 			created: submissionRow.created,
 			owner: {
 				id: submissionRow.owner,
 				displayUsername: submissionRow.owner_name,
-				image: DisplayFile.from(
-					submissionRow.owner_image_hash,
-					submissionRow.owner_image_type
-				),
 			},
 			tags: submissionRow.tags,
-			files: submissionFiles,
+			representations: keyByRole(submissionRow.representations),
 			comments: comments,
 		};
 	});
@@ -455,45 +477,31 @@ function getPendingSubmissions(context, userId) {
 					title: row.title,
 					description: row.description,
 					rating: row.rating,
-					thumbnail: DisplayFile.from(
-						row.thumbnail_hash,
-						row.thumbnail_type
-					),
-					fileType: row.file_type,
-					fileSize: row.file_size,
+					metadata: row.metadata,
+					representations: keyByRole(row.representations),
 				};
 			});
 		});
 }
 
-function createPendingSubmission(context, userId, submissionFiles) {
-	var original = submissionFiles.submission.find(f => f.original);
-
-	function useTransaction(client) {
-		return (
-			client.query(
-				getCreatePendingSubmissionQuery({
-					owner: userId,
-					type: types.byId(original.type).submissionType,
-					title: submissionFiles.filename,
-					thumbnail: submissionFiles.thumbnail && submissionFiles.thumbnail.id,
-					thumbnailType: submissionFiles.thumbnail && submissionFiles.thumbnail.type,
-					waveform: submissionFiles.waveform && submissionFiles.waveform.id,
-				})
-			)
-				.then(function (result) {
-					return result.rows[0].id;
-				})
-				.tap(function (submissionId) {
-					return client.query(
-						getAssociateFilesQuery(
-							submissionId,
-							submissionFiles.submission
-						)
-					);
-				})
-		);
-	}
+function createPendingSubmission(context, userId, upload) {
+	const useTransaction = client =>
+		client.query(
+			getCreatePendingSubmissionQuery({
+				owner: userId,
+				type: upload.submissionType,
+				title: upload.filename,
+			})
+		)
+			.then(result => result.rows[0].id)
+			.tap(submissionId =>
+				client.query(
+					getAssociateFilesQuery(
+						submissionId,
+						upload.representations
+					)
+				)
+			);
 
 	return context.database.withTransaction(useTransaction);
 }

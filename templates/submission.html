@@ -37,9 +37,9 @@
 	<div id="submission-main">
 		{% if submission.type === "image" %}
 			<div class="submission-image-container">
-				{% set file = submission.files[0] %}
-				<a href="{{ file | file_path }}" class="submission-image">
-					<img src="{{ file | file_path }}" />
+				{% set rep = submission.representations.content[0] %}
+				<a href="{{ rep | file_path }}" class="submission-image">
+					<img src="{{ rep | file_path }}" />
 				</a>
 			</div>
 		{% elif submission.type === "audio" %}
@@ -127,7 +127,7 @@
 			<div class="comment-inner">
 				<header>
 					<a href="{{ submission.owner | user_path }}" rel="author" tabindex="-1">
-						<img src="{{ submission.owner.image | file_path("profile") }}" alt="{{ submission.owner.displayUsername }}" class="comment-author-image" />
+						<img src="" alt="{{ submission.owner.displayUsername }}" class="comment-author-image" />
 					</a>
 				</header>
 
@@ -148,7 +148,7 @@
 				<div class="comment-inner">
 					<header>
 						<a href="{{ comment.author | user_path }}" tabindex="-1">
-							<img src="{{ comment.author.image | file_path("profile") }}" alt="" class="comment-author-image" />
+							<img src="" alt="" class="comment-author-image" />
 						</a>
 
 						<div class="comment-info">

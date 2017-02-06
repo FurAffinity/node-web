@@ -66,7 +66,7 @@
 	height: 0;
 	left: 0;
 	position: absolute;
-	transition: height 0.2s cubic-bezier(0.15, 0, 0.5, 0.8), border-width 0.2s ease;
+	transition: height 0.2s cubic-bezier(0.75, 0, 0.75, 0.9), border-width 0.2s linear;
 }
 
 .play-icon::after {

@@ -45,6 +45,7 @@
 		{% block stylesheets %}
 			<link rel="stylesheet" href="/css/main.css" />
 			<link rel="stylesheet" href="/css/navigation.css" />
+			<link rel="stylesheet" href="/css/sidebar.css" />
 		{% endblock %}
 
 		{% block scripts %}
@@ -149,10 +150,10 @@
 					{% if request.user %}
 						<li id="user-menu">
 							<a href="/user-menu" data-href="{{ request.user | user_path }}" class="user-menu-image{% if current_page == 'user_menu' %} selected{% endif %}">
-								<img src="{{ request.user.image | file_path('profile') }}" alt="{{ request.user.displayUsername }}’s profile image" title="{{ request.user.displayUsername }}" />
+								<img src="" alt="{{ request.user.displayUsername }}’s profile image" title="{{ request.user.displayUsername }}" />
 							</a>
 						</li>
-						<li><a href="javascript:void 0"{{ active("notifications") }}>Notifications<span class="notification-indicator"></span></a></li>
+						<li><a id="notifications-link" href="javascript:void 0"{{ active("notifications") }}>Notifications<span class="notification-indicator"></span></a></li>
 					{% else %}
 						<li><a href="/users/new"{{ active("register") }}>Register</a></li>
 						<li><a href="/login"{{ active("login") }}>Log in</a></li>
@@ -161,9 +162,31 @@
 			</nav>
 		</header>
 
-		<main id="main">
-			{% block body %}{% endblock %}
-		</main>
+		<div id="main-container">
+			<main id="main">
+				{% block body %}{% endblock %}
+			</main>
+
+			{% if request.user %}
+				<aside id="notifications" class="sidebar">
+					<div class="sidebar-inner">
+						<div class="sidebar-navigation">
+							<a class="navigation-item navigation-current" href="javascript:void 0"><img class="navigation-icon" src="/images/notifications/all.svg" /><span class="navigation-text"> All notifications</span></a>
+							<a class="navigation-item" href="javascript:void 0"><img class="navigation-icon" src="/images/notifications/submissions.svg" /><span class="navigation-text"> Submissions</span></a>
+							<a class="navigation-item navigation-highlight" href="javascript:void 0"><img class="navigation-icon" src="/images/notifications/comments.svg" /><span class="navigation-text"> Comments</span></a>
+							<a class="navigation-item" href="javascript:void 0"><img class="navigation-icon" src="/images/notifications/journals.svg" /><span class="navigation-text"> Journals</span></a>
+							<a class="navigation-item" href="javascript:void 0"><img class="navigation-icon" src="/images/notifications/favorites.svg" /><span class="navigation-text"> Favorites</span></a>
+							<a class="navigation-item" href="javascript:void 0"><img class="navigation-icon" src="/images/notifications/watches.svg" /><span class="navigation-text"> Watches</span></a>
+							<a class="navigation-item" href="javascript:void 0"><img class="navigation-icon" src="/images/notifications/notes.svg" /><span class="navigation-text"> Notes</span></a>
+						</div>
+
+						<div class="sidebar-content">
+							<div class="waiting-block"></div>
+						</div>
+					</div>
+				</aside>
+			{% endif %}
+		</div>
 
 		<footer id="footer">
 			<div id="footer-links">
@@ -183,5 +206,7 @@
 				<span id="online-count">{{ request.userCount }} user{% if request.userCount !== 1 %}s{% endif %} online</span>
 			</div>
 		</footer>
+
+		<script src="/js/notifications.js"></script>
 	</body>
 </html>

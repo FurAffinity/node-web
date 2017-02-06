@@ -1,0 +1,185 @@
+.sidebar {
+	background-color: #13171a;
+	bottom: 0;
+	display: none;
+	flex-direction: column;
+	position: absolute;
+	right: 0;
+	top: -1.6em;
+	width: 26em;
+}
+
+body.sidebar-visible #main {
+	left: 0;
+	opacity: 0.4;
+	pointer-events: none;
+	position: fixed;
+	right: 0;
+	transform: translateX(-26em);
+}
+
+body.sidebar-visible #footer {
+	display: none;
+}
+
+body.sidebar-visible .sidebar {
+	display: flex;
+}
+
+.sidebar-inner {
+	background-color: inherit;
+	display: flex;
+	flex-direction: column;
+	flex-grow: 1;
+}
+
+.sidebar-navigation {
+	display: flex;
+	font-family: Lato, sans-serif;
+}
+
+.sidebar-navigation .navigation-item {
+	border-bottom: 2px solid #1a1e23;
+	color: white;
+	line-height: 2.4;
+	position: relative;
+	text-align: center;
+	text-decoration: none;
+	width: 2.2em;
+}
+
+.sidebar-navigation .navigation-item .navigation-icon {
+	left: 0.4em;
+	position: absolute;
+	top: 0.5em;
+	vertical-align: middle;
+}
+
+.sidebar-navigation .navigation-item .navigation-text {
+	display: none;
+}
+
+.sidebar-navigation .navigation-highlight {
+	border-bottom-color: #8bf;
+}
+
+.sidebar-navigation .navigation-current {
+	border-bottom-color: #8b8;
+	flex-grow: 1;
+}
+
+.sidebar-navigation .navigation-current .navigation-text {
+	display: inline;
+}
+
+.sidebar-content {
+	flex-grow: 1;
+}
+
+/* todo: move to notifications.css; add object-fit */
+.notification-group-header {
+	font-size: 0.9em;
+	margin: 0.6em;
+}
+
+.notification-group-header a {
+	text-decoration: none;
+}
+
+.notification {
+	align-items: center;
+	color: white;
+	display: flex;
+	margin: -0.6em 0;
+	padding: 0.6em;
+	text-decoration: none;
+	transition: none;
+}
+
+.notification:hover {
+	background-color: #1f2326;
+	color: white;
+}
+
+.notification:last-child {
+	margin-bottom: 0;
+}
+
+.notification-thumbnail-container {
+	display: flex;
+	flex-direction: column;
+	flex-shrink: 0;
+	justify-content: center;
+	margin-right: 0.5em;
+	max-height: 150px;
+	overflow: hidden;
+	position: relative;
+}
+
+.notification:hover .notification-thumbnail-container {
+	overflow: visible;
+	z-index: 9999;
+}
+
+.notification-thumbnail-container.rating-mature::before, .notification-thumbnail-container.rating-adult::before {
+	background-color: #b00;
+	border-radius: 2px;
+	bottom: 2px;
+	color: white;
+	content: '18+';
+	font-family: PT Sans, sans-serif;
+	font-size: 0.6em;
+	opacity: 0.8;
+	padding: 0.1em 0.3em;
+	pointer-events: none;
+	position: absolute;
+	right: 2px;
+	transition: opacity 0.2s ease;
+	z-index: 5;
+}
+
+.notification-thumbnail-container.rating-mature::before {
+	background-color: #00b;
+}
+
+.notification:hover .notification-thumbnail-container::before {
+	opacity: 0;
+}
+
+.notification-thumbnail {
+	object-fit: scale-down;
+	pointer-events: none;
+	width: 150px;
+}
+
+.notification-info {
+	flex-grow: 1;
+}
+
+.notification-title {
+	font-size: 1.1em;
+	font-weight: 500;
+}
+
+.notification-description {
+	font-size: 0.9em;
+	margin-top: 0.6em;
+	max-height: 3.4em;
+	overflow: hidden;
+	position: relative;
+}
+
+.notification-description::after {
+	background-image: linear-gradient(transparent, rgba(0, 0, 0, 0.3));
+	content: '';
+	height: 0.2em;
+	left: 0;
+	pointer-events: none;
+	position: absolute;
+	right: 0;
+	top: 3.2em;
+}
+
+.notification-description p {
+	margin: 0;
+}

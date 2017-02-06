@@ -74,11 +74,17 @@
 .upload-thumbnail {
 	border: 1px solid rgba(255, 255, 255, 0.8);
 	border-radius: 2px;
+	display: inline-flex;
 	height: 3em;
 	margin-right: 0.6em;
 	object-fit: cover;
 	padding: 1px;
 	width: 4em;
+}
+
+.upload-thumbnail-fallback {
+	min-width: 0;
+	object-fit: inherit;
 }
 
 .upload-info {

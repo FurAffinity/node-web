@@ -70,7 +70,22 @@ function toPathSafeBase64(buffer) {
 function getSelectUserMetaQuery(userId) {
 	return {
 		name: 'select_user_meta',
-		text: 'SELECT username, display_username, rating_preference, files.hash AS image_hash, image_type FROM users LEFT JOIN files ON users.image = files.id WHERE users.id = $1',
+		text: `
+			SELECT
+				username, display_username, rating_preference,
+				jsonb_agg(
+					jsonb_build_object(
+						'role', user_representations.role,
+						'type', user_representations.type,
+						'hash', encode(files.hash, 'hex')
+					)
+				) AS representations
+			FROM users
+				LEFT JOIN user_representations ON users.id = user_representations.user
+				LEFT JOIN files ON user_representations.file = files.id
+			WHERE users.id = $1
+			GROUP BY users.id
+		`,
 		values: [userId],
 	};
 }
@@ -228,45 +243,24 @@ function isValidDisplayUsername(displayUsername) {
 	);
 }
 
+// TODO: add caching when format is stable
 function getUserMeta(context, userId) {
-	return bluebird.all([
-		context.redis.hgetAsync('display_usernames', userId),
-		context.redis.hgetAsync('rating_preferences', userId),
-		context.redis.hgetAsync('user_images', userId),
-	]).spread(function (displayUsername, ratingPreference, userImage) {
-		if (displayUsername && ratingPreference && userImage) {
+	return context.database.query(getSelectUserMetaQuery(userId))
+		.then(function (result) {
+			if (result.rows.length !== 1) {
+				return bluebird.reject(new Error('Expected user'));
+			}
+
+			var row = result.rows[0];
+
 			return {
 				id: userId,
-				username: getCanonicalUsername(displayUsername),
-				displayUsername: displayUsername,
-				image: DisplayFile.deserialize(userImage),
-				ratingPreference: ratingPreference,
+				username: row.username,
+				representations: row.representations,
+				displayUsername: row.display_username,
+				ratingPreference: row.rating_preference,
 			};
-		}
-
-		return context.database.query(getSelectUserMetaQuery(userId))
-			.then(function (result) {
-				if (result.rows.length !== 1) {
-					return bluebird.reject(new Error('Expected user'));
-				}
-
-				var row = result.rows[0];
-				var image = DisplayFile.from(row.image_hash, row.image_type);
-
-				return {
-					id: userId,
-					username: row.username,
-					image: image,
-					displayUsername: row.display_username,
-					ratingPreference: row.rating_preference,
-				};
-			})
-			.tap(function (userMeta) {
-				context.redis.hsetAsync('display_usernames', userId, userMeta.displayUsername);
-				context.redis.hsetAsync('rating_preferences', userId, userMeta.ratingPreference);
-				context.redis.hsetAsync('user_images', userId, DisplayFile.serialize(userMeta.image));
-			});
-	});
+		});
 }
 
 function registerUser(context, userInfo) {
@@ -395,25 +389,21 @@ function viewProfile(context, userId) {
 }
 
 function updateProfile(context, userId, profileInfo) {
-	return bluebird.all([
-		context.database.query(getUpdateProfileQuery(userId, profileInfo)),
-		context.redis.hdelAsync('user_images', userId),
-	]).spread(function (result) {
-		return result.rowCount === 1 ?
-			bluebird.resolve() :
-			bluebird.reject(new Error('Expected user'));
-	});
+	return context.database.query(getUpdateProfileQuery(userId, profileInfo))
+		.then(function (result) {
+			return result.rowCount === 1 ?
+				bluebird.resolve() :
+				bluebird.reject(new Error('Expected user'));
+		});
 }
 
 function updatePreferences(context, userId, preferences) {
-	return bluebird.all([
-		context.database.query(getUpdatePreferencesQuery(userId, preferences)),
-		context.redis.hsetAsync('rating_preferences', userId, preferences.rating),
-	]).spread(function (result) {
-		return result.rowCount === 1 ?
-			bluebird.resolve() :
-			bluebird.reject(new Error('Expected user'));
-	});
+	return context.database.query(getUpdatePreferencesQuery(userId, preferences))
+		.then(function (result) {
+			return result.rowCount === 1 ?
+				bluebird.resolve() :
+				bluebird.reject(new Error('Expected user'));
+		});
 }
 
 function getUserStatistics(context, userId) {

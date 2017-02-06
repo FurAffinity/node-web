@@ -1,5 +1,6 @@
 'use strict';
 
+var negapi = require('negapi');
 var nunjucks = require('nunjucks');
 var path = require('path');
 
@@ -52,7 +53,7 @@ function NunjucksRenderer(templatePath) {
 	this.template = env.getTemplate(templatePath, true);
 }
 
-NunjucksRenderer.prototype.mediaType = 'text/html';
+NunjucksRenderer.prototype.mediaType = new negapi.MediaType('text', 'html');
 
 NunjucksRenderer.prototype.transform = function (request, response) {
 	var templateData = Object.assign({ request: request }, response.data);

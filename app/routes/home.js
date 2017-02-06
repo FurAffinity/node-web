@@ -5,9 +5,9 @@ var _ = require('../utilities');
 var duration = require('../duration');
 var permissions = require('../permissions');
 var rateLimit = require('../rate-limit');
+var render = require('../render');
 var submissions = require('../submissions');
 
-var NunjucksRenderer = require('../render').NunjucksRenderer;
 var Ok = require('../respond').Ok;
 
 var homeRoute = {
@@ -16,14 +16,12 @@ var homeRoute = {
 		rateLimit.byAddress('home', 5, duration.seconds(20)),
 	],
 	renderers: [
-		new NunjucksRenderer('home.html'),
+		new render.NunjucksRenderer('home.html'),
+		new render.JSONRenderer(data => data),
 	],
-	get: function (request) {
-		return submissions.getRecentSubmissions(request.context, request.user)
-			.then(function (recentSubmissions) {
-				return new Ok({ recentSubmissions: recentSubmissions });
-			});
-	},
+	get: request =>
+		submissions.getRecentSubmissions(request.context, request.user)
+			.then(recentSubmissions => new Ok({ recentSubmissions })),
 };
 
 var userMenuRoute = {
@@ -32,7 +30,7 @@ var userMenuRoute = {
 		permissions.user.middleware,
 	],
 	renderers: [
-		new NunjucksRenderer('user-menu.html'),
+		new render.NunjucksRenderer('user-menu.html'),
 	],
 	get: _.const(new Ok()),
 };

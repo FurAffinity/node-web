@@ -129,6 +129,7 @@ function addRoute(route) {
 
 var routes = _.concat([
 	require('./routes/home').routes,
+	require('./routes/notifications').routes,
 ]);
 
 routes.forEach(addRoute);

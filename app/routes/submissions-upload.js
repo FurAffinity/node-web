@@ -9,15 +9,14 @@ var forms = require('../forms');
 var generators = require('../files/generators');
 var permissions = require('../permissions');
 var submissions = require('../submissions');
-var types = require('../files/types');
 var wrap = require('./wrap').wrap;
 
 function readFile(request, stream, filename) {
 	return files.storeUpload(request.context, stream, generators.submissionGenerators)
-		.tap(function (submissionFiles) {
-			submissionFiles.filename = filename;
+		.tap(upload => {
+			upload.filename = filename;
 		})
-		.catch(function (error) {
+		.catch(error => {
 			if (!(error instanceof ApplicationError)) {
 				return bluebird.reject(error);
 			}
@@ -41,27 +40,15 @@ var post = wrap([
 
 		bluebird.map(
 			req.form.file,
-			function (submissionFiles) {
-				if (submissionFiles.error) {
-					return submissionFiles;
-				}
-
-				var thumbnail = submissionFiles.thumbnail;
-				var original = submissionFiles.submission.find(f => f.original);
-
-				return (
-					submissions.createPendingSubmission(req.context, req.user.id, submissionFiles)
-						.then(function (submissionId) {
-							return {
-								id: submissionId,
-								thumbnail: thumbnail && (thumbnail.hexDigest + '.' + types.byId(thumbnail.type).extension),
-								upload_type: original.type,
-							};
-						})
-				);
-			}
+			upload =>
+				submissions.createPendingSubmission(req.context, req.user.id, upload).then(
+					submissionId => ({
+						id: submissionId,
+						representations: upload.representations,
+					})
+				)
 		).done(
-			function (pendingSubmissions) {
+			pendingSubmissions => {
 				res.send(pendingSubmissions);
 			},
 			next

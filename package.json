@@ -7,6 +7,7 @@
 		"htmlparser2": "3.9.2",
 		"ipaddr.js": "1.2.0",
 		"mmmagic": "0.4.5",
+		"negapi": "1.0.2",
 		"nunjucks": "3.0.0",
 		"pg": "6.1.2",
 		"redis": "2.6.5",

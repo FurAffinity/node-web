@@ -13,7 +13,7 @@ var config = require('../config');
 var identify = require('./identify').identify;
 
 var TEMPORARY_NAME_SIZE = 18;
-var MODE_OWNER_READ = parseInt('400', 8);
+var MODE_OWNER_READ = 0o400;
 
 function DisplayFile(hash, type) {
 	if (typeof hash !== 'string') {
@@ -52,24 +52,24 @@ DisplayFile.deserialize = function (s) {
 	return new DisplayFile(hash, type);
 };
 
-function getSelectFileQuery(hexDigest) {
+function getSelectFileQuery(digest) {
 	return {
 		name: 'select_file',
 		text: 'SELECT id FROM files WHERE hash = $1',
-		values: [hexDigest],
+		values: [digest],
 	};
 }
 
-function getInsertFileQuery(hexDigest, byteSize) {
+function getInsertFileQuery(digest, byteSize) {
 	return {
 		name: 'insert_file',
 		text: 'INSERT INTO files (hash, size) VALUES ($1, $2) ON CONFLICT DO NOTHING RETURNING id',
-		values: [hexDigest, byteSize],
+		values: [digest, byteSize],
 	};
 }
 
-function getStoragePath(hexDigest) {
-	return path.join(config.files.storage_root, hexDigest);
+function getStoragePath(digest) {
+	return path.join(config.files.storage_root, digest.toString('hex'));
 }
 
 function toPathSafeBase64(buffer) {
@@ -133,18 +133,18 @@ function getFileInfo(filePath) {
 	});
 }
 
-function insertObject(context, hexDigest, byteSize, writer) {
-	var storagePath = getStoragePath(hexDigest);
+function insertObject(context, digest, byteSize, writer) {
+	var storagePath = getStoragePath(digest);
 
 	function useTransaction(client) {
-		return client.query(getInsertFileQuery(hexDigest, byteSize))
+		return client.query(getInsertFileQuery(digest, byteSize))
 			.then(function (result) {
 				if (result.rows.length !== 1) {
-					return client.query(getSelectFileQuery(hexDigest))
+					return client.query(getSelectFileQuery(digest))
 						.then(function (result) {
 							return {
 								id: result.rows[0].id,
-								hexDigest: hexDigest,
+								digest: digest,
 							};
 						});
 				}
@@ -162,7 +162,7 @@ function insertObject(context, hexDigest, byteSize, writer) {
 					storageStream.on('finish', function () {
 						resolve({
 							id: fileId,
-							hexDigest: hexDigest,
+							digest: digest,
 						});
 					});
 
@@ -180,8 +180,8 @@ function insertObject(context, hexDigest, byteSize, writer) {
 	return context.database.withTransaction(useTransaction);
 }
 
-function insertFile(context, hexDigest, byteSize, temporaryPath) {
-	return insertObject(context, hexDigest, byteSize, function (storageStream, errorCallback) {
+function insertFile(context, digest, byteSize, temporaryPath) {
+	return insertObject(context, digest, byteSize, function (storageStream, errorCallback) {
 		var temporaryStream = fs.createReadStream(temporaryPath);
 		temporaryStream.on('error', errorCallback);
 		temporaryStream.pipe(storageStream);
@@ -189,70 +189,46 @@ function insertFile(context, hexDigest, byteSize, temporaryPath) {
 }
 
 function insertBuffer(context, buffer) {
-	var hexDigest =
-		crypto.createHash('sha256')
+	var digest =
+		crypto.createHash('sha512')
 			.update(buffer)
-			.digest('hex');
+			.digest()
+			.slice(0, 16);
 
-	return insertObject(context, hexDigest, buffer.length, function (storageStream) {
+	return insertObject(context, digest, buffer.length, function (storageStream) {
 		storageStream.end(buffer);
 	});
 }
 
-function getOriginalGenerator(hexDigest, byteSize) {
-	return function (context, originalPath, originalType) {
-		return insertFile(context, hexDigest, byteSize, originalPath).tap(function (file) {
-			file.type = originalType;
-			file.role = 'submission';
-			file.original = true;
-		});
-	};
-}
-
-function storeUpload(context, uploadStream, typeGenerators) {
+function storeUpload(context, uploadStream, generators) {
 	return Promise.using(getTemporary(), function (temporary) {
 		return new Promise(function (resolve, reject) {
-			var hash = crypto.createHash('sha256');
+			var hash = crypto.createHash('sha512');
 			var byteSize = 0;
 
 			temporary.stream.on('error', reject);
 
 			function temporaryFileIdentified(fileType) {
-				var hexDigest = hash.read().toString('hex');
+				var digest = hash.read().slice(0, 16);
+				var generator = generators[fileType.id];
 
-				if (!typeGenerators.hasOwnProperty(fileType.id)) {
+				if (!generator) {
 					return Promise.reject(new Error('Unexpected file type: ' + fileType.id));
 				}
 
-				var generators =
-					[getOriginalGenerator(hexDigest, byteSize)]
-						.concat(typeGenerators[fileType.id]);
-
 				return (
-					Promise.map(generators, function (generator) {
-						return generator(context, temporary.path, fileType.id);
+					generator(context, {
+						type: fileType.id,
+						path: temporary.path,
+						digest: digest,
+						byteSize: byteSize,
 					})
-						.then(function (generatedFiles) {
-							var result = {
-								submission: [],
-								thumbnail: null,
-								waveform: null,
-							};
-
-							generatedFiles.forEach(function (generatedFile) {
-								if (generatedFile.role === 'submission') {
-									if (!('original' in generatedFile)) {
-										generatedFile.original = false;
-									}
-
-									result.submission.push(generatedFile);
-								} else {
-									result[generatedFile.role] = generatedFile;
-								}
-							});
-
-							return result;
-						})
+						.then(
+							representations => ({
+								representations: representations,
+								submissionType: fileType.submissionType,
+							})
+						)
 				);
 			}
 
@@ -282,7 +258,7 @@ function storeUpload(context, uploadStream, typeGenerators) {
 	});
 }
 
-function storeUploadOrEmpty(context, uploadStream, typeGenerators) {
+function storeUploadOrEmpty(context, uploadStream, generators) {
 	return new Promise(function (resolve) {
 		function endListener() {
 			resolve(null);
@@ -297,7 +273,7 @@ function storeUploadOrEmpty(context, uploadStream, typeGenerators) {
 			passthrough.write(data);
 			uploadStream.pipe(passthrough);
 
-			resolve(storeUpload(context, passthrough, typeGenerators));
+			resolve(storeUpload(context, passthrough, generators));
 		}
 
 		uploadStream.on('data', dataListener);
@@ -305,11 +281,10 @@ function storeUploadOrEmpty(context, uploadStream, typeGenerators) {
 	});
 }
 
-function readFile(hexDigest, encoding) {
-	return readFileAsync(getStoragePath(hexDigest), encoding);
+function readFile(digest, encoding) {
+	return readFileAsync(getStoragePath(digest), encoding);
 }
 
-exports.DisplayFile = DisplayFile;
 exports.getTemporaryPath = getTemporaryPath;
 exports.getFileInfo = getFileInfo;
 exports.insertBuffer = insertBuffer;

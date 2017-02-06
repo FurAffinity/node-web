@@ -10,13 +10,6 @@ ApplicationError.extend(UnknownMediaTypeError);
 
 var types = [
 	{
-		id: 'jpg',
-		mediaType: 'image/jpeg',
-		submissionType: 'image',
-		description: 'JPEG',
-		extension: 'jpg',
-	},
-	{
 		id: 'png',
 		mediaType: 'image/png',
 		submissionType: 'image',
@@ -24,11 +17,25 @@ var types = [
 		extension: 'png',
 	},
 	{
-		id: 'mp3',
-		mediaType: 'audio/mpeg',
-		submissionType: 'audio',
-		description: 'MP3',
-		extension: 'mp3',
+		id: 'jpeg',
+		mediaType: 'image/jpeg',
+		submissionType: 'image',
+		description: 'JPEG',
+		extension: 'jpg',
+	},
+	{
+		id: 'gif',
+		mediaType: 'image/gif',
+		submissionType: 'image',
+		description: 'GIF',
+		extension: 'gif',
+	},
+	{
+		id: 'webp',
+		mediaType: 'image/webp',
+		submissionType: 'image',
+		description: 'WebP',
+		extension: 'webp',
 	},
 	{
 		id: 'vorbis',
@@ -45,6 +52,20 @@ var types = [
 		extension: 'ogg',
 	},
 	{
+		id: 'aac',
+		mediaType: 'audio/x-m4a',
+		submissionType: 'audio',
+		description: 'AAC',
+		extension: 'm4a',
+	},
+	{
+		id: 'mp3',
+		mediaType: 'audio/mpeg',
+		submissionType: 'audio',
+		description: 'MP3',
+		extension: 'mp3',
+	},
+	{
 		id: 'flac',
 		mediaType: 'audio/x-flac',
 		submissionType: 'audio',
@@ -52,11 +73,11 @@ var types = [
 		extension: 'flac',
 	},
 	{
-		id: 'm4a',
-		mediaType: 'audio/x-m4a',
-		submissionType: 'audio',
-		description: 'AAC',
-		extension: 'm4a',
+		id: 'epub',
+		mediaType: 'application/epub+zip',
+		submissionType: 'text',
+		description: 'EPUB',
+		extension: 'epub',
 	},
 	{
 		id: 'docx',
@@ -64,13 +85,6 @@ var types = [
 		submissionType: 'text',
 		description: 'Word document',
 		extension: 'docx',
-	},
-	{
-		id: 'epub',
-		mediaType: 'application/epub+zip',
-		submissionType: 'text',
-		description: 'EPUB',
-		extension: 'epub',
 	},
 ];
 

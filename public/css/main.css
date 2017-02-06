@@ -150,11 +150,11 @@ a:hover {
 
 @keyframes bounce {
 	from {
-		margin-top: 0;
+		transform: translateY(0);
 	}
 
 	to {
-		margin-top: 1em;
+		transform: translateY(1em);
 	}
 }
 
@@ -336,6 +336,26 @@ a:hover {
 	box-shadow: 0 0 0 1px #20262c, 0 0 0 2px #bcc;
 }
 
+.waiting-block {
+	height: 100%;
+	position: relative;
+}
+
+.waiting-block::before {
+	animation: bounce 0.4s cubic-bezier(.75, 0, 1, 1) infinite alternate;
+	background-color: white;
+	border-radius: 0.1875em;
+	content: '';
+	font-size: 2em;
+	height: 0.1875em;
+	left: 50%;
+	margin-left: -0.09375em;
+	top: 50%;
+	margin-top: -0.59375em;
+	position: absolute;
+	width: 0.1875em;
+}
+
 .long-text {
 	resize: vertical;
 }
@@ -397,8 +417,9 @@ a:hover {
 	margin: 0;
 }
 
-#main {
+#main-container {
 	flex-grow: 1;
+	position: relative;
 }
 
 #footer {

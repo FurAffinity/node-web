@@ -1,250 +1,145 @@
 'use strict';
 
-var Promise = require('bluebird');
-var fs = require('fs');
-var sharp = require('sharp-binaryless');
+const Promise = require('bluebird');
+const fs = require('fs');
+const sharp = require('sharp-binaryless');
 
-var spawn = require('child_process').spawn;
-var unlinkAsync = Promise.promisify(fs.unlink);
+const files = require('./');
 
-var files = require('./');
+const SUBMISSION_PIXEL_LIMIT = 8000 * 8000;
 
-var PROFILE_IMAGE_PIXEL_LIMIT = 8000 * 8000;
-var BANNER_PIXEL_LIMIT = 8000 * 8000;
-var SUBMISSION_PIXEL_LIMIT = 8000 * 8000;
+const WEBP_LOSSLESS_CODE = 76;  // L
+const WEBP_LOSSLESS_CODE_OFFSET = 15;
 
-function createProfileImage(context, originalPath, originalType) {
-	return Promise.resolve(
-		sharp(originalPath)
-			.limitInputPixels(PROFILE_IMAGE_PIXEL_LIMIT)
-			.rotate()
-			.resize(200, 200, { interpolator: 'nohalo' })
-			.withoutEnlargement()
-			.crop(sharp.strategy.entropy)
-			.compressionLevel(9)
-			.quality(100)
-			.trellisQuantisation()
-			.optimiseScans()
-			.toBuffer()
-	)
-		.then(function (buffer) {
-			return files.insertBuffer(context, buffer);
-		})
-		.tap(function (file) {
-			file.type = originalType;
-			file.role = 'profileImage';
-		});
-}
+const getIsLossless = (format, filePath) =>
+	format === 'jpeg' ? Promise.resolve(false) :
+	format === 'png' || format === 'gif' ? Promise.resolve(true) :
+	format === 'webp' ?
+		new Promise((resolve, reject) => {
+			fs.open(filePath, 'r', (error, fd) => {
+				if (error) {
+					reject(error);
+					return;
+				}
 
-function createBanner(context, originalPath, originalType) {
-	return Promise.resolve(sharp(originalPath).metadata())
-		.then(function (metadata) {
-			var width;
-			var height;
+				fs.read(fd, Buffer.alloc(1), 0, 1, WEBP_LOSSLESS_CODE_OFFSET, (readError, bytesRead, buffer) => {
+					fs.close(fd, closeError => {
+						if (readError) {
+							reject(readError);
+							return;
+						}
 
-			if (metadata.orientation >= 5) {
-				width = metadata.height;
-				height = metadata.width;
-			} else {
-				width = metadata.width;
-				height = metadata.height;
-			}
+						if (bytesRead !== 1) {
+							reject(new Error('Unexpected number of bytes read: ' + bytesRead));
+							return;
+						}
 
-			var resizeWidth = Math.min(width, 3840);
-			var resizeHeight = Math.min(height, 910);
+						if (closeError) {
+							reject(closeError);
+							return;
+						}
 
-			return Promise.resolve(
-				sharp(originalPath)
-					.limitInputPixels(BANNER_PIXEL_LIMIT)
-					.rotate()
-					.resize(resizeWidth, resizeHeight, { interpolator: 'nohalo' })
-					.withoutEnlargement()
-					.crop()
-					.compressionLevel(9)
-					.quality(100)
-					.trellisQuantisation()
-					.optimiseScans()
-					.toBuffer()
+						resolve(buffer[0] === WEBP_LOSSLESS_CODE);
+					});
+				});
+			});
+		}) :
+	Promise.reject(new Error('Unknown format: ' + format));
+
+const getImageRepresentationsForRole = (context, role, isLossless, thumbnailPipeline) => {
+	const formats =
+		isLossless ?
+			[
+				{
+					id: 'png',
+					buffer: thumbnailPipeline.png({
+						compressionLevel: 9,
+					}).toBuffer(),
+				},
+				{
+					id: 'webp',
+					buffer: thumbnailPipeline.webp({
+						quality: 100,
+						lossless: true,
+					}).toBuffer(),
+				},
+			] :
+			[
+				{
+					id: 'jpeg',
+					buffer: thumbnailPipeline.jpeg({
+						quality: 100,
+						trellisQuantisation: true,
+						overshootDeringing: true,
+					}).toBuffer(),
+				},
+				{
+					id: 'webp',
+					buffer: thumbnailPipeline.webp({
+						quality: 100,
+					}).toBuffer(),
+				},
+			];
+
+	return formats.map(format =>
+		format.buffer
+			.then(buffer =>
+				files.insertBuffer(context, buffer)
 			)
-				.then(function (buffer) {
-					return files.insertBuffer(context, buffer);
+			.then(
+				file => ({
+					role: role,
+					type: format.id,
+					file: file,
 				})
-				.tap(function (file) {
-					file.type = originalType;
-					file.role = 'banner';
-				});
-		});
-}
-
-function createThumbnail(context, originalPath, originalType) {
-	return Promise.resolve(
-		sharp(originalPath)
-			.limitInputPixels(SUBMISSION_PIXEL_LIMIT)
-			.rotate()
-			.resize(200, 200, { interpolator: 'nohalo' })
-			.max()
-			.withoutEnlargement()
-			.compressionLevel(9)
-			.quality(100)
-			.trellisQuantisation()
-			.optimiseScans()
-			.toBuffer()
-	)
-		.then(function (buffer) {
-			return files.insertBuffer(context, buffer);
-		})
-		.tap(function (file) {
-			file.type = originalType;
-			file.role = 'thumbnail';
-		});
-}
-
-function createWaveform(context, originalPath) {
-	return new Promise(function (resolve, reject) {
-		var temporaryPath = files.getTemporaryPath();
-
-		var waveformProcess = spawn('fa-waveform', [originalPath, temporaryPath], {
-			stdio: 'ignore',
-		});
-
-		function insertFile() {
-			return files.getFileInfo(temporaryPath)
-				.then(function (fileInfo) {
-					var hexDigest = fileInfo.digest.toString('hex');
-					return files.insertFile(context, hexDigest, fileInfo.byteSize, temporaryPath);
-				})
-				.tap(function (file) {
-					file.role = 'waveform';
-				});
-		}
-
-		function closeListener(exitCode) {
-			var insertion =
-				exitCode === 0 ?
-					insertFile() :
-					Promise.reject(new Error('fa-waveform exited with code ' + exitCode));
-
-			resolve(
-				insertion.finally(function () {
-					unlinkAsync(temporaryPath);
-				})
-			);
-		}
-
-		function errorListener(error) {
-			waveformProcess.removeListener('close', closeListener);
-			reject(error);
-		}
-
-		waveformProcess.on('error', errorListener);
-		waveformProcess.on('close', closeListener);
-	});
-}
-
-function createVorbis(context, originalPath) {
-	return new Promise(function (resolve, reject) {
-		var temporaryPath = files.getTemporaryPath();
-
-		var transcodeProcess = spawn('ffmpeg', ['-nostdin', '-timelimit', '300', '-i', originalPath, '-vn', '-f', 'ogg', temporaryPath], {
-			stdio: 'ignore',
-		});
-
-		function insertFile() {
-			return files.getFileInfo(temporaryPath)
-				.then(function (fileInfo) {
-					var hexDigest = fileInfo.digest.toString('hex');
-					return files.insertFile(context, hexDigest, fileInfo.byteSize, temporaryPath);
-				})
-				.tap(function (file) {
-					file.type = 'vorbis';
-					file.role = 'submission';
-				});
-		}
-
-		function closeListener(exitCode) {
-			var insertion =
-				exitCode === 0 ?
-					insertFile() :
-					Promise.reject(new Error('ffmpeg exited with code ' + exitCode));
-
-			resolve(
-				insertion.finally(function () {
-					unlinkAsync(temporaryPath);
-				})
-			);
-		}
-
-		function errorListener(error) {
-			transcodeProcess.removeListener('close', closeListener);
-			reject(error);
-		}
-
-		transcodeProcess.on('error', errorListener);
-		transcodeProcess.on('close', closeListener);
-	});
-}
-
-function createHtml(context, originalPath, originalType) {
-	var pandocProcess = spawn('pandoc', ['-f', originalType, '-t', 'html', originalPath], {
-		stdio: ['ignore', 'pipe', 'ignore'],
-	});
-
-	return new Promise(function (resolve, reject) {
-		var parts = [];
-
-		function closeListener(exitCode) {
-			if (exitCode !== 0) {
-				reject(new Error('pandoc exited with code ' + exitCode));
-				return;
-			}
-
-			resolve(
-				files.insertBuffer(context, Buffer.concat(parts)).tap(function (file) {
-					file.type = 'html';
-					file.role = 'submission';
-				})
-			);
-		}
-
-		function errorListener(error) {
-			pandocProcess.removeListener('close', closeListener);
-			reject(error);
-		}
-
-		pandocProcess.on('error', errorListener);
-		pandocProcess.on('close', closeListener);
-
-		pandocProcess.stdout.on('data', function (part) {
-			parts.push(part);
-		});
-	});
-}
-
-exports.banner = createBanner;
-exports.profileImage = createProfileImage;
-exports.thumbnail = createThumbnail;
-exports.vorbis = createVorbis;
-exports.waveform = createWaveform;
-exports.html = createHtml;
-
-exports.submissionGenerators = {
-	jpg: [createThumbnail],
-	png: [createThumbnail],
-	mp3: [createVorbis, createWaveform],
-	opus: [createVorbis, createWaveform],
-	vorbis: [createWaveform],
-	flac: [createVorbis, createWaveform],
-	m4a: [createVorbis, createWaveform],
-	docx: [createHtml],
-	epub: [createHtml],
+			)
+	);
 };
 
-exports.profileImageGenerators = {
-	jpg: [createProfileImage],
-	png: [createProfileImage],
-};
+const getImageRepresentations = (context, temporaryFile) =>
+	getIsLossless(temporaryFile.type, temporaryFile.path)
+		.then(isLossless => {
+			const imagePipeline =
+				sharp(temporaryFile.path)
+					.limitInputPixels(SUBMISSION_PIXEL_LIMIT)
+					.rotate()
+					.max()
+					.withoutEnlargement();
 
-exports.bannerGenerators = {
-	jpg: [createBanner],
-	png: [createBanner],
-};
+			const original =
+				files.insertFile(context, temporaryFile.digest, temporaryFile.byteSize, temporaryFile.path).then(
+					file => ({
+						role: 'content',
+						type: temporaryFile.type,
+						file: file,
+					})
+				);
+
+			const representations =
+				[original].concat(
+					getImageRepresentationsForRole(
+						context,
+						'thumbnail',
+						isLossless,
+						imagePipeline.resize(200, 200, { interpolator: 'nohalo' })
+					),
+					getImageRepresentationsForRole(
+						context,
+						'thumbnail@2x',
+						isLossless,
+						imagePipeline.resize(400, 400, { interpolator: 'nohalo' })
+					)
+				);
+
+			// TODO: add animated thumbnails, previews
+
+			return Promise.all(representations);
+		});
+
+const submissionGenerators = Object.create(null);
+submissionGenerators.png = getImageRepresentations;
+submissionGenerators.jpeg = getImageRepresentations;
+submissionGenerators.gif = getImageRepresentations;
+submissionGenerators.webp = getImageRepresentations;
+
+exports.submissionGenerators = submissionGenerators;

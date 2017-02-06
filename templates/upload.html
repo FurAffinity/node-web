@@ -49,11 +49,13 @@
 
 			{% for upload in pendingSubmissions %}
 				<label class="upload">
-					<img class="upload-thumbnail" src="{{ upload.thumbnail | file_path("thumbnail") }}" alt="" />
+					<picture class="upload-thumbnail">
+						<img class="upload-thumbnail-fallback" src="{{ upload.representations.content[0] | file_path('thumbnail') }}" alt="" />
+					</picture>
 
 					<div class="upload-info">
 						<div class="upload-filename" title="{{ upload.title }}">{{ upload.title }}</div>
-						<div class="upload-file-details">{{ upload.fileType | type_name }}, {{ upload.fileSize | file_size }}</div>
+						<div class="upload-file-details">{{ upload.type }}, 1920×1080</div>
 					</div>
 
 					<input type="radio" name="id" value="{{ upload.id }}" class="upload-use" required{% if form.id === upload.id %} checked{% endif %} />
@@ -97,7 +99,7 @@
 								<div class="folder-contents">
 									<div>
 										{% for submission in folder.submissions %}
-											<img src="{{ submission.thumbnail | file_path("thumbnail") }}" alt="{{ submission.title }}" title="{{ submission.title }}" />
+											<img src="" alt="{{ submission.title }}" title="{{ submission.title }}" />
 										{% endfor %}
 
 										<img class="folder-new-submission" src="/images/default-thumbnail.svg" alt="New submission" />

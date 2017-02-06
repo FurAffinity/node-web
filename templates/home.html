@@ -21,10 +21,13 @@
 
 		<div class="thumbnails">
 			{% for submission in recentSubmissions %}
-				<div class="thumbnail thumbnail-{{ submission.rating }}" data-id="{{ submission.id }}">
+				<div class="thumbnail rating-{{ submission.rating }}" data-id="{{ submission.id }}">
 					<div class="thumbnail-link-container">
 						<a href="/submissions/{{ submission.id }}" class="thumbnail-link">
-							<img src="{{ submission.thumbnail | file_path("thumbnail") }}" class="thumbnail-image" />
+							<picture class="thumbnail-image">
+								<source srcset="{{ submission.representations.thumbnail | file_path('thumbnail') }}" />
+								{#<img src="{{ submission.representations | thumbnail_path }}" class="thumbnail-image" />#}
+							</picture>
 						</a>
 					</div>
 				</div>

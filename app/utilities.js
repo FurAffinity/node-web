@@ -1,6 +1,6 @@
 'use strict';
 
-function concat(collections) {
+const concat = collections => {
 	var result = [];
 
 	for (var i = 0, l = collections.length; i < l; i++) {
@@ -12,13 +12,12 @@ function concat(collections) {
 	}
 
 	return result;
-}
+};
 
-function const_(x) {
-	return function () {
-		return x;
-	};
-}
+const const_ = x => () => x;
+
+const id = x => x;
 
 exports.concat = concat;
 exports.const = const_;
+exports.id = id;

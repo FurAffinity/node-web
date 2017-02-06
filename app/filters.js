@@ -37,7 +37,7 @@ function formatFileSize(bytes) {
 }
 
 function filePath(file, role) {
-	return file === null ?
+	return file == null ?
 		DEFAULT_PATHS[role] :
 		'/files/' + file.hash + '.' + types.byId(file.type).extension;
 }
