@@ -38,7 +38,7 @@ Pool.prototype = Object.create(pg.Pool.prototype, {
 		value: function (useTransaction) {
 			return Promise.using(this.connectDisposer(), function (client) {
 				return client.query('BEGIN').then(function () {
-					return useTransaction(new ClientWrapper(client))
+					return Promise.resolve(useTransaction(new ClientWrapper(client)))
 						.tap(function () {
 							return client.query('COMMIT');
 						})

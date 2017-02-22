@@ -4,7 +4,7 @@
 - Redis
 - libvips
 - Pandoc
-- Node.js
+- Node.js ≥ 7.6.0
 - libqrencode (with tools)
 
 ## Quick start
