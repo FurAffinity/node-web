@@ -1,74 +1,78 @@
 'use strict';
 
-var bcrypt = require('bcrypt-small');
-var bluebird = require('bluebird');
-var crypto = require('crypto');
+const bcrypt = require('bcrypt-small');
+const bluebird = require('bluebird');
+const crypto = require('crypto');
 
-var hashAsync = bluebird.promisify(bcrypt.hash);
+const hashAsync = bluebird.promisify(bcrypt.hash);
 
-var ApplicationError = require('./errors').ApplicationError;
-var config = require('./config');
-var email = require('./email');
-var files = require('./files');
-var postgresql = require('./database/postgresql');
+const ApplicationError = require('./errors').ApplicationError;
+const config = require('./config');
+const email = require('./email');
+const files = require('./files');
+const postgresql = require('./database/postgresql');
 
-var DisplayFile = files.DisplayFile;
-var sendAsync = bluebird.promisify(email.send);
-var timingSafeCompare = require('./timing-safe-compare').timingSafeCompare;
+const DisplayFile = files.DisplayFile;
+const sendAsync = bluebird.promisify(email.send);
+const timingSafeCompare = require('./timing-safe-compare').timingSafeCompare;
 
-var POSTGRESQL_UNIQUE_VIOLATION = '23505';
-var POSTGRESQL_SERIALIZATION_FAILURE = '40001';
+const POSTGRESQL_UNIQUE_VIOLATION = '23505';
+const POSTGRESQL_SERIALIZATION_FAILURE = '40001';
 
-var NON_CANONICAL_USERNAME_CHARACTER = /_/g;
-var DISPLAY_USERNAME = /^[\w.~-]+$/;
+const NON_CANONICAL_USERNAME_CHARACTER = /_/g;
+const DISPLAY_USERNAME = /^[\w.~-]+$/;
 
-var REGISTRATION_KEY_SIZE = 18;
-var RECOVERY_CODE_BYTE_LENGTH = 6;
+const REGISTRATION_KEY_SIZE = 18;
+const RECOVERY_CODE_BYTE_LENGTH = 6;
 
-var registrationEmailTemplate = email.templateEnvironment.getTemplate('registration', true);
-var registrationDuplicateEmailTemplate = email.templateEnvironment.getTemplate('registration-duplicate', true);
+const registrationEmailTemplate = email.templateEnvironment.getTemplate('registration', true);
+const registrationDuplicateEmailTemplate = email.templateEnvironment.getTemplate('registration-duplicate', true);
 
-function UsernameConflictError() {
-	ApplicationError.call(this, 'A user with this username already exists');
+class UsernameConflictError extends ApplicationError {
+	constructor() {
+		super('A user with this username already exists');
+	}
 }
 
-ApplicationError.extend(UsernameConflictError);
+ApplicationError.extendClass(UsernameConflictError);
 
-function UsernameInvalidError() {
-	ApplicationError.call(this, 'Invalid username');
+class UsernameInvalidError extends ApplicationError {
+	constructor() {
+		super('Invalid username');
+	}
 }
 
-ApplicationError.extend(UsernameInvalidError);
+ApplicationError.extendClass(UsernameInvalidError);
 
-function EmailInvalidError() {
-	ApplicationError.call(this, 'Invalid e-mail address');
+class EmailInvalidError extends ApplicationError {
+	constructor() {
+		super('Invalid e-mail address');
+	}
 }
 
-ApplicationError.extend(EmailInvalidError);
+ApplicationError.extendClass(EmailInvalidError);
 
-function RegistrationKeyInvalidError() {
-	ApplicationError.call(this, 'The registration key is invalid or has expired');
+class RegistrationKeyInvalidError extends ApplicationError {
+	constructor() {
+		super('The registration key is invalid or has expired');
+	}
 }
 
-ApplicationError.extend(RegistrationKeyInvalidError);
+ApplicationError.extendClass(RegistrationKeyInvalidError);
 
-function hashKey(key) {
-	return crypto.createHash('sha256')
+const hashKey = key =>
+	crypto.createHash('sha256')
 		.update(key)
 		.digest();
-}
 
-function toPathSafeBase64(buffer) {
-	return (
-		buffer.toString('base64')
-			.replace(/=+$/, '')
-			.replace(/\+/g, '-')
-			.replace(/\//g, '_')
-	);
-}
+const toPathSafeBase64 = buffer =>
+	buffer.toString('base64')
+		.replace(/=+$/, '')
+		.replace(/\+/g, '-')
+		.replace(/\//g, '_');
 
-function getSelectUserMetaQuery(userId) {
-	return {
+const getSelectUserMetaQuery = userId =>
+	({
 		name: 'select_user_meta',
 		text: `
 			SELECT
@@ -87,51 +91,45 @@ function getSelectUserMetaQuery(userId) {
 			GROUP BY users.id
 		`,
 		values: [userId],
-	};
-}
+	});
 
-function getInsertUnregisteredUserQuery(userInfo) {
-	return {
+const getInsertUnregisteredUserQuery = userInfo =>
+	({
 		name: 'insert_unregistered_user',
 		text: 'INSERT INTO users (username, email, password_hash, display_username) VALUES ($1, $2, $3, $4) ON CONFLICT (email) DO NOTHING RETURNING id',
 		values: [userInfo.username, userInfo.email, userInfo.passwordHash, userInfo.displayUsername],
-	};
-}
+	});
 
-function getFindConflictingUserQuery(canonicalEmail) {
-	return {
+const getFindConflictingUserQuery = canonicalEmail =>
+	({
 		name: 'find_conflicting_user',
 		text: 'SELECT display_username FROM users WHERE email = $1',
 		values: [canonicalEmail],
-	};
-}
+	});
 
-function getInsertRegistrationKeyQuery(userId, registrationKeyHash) {
-	return {
+const getInsertRegistrationKeyQuery = (userId, registrationKeyHash) =>
+	({
 		name: 'insert_registration_key',
 		text: 'INSERT INTO registration_keys ("user", key_hash) VALUES ($1, $2)',
 		values: [userId, registrationKeyHash],
-	};
-}
+	});
 
-function getDeleteRegistrationKeyQuery(userId) {
-	return {
+const getDeleteRegistrationKeyQuery = userId =>
+	({
 		name: 'select_registration_key',
 		text: 'DELETE FROM registration_keys WHERE "user" = $1 RETURNING key_hash',
 		values: [userId],
-	};
-}
+	});
 
-function getActivateUserQuery(userId) {
-	return {
+const getActivateUserQuery = userId =>
+	({
 		name: 'activate_user',
 		text: 'UPDATE users SET active = TRUE WHERE id = $1',
 		values: [userId],
-	};
-}
+	});
 
-function getViewProfileQuery(userId) {
-	return {
+const getViewProfileQuery = userId =>
+	({
 		name: 'view_profile',
 		text: `
 			SELECT
@@ -142,15 +140,14 @@ function getViewProfileQuery(userId) {
 			WHERE users.id = $1 AND active
 		`,
 		values: [userId],
-	};
-}
+	});
 
-function getUpdateProfileQuery(userId, profileInfo) {
-	var name = 'update_profile';
-	var set = ['full_name = $2', 'profile_text = $3', 'profile_type = $4'];
-	var values = [userId, profileInfo.fullName, profileInfo.profileText, profileInfo.profileType];
+const getUpdateProfileQuery = (userId, profileInfo) => {
+	let name = 'update_profile';
+	const set = ['full_name = $2', 'profile_text = $3', 'profile_type = $4'];
+	const values = [userId, profileInfo.fullName, profileInfo.profileText, profileInfo.profileType];
 
-	var profileImage = profileInfo.profileImage;
+	const profileImage = profileInfo.profileImage;
 
 	if (profileImage !== null) {
 		name += '_with_image';
@@ -161,7 +158,7 @@ function getUpdateProfileQuery(userId, profileInfo) {
 		values.push(profileImage.type);
 	}
 
-	var banner = profileInfo.banner;
+	const banner = profileInfo.banner;
 
 	if (banner !== null) {
 		name += '_with_banner';
@@ -177,42 +174,38 @@ function getUpdateProfileQuery(userId, profileInfo) {
 		text: 'UPDATE users SET ' + set.join(', ') + ' WHERE id = $1',
 		values: values,
 	};
-}
+};
 
-function getUpdatePreferencesQuery(userId, preferences) {
-	return {
+const getUpdatePreferencesQuery = (userId, preferences) =>
+	({
 		name: 'update_preferences',
 		text: 'UPDATE users SET rating_preference = $2 WHERE id = $1',
 		values: [userId, preferences.rating],
-	};
-}
+	});
 
-function getSelectUserStatisticsQuery(userId) {
-	return {
+const getSelectUserStatisticsQuery = userId =>
+	({
 		name: 'select_user_statistics',
 		text: 'SELECT COUNT(*) AS submissions FROM submissions WHERE owner = $1 AND published',
 		values: [userId],
-	};
-}
+	});
 
-function getSetupTwoFactorQuery(userId, key, lastUsedCounter) {
-	return {
+const getSetupTwoFactorQuery = (userId, key, lastUsedCounter) =>
+	({
 		name: 'setup_two_factor',
 		text: 'UPDATE users SET totp_key = $2, totp_last_used_counter = $3 WHERE id = $1 AND totp_key IS NULL',
 		values: [userId, key, lastUsedCounter],
-	};
-}
+	});
 
-function getDeleteTwoFactorRecoveryQuery(userId) {
-	return {
+const getDeleteTwoFactorRecoveryQuery = userId =>
+	({
 		name: 'delete_two_factor_recovery',
 		text: 'DELETE FROM two_factor_recovery WHERE "user" = $1',
 		values: [userId],
-	};
-}
+	});
 
-function getInsertTwoFactorRecoveryQuery(userId, recoveryCodes) {
-	return {
+const getInsertTwoFactorRecoveryQuery = (userId, recoveryCodes) =>
+	({
 		name: 'insert_two_factor_recovery',
 		text: `
 			INSERT INTO two_factor_recovery ("user", recovery_code)
@@ -222,36 +215,32 @@ function getInsertTwoFactorRecoveryQuery(userId, recoveryCodes) {
 			userId,
 			postgresql.serializeByteaArray(recoveryCodes),
 		],
-	};
-}
+	});
 
-function getCanonicalUsername(displayUsername) {
-	return (
-		displayUsername
-			.replace(NON_CANONICAL_USERNAME_CHARACTER, '')
-			.toLowerCase()
-	);
-}
+const getCanonicalUsername = displayUsername =>
+	displayUsername
+		.replace(NON_CANONICAL_USERNAME_CHARACTER, '')
+		.toLowerCase();
 
-function isValidDisplayUsername(displayUsername) {
-	var canonicalUsername = getCanonicalUsername(displayUsername);
+const isValidDisplayUsername = displayUsername => {
+	const canonicalUsername = getCanonicalUsername(displayUsername);
 
 	return (
 		DISPLAY_USERNAME.test(displayUsername) &&
 		canonicalUsername.length >= 3 &&
 		canonicalUsername.charAt(0) !== '.'
 	);
-}
+};
 
 // TODO: add caching when format is stable
-function getUserMeta(context, userId) {
-	return context.database.query(getSelectUserMetaQuery(userId))
-		.then(function (result) {
+const getUserMeta = (context, userId) =>
+	context.database.query(getSelectUserMetaQuery(userId))
+		.then(result => {
 			if (result.rows.length !== 1) {
 				return bluebird.reject(new Error('Expected user'));
 			}
 
-			var row = result.rows[0];
+			const row = result.rows[0];
 
 			return {
 				id: userId,
@@ -261,45 +250,42 @@ function getUserMeta(context, userId) {
 				ratingPreference: row.rating_preference,
 			};
 		});
-}
 
-function registerUser(context, userInfo) {
-	var displayUsername = userInfo.username;
+const registerUser = (context, userInfo) => {
+	const displayUsername = userInfo.username;
 
 	if (!isValidDisplayUsername(displayUsername)) {
 		return bluebird.reject(new UsernameInvalidError());
 	}
 
-	var canonicalUsername = getCanonicalUsername(displayUsername);
-	var canonicalEmail = email.getCanonicalAddress(userInfo.email);
+	const canonicalUsername = getCanonicalUsername(displayUsername);
+	const canonicalEmail = email.getCanonicalAddress(userInfo.email);
 
 	if (canonicalEmail === null) {
 		return bluebird.reject(new EmailInvalidError());
 	}
 
-	return hashAsync(userInfo.password, config.bcrypt.log_rounds).then(function (passwordHash) {
-		function useTransaction(client) {
+	return hashAsync(userInfo.password, config.bcrypt.log_rounds).then(passwordHash => {
+		const useTransaction = client => {
 			return client.query(getInsertUnregisteredUserQuery({
 				username: canonicalUsername,
 				email: canonicalEmail,
 				passwordHash: passwordHash,
 				displayUsername: displayUsername,
 			}))
-				.then(function (result) {
+				.then(result => {
 					if (result.rows.length !== 1) {
 						return bluebird.all([
 							client.query(getFindConflictingUserQuery(canonicalEmail))
-								.then(function (result) {
-									return result.rows[0].display_username;
-								}),
+								.then(result => result.rows[0].display_username),
 							client.query(getInsertUnregisteredUserQuery({
 								username: canonicalUsername,
 								email: null,
 								passwordHash: passwordHash,
 								displayUsername: displayUsername,
 							})),
-						]).spread(function (existingUsername) {
-							return sendAsync({
+						]).spread(existingUsername =>
+							sendAsync({
 								to: canonicalEmail,
 								from: config.registration.from_address,
 								subject: 'Fur Affinity registration attempt',
@@ -307,16 +293,16 @@ function registerUser(context, userInfo) {
 									username: displayUsername,
 									existing_username: existingUsername,
 								}),
-							});
-						});
+							})
+						);
 					}
 
-					var userId = result.rows[0].id;
-					var registrationKey = crypto.randomBytes(REGISTRATION_KEY_SIZE);
+					const userId = result.rows[0].id;
+					const registrationKey = crypto.randomBytes(REGISTRATION_KEY_SIZE);
 
 					return client.query(getInsertRegistrationKeyQuery(userId, hashKey(registrationKey)))
-						.then(function () {
-							return sendAsync({
+						.then(() =>
+							sendAsync({
 								to: canonicalEmail,
 								from: config.registration.from_address,
 								subject: 'Fur Affinity registration key',
@@ -325,14 +311,14 @@ function registerUser(context, userInfo) {
 									id: userId,
 									key: toPathSafeBase64(registrationKey),
 								}),
-							});
-						});
+							})
+						);
 				})
 				.return(canonicalEmail);
-		}
+		};
 
 		return context.database.withTransaction(useTransaction)
-			.catch(function (error) {
+			.catch(error => {
 				if (error.code === POSTGRESQL_UNIQUE_VIOLATION && error.constraint === 'users_username_key') {
 					return bluebird.reject(new UsernameConflictError());
 				}
@@ -340,17 +326,17 @@ function registerUser(context, userInfo) {
 				return bluebird.reject(error);
 			});
 	});
-}
+};
 
-function verifyRegistrationKey(context, userId, key) {
-	function useTransaction(client) {
+const verifyRegistrationKey = (context, userId, key) => {
+	const useTransaction = client => {
 		return client.query(getDeleteRegistrationKeyQuery(userId))
-			.then(function (result) {
+			.then(result => {
 				if (result.rows.length !== 1) {
 					return bluebird.reject(new RegistrationKeyInvalidError());
 				}
 
-				var expectedKeyHash = result.rows[0].key_hash;
+				const expectedKeyHash = result.rows[0].key_hash;
 
 				if (!timingSafeCompare(expectedKeyHash, hashKey(key))) {
 					return bluebird.reject(new RegistrationKeyInvalidError());
@@ -358,22 +344,20 @@ function verifyRegistrationKey(context, userId, key) {
 
 				return bluebird.resolve();
 			})
-			.then(function () {
-				return client.query(getActivateUserQuery(userId));
-			});
-	}
+			.then(() => client.query(getActivateUserQuery(userId)));
+	};
 
 	if (key.length !== REGISTRATION_KEY_SIZE) {
 		return bluebird.reject(new RegistrationKeyInvalidError());
 	}
 
 	return context.database.withTransaction(useTransaction);
-}
+};
 
-function viewProfile(context, userId) {
+const viewProfile = (context, userId) => {
 	return context.database.query(getViewProfileQuery(userId))
-		.then(function (result) {
-			var row = result.rows[0];
+		.then(result => {
+			const row = result.rows[0];
 
 			return {
 				id: userId,
@@ -386,83 +370,72 @@ function viewProfile(context, userId) {
 				banner: DisplayFile.from(row.banner_hash, row.banner_type),
 			};
 		});
-}
+};
 
-function updateProfile(context, userId, profileInfo) {
-	return context.database.query(getUpdateProfileQuery(userId, profileInfo))
-		.then(function (result) {
-			return result.rowCount === 1 ?
+const updateProfile = (context, userId, profileInfo) =>
+	context.database.query(getUpdateProfileQuery(userId, profileInfo))
+		.then(result =>
+			result.rowCount === 1 ?
 				bluebird.resolve() :
-				bluebird.reject(new Error('Expected user'));
-		});
-}
+				bluebird.reject(new Error('Expected user'))
+		);
 
-function updatePreferences(context, userId, preferences) {
-	return context.database.query(getUpdatePreferencesQuery(userId, preferences))
-		.then(function (result) {
-			return result.rowCount === 1 ?
+const updatePreferences = (context, userId, preferences) =>
+	context.database.query(getUpdatePreferencesQuery(userId, preferences))
+		.then(result =>
+			result.rowCount === 1 ?
 				bluebird.resolve() :
-				bluebird.reject(new Error('Expected user'));
-		});
-}
+				bluebird.reject(new Error('Expected user'))
+		);
 
-function getUserStatistics(context, userId) {
-	return context.database.query(getSelectUserStatisticsQuery(userId))
-		.then(function (result) {
-			return result.rows[0];
-		});
-}
+const getUserStatistics = (context, userId) =>
+	context.database.query(getSelectUserStatisticsQuery(userId))
+		.then(result => result.rows[0]);
 
-function getRecoveryCodes() {
-	var recoveryCodes = [];
+const getRecoveryCodes = () => {
+	const recoveryCodes = [];
 
-	for (var i = 0; i < config.totp.recovery_codes; i++) {
+	for (let i = 0; i < config.totp.recovery_codes; i++) {
 		recoveryCodes.push(crypto.randomBytes(RECOVERY_CODE_BYTE_LENGTH));
 	}
 
 	return recoveryCodes;
-}
+};
 
-function setupTwoFactor(context, userId, key, lastUsedCounter) {
-	var recoveryCodes = getRecoveryCodes();
+const setupTwoFactor = (context, userId, key, lastUsedCounter) => {
+	const recoveryCodes = getRecoveryCodes();
 
 	return context.database.query(getSetupTwoFactorQuery(userId, key, lastUsedCounter))
-		.then(function (result) {
+		.then(result => {
 			if (result.rowCount !== 1) {
 				return bluebird.reject(new Error('Two-factor authentication is already enabled for this account'));
 			}
 
 			return context.database.query(getInsertTwoFactorRecoveryQuery(userId, recoveryCodes));
 		});
-}
+};
 
-function regenerateTwoFactorRecovery(context, userId) {
-	var recoveryCodes = getRecoveryCodes();
+const regenerateTwoFactorRecovery = (context, userId) => {
+	const recoveryCodes = getRecoveryCodes();
 
-	function useTransaction(client) {
-		return client.query('SET TRANSACTION SERIALIZATION LEVEL REPEATABLE READ')
-			.then(function () {
-				return client.query(getDeleteTwoFactorRecoveryQuery(userId));
-			})
-			.then(function () {
-				return client.query(getInsertTwoFactorRecoveryQuery(userId, recoveryCodes));
-			});
-	}
+	const useTransaction = client =>
+		client.query('SET TRANSACTION SERIALIZATION LEVEL REPEATABLE READ')
+			.then(() => client.query(getDeleteTwoFactorRecoveryQuery(userId)))
+			.then(() => client.query(getInsertTwoFactorRecoveryQuery(userId, recoveryCodes)));
 
-	function executeAndRetry() {
-		return context.database.withTransaction(useTransaction)
-			.catch(function (error) {
+	const executeAndRetry = () =>
+		context.database.withTransaction(useTransaction)
+			.catch(error => {
 				if (error.code === POSTGRESQL_SERIALIZATION_FAILURE) {
 					return executeAndRetry();
 				}
 
 				return bluebird.reject(error);
 			});
-	}
 
 	return executeAndRetry()
 		.return(recoveryCodes);
-}
+};
 
 exports.EmailInvalidError = EmailInvalidError;
 exports.UsernameConflictError = UsernameConflictError;

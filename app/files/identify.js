@@ -1,23 +1,23 @@
 'use strict';
 
-var Promise = require('bluebird');
-var mmmagic = require('mmmagic');
+const Promise = require('bluebird');
+const mmmagic = require('mmmagic');
 
-var spawn = require('child_process').spawn;
+const spawn = require('child_process').spawn;
 
-var types = require('./types');
+const types = require('./types');
 
-var magic = new mmmagic.Magic(mmmagic.MAGIC_MIME_TYPE);
-var detectFileAsync = Promise.promisify(magic.detectFile, { context: magic });
+const magic = new mmmagic.Magic(mmmagic.MAGIC_MIME_TYPE);
+const detectFileAsync = Promise.promisify(magic.detectFile, { context: magic });
 
 function readProcess(path, argv) {
 	return new Promise(function (resolve, reject) {
-		var child = spawn(path, argv, {
+		const child = spawn(path, argv, {
 			stdio: ['ignore', 'pipe', 'ignore'],
 		});
 
-		var outputParts = [];
-		var outputLength = 0;
+		const outputParts = [];
+		let outputLength = 0;
 
 		function closeListener(exitCode) {
 			resolve(
@@ -45,10 +45,10 @@ function readProcess(path, argv) {
 function identifyContainer(filePath) {
 	return readProcess('ffprobe', ['-v', 'quiet', '-print_format', 'json', '-show_streams', filePath])
 		.then(function (output) {
-			var data = JSON.parse(output.toString('utf8'));
+			const data = JSON.parse(output.toString('utf8'));
 
-			for (var i = 0; i < data.streams.length; i++) {
-				var stream = data.streams[i];
+			for (let i = 0; i < data.streams.length; i++) {
+				const stream = data.streams[i];
 
 				switch (stream.codec_name) {
 				case 'opus':

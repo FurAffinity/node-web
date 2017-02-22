@@ -1,20 +1,20 @@
 'use strict';
 
-var bluebird = require('bluebird');
-var express = require('express');
+const bluebird = require('bluebird');
+const express = require('express');
 
-var forms = require('../forms');
-var permissions = require('../permissions');
-var submissions = require('../submissions');
-var wrap = require('./wrap').wrap;
+const forms = require('../forms');
+const permissions = require('../permissions');
+const submissions = require('../submissions');
+const wrap = require('./wrap').wrap;
 
-var validRatings = new Set([
+const validRatings = new Set([
 	'general',
 	'mature',
 	'adult',
 ]);
 
-var get = wrap([
+const get = wrap([
 	permissions.submit.middleware,
 	function (req, res, next) {
 		bluebird.all([
@@ -32,7 +32,7 @@ var get = wrap([
 	},
 ]);
 
-var post = wrap([
+const post = wrap([
 	permissions.submit.middleware,
 	forms.getReader({
 		name: 'submissions',
@@ -47,7 +47,7 @@ var post = wrap([
 		},
 	}),
 	function (req, res, next) {
-		var form = req.form;
+		const form = req.form;
 
 		if (!(form.id = form.id >>> 0)) {
 			form.addError('A submission must include a file');
@@ -68,11 +68,11 @@ var post = wrap([
 			return;
 		}
 
-		var f = [];
+		const f = [];
 
-		for (var i = 0; i < form.folders.length; i++) {
-			var idString = form.folders[i];
-			var id = idString >>> 0;
+		for (let i = 0; i < form.folders.length; i++) {
+			const idString = form.folders[i];
+			const id = idString >>> 0;
 
 			if (String(id) !== idString) {
 				res.status(400).send('Invalid form data');
@@ -99,7 +99,7 @@ var post = wrap([
 	},
 ]);
 
-var router = new express.Router();
+const router = new express.Router();
 
 router.get('/submissions/new', get);
 router.post('/submissions/', post);

@@ -1,15 +1,15 @@
 'use strict';
 
-var bluebird = require('bluebird');
-var express = require('express');
+const bluebird = require('bluebird');
+const express = require('express');
 
-var ApplicationError = require('../errors').ApplicationError;
-var files = require('../files');
-var forms = require('../forms');
-var generators = require('../files/generators');
-var permissions = require('../permissions');
-var submissions = require('../submissions');
-var wrap = require('./wrap').wrap;
+const ApplicationError = require('../errors').ApplicationError;
+const files = require('../files');
+const forms = require('../forms');
+const generators = require('../files/generators');
+const permissions = require('../permissions');
+const submissions = require('../submissions');
+const wrap = require('./wrap').wrap;
 
 function readFile(request, stream, filename) {
 	return files.storeUpload(request.context, stream, generators.submissionGenerators)
@@ -27,7 +27,7 @@ function readFile(request, stream, filename) {
 		});
 }
 
-var post = wrap([
+const post = wrap([
 	permissions.submit.middleware,
 	forms.getReader({
 		name: 'upload',
@@ -56,7 +56,7 @@ var post = wrap([
 	},
 ]);
 
-var router = new express.Router();
+const router = new express.Router();
 
 router.post('/api/submissions/upload', post);
 

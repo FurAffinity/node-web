@@ -1,11 +1,11 @@
 'use strict';
 
-var express = require('express');
+const express = require('express');
 
-var ApplicationError = require('../errors').ApplicationError;
-var forms = require('../forms');
-var users = require('../users');
-var wrap = require('./wrap').wrap;
+const ApplicationError = require('../errors').ApplicationError;
+const forms = require('../forms');
+const users = require('../users');
+const wrap = require('./wrap').wrap;
 
 function get(req, res) {
 	if (req.user !== null) {
@@ -16,7 +16,7 @@ function get(req, res) {
 	res.render('register.html');
 }
 
-var post = wrap([
+const post = wrap([
 	forms.getReader({
 		name: 'register',
 		fields: {
@@ -26,7 +26,7 @@ var post = wrap([
 		},
 	}),
 	function (req, res, next) {
-		var form = req.form;
+		const form = req.form;
 
 		if (!form.username) {
 			form.addError('A username is required', 'username');
@@ -58,7 +58,7 @@ var post = wrap([
 			},
 			function (error) {
 				if (error instanceof ApplicationError) {
-					var field;
+					let field;
 
 					if (error instanceof users.UsernameConflictError || error instanceof users.UsernameInvalidError) {
 						field = 'username';
@@ -79,7 +79,7 @@ var post = wrap([
 	},
 ]);
 
-var router = new express.Router();
+const router = new express.Router();
 
 router.get('/users/new', get);
 router.post('/users/', post);

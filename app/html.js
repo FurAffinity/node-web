@@ -1,14 +1,14 @@
 'use strict';
 
-var htmlparser = require('htmlparser2');
-var url = require('url');
+const htmlparser = require('htmlparser2');
+const url = require('url');
 
-var voidTags = new Set([
+const voidTags = new Set([
 	'area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input',
 	'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr',
 ]);
 
-var tagWhitelist = new Set([
+const tagWhitelist = new Set([
 	'section', 'nav', 'article', 'aside',
 	'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
 	'header', 'footer',
@@ -24,11 +24,11 @@ var tagWhitelist = new Set([
 	'table', 'caption', 'tbody', 'thead', 'tfoot', 'tr', 'td', 'th',
 ]);
 
-var schemeWhitelist = new Set([
+const schemeWhitelist = new Set([
 	null, 'http:', 'https:',
 ]);
 
-var internalHostname = /(^|\.)furaffinity\.net$/i;
+const internalHostname = /(^|\.)furaffinity\.net$/i;
 
 function escapeAttributeValue(text) {
 	return text
@@ -53,7 +53,7 @@ function isInternalLink(uri) {
 
 function cleanAttribute(safeAttributes, tagName, name, value) {
 	if (tagName === 'a' && name.toLowerCase() === 'href') {
-		var parsed = url.parse(value, false, true);
+		const parsed = url.parse(value, false, true);
 
 		if (!isSafeLink(parsed)) {
 			return;
@@ -68,21 +68,21 @@ function cleanAttribute(safeAttributes, tagName, name, value) {
 }
 
 function cleanAttributes(tagName, attributes) {
-	var safeAttributes = {};
+	const safeAttributes = {};
 
 	Object.keys(attributes).forEach(function (name) {
 		cleanAttribute(safeAttributes, tagName, name, attributes[name]);
 	});
 
 	return Object.keys(safeAttributes).map(function (name) {
-		var value = safeAttributes[name];
+		const value = safeAttributes[name];
 		return ' ' + name + '="' + escapeAttributeValue(value) + '"';
 	}).join('');
 }
 
 function clean(html) {
-	var output = '';
-	var open = [];
+	let output = '';
+	const open = [];
 
 	function addOpenTag(name, attributes) {
 		if (!tagWhitelist.has(name)) {
@@ -101,7 +101,7 @@ function clean(html) {
 			return;
 		}
 
-		var closed;
+		let closed;
 
 		do {
 			closed = open.pop();
@@ -113,7 +113,7 @@ function clean(html) {
 		output += escapeContent(text);
 	}
 
-	var parser = new htmlparser.Parser(
+	const parser = new htmlparser.Parser(
 		{
 			onopentag: addOpenTag,
 			onclosetag: addCloseTag,
@@ -126,7 +126,7 @@ function clean(html) {
 
 	parser.parseComplete(html);
 
-	for (var i = open.length - 1; i >= 0; i--) {
+	for (let i = open.length - 1; i >= 0; i--) {
 		output += '</' + open[i] + '>';
 	}
 
@@ -134,11 +134,11 @@ function clean(html) {
 }
 
 function getExcerpt(html, maximumLength) {
-	var excerpt = '';
-	var remainingLength = maximumLength;
-	var openTags = [];
+	let excerpt = '';
+	let remainingLength = maximumLength;
+	const openTags = [];
 
-	var parser = new htmlparser.Parser({
+	const parser = new htmlparser.Parser({
 		onopentag: function (name, attributes) {
 			excerpt += '<' + name + Object.keys(attributes).map(function (attributeName) {
 				return ' ' + attributeName + '="' + escapeAttributeValue(attributes[attributeName]) + '"';
@@ -159,7 +159,7 @@ function getExcerpt(html, maximumLength) {
 				return;
 			}
 
-			for (var i = openTags.length - 1; i >= 0; i--) {
+			for (let i = openTags.length - 1; i >= 0; i--) {
 				excerpt += '</' + openTags[i] + '>';
 			}
 

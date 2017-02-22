@@ -1,10 +1,10 @@
 'use strict';
 
-var express = require('express');
+const express = require('express');
 
-var forms = require('../forms');
+const forms = require('../forms');
 
-var router = new express.Router();
+const router = new express.Router();
 
 router.post('/logout', forms.getReader({ name: 'logout', fields: {} }), function (req, res, next) {
 	req.app.sessionStorage.createGuestSession(req).done(

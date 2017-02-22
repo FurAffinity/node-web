@@ -1,13 +1,13 @@
 'use strict';
 
-var SECOND = 1000;
-var MINUTE = 60 * SECOND;
-var HOUR = 60 * MINUTE;
-var DAY = 24 * HOUR;
-var MONTH = 30 * DAY;
-var YEAR = 365 * DAY;
+const SECOND = 1000;
+const MINUTE = 60 * SECOND;
+const HOUR = 60 * MINUTE;
+const DAY = 24 * HOUR;
+const MONTH = 30 * DAY;
+const YEAR = 365 * DAY;
 
-var MONTH_NAMES = [
+const MONTH_NAMES = [
 	'January',
 	'February',
 	'March',
@@ -51,43 +51,43 @@ function padZero2(n) {
 }
 
 function formatLocalTime(hours, minutes) {
-	var displayHours = hours % 12 || 12;
+	const displayHours = hours % 12 || 12;
 
 	return displayHours + ':' + padZero2(minutes) + (hours >= 12 ? ' PM' : ' AM');
 }
 
 function formatTimezone(timezoneOffset) {
-	var absoluteOffset = Math.abs(timezoneOffset);
-	var hours = absoluteOffset / 60 | 0;
-	var minutes = absoluteOffset % 60;
-	var sign = timezoneOffset < 0 ? '−' : '+';
+	const absoluteOffset = Math.abs(timezoneOffset);
+	const hours = absoluteOffset / 60 | 0;
+	const minutes = absoluteOffset % 60;
+	const sign = timezoneOffset < 0 ? '−' : '+';
 
 	return sign + padZero2(hours) + padZero2(minutes);
 }
 
 function local(date) {
-	var month = MONTH_NAMES[date.getMonth()];
-	var day = withOrdinalSuffix(date.getDate());
-	var year = date.getFullYear();
-	var time = formatLocalTime(date.getHours(), date.getMinutes());
-	var timezone = formatTimezone(-date.getTimezoneOffset());
+	const month = MONTH_NAMES[date.getMonth()];
+	const day = withOrdinalSuffix(date.getDate());
+	const year = date.getFullYear();
+	const time = formatLocalTime(date.getHours(), date.getMinutes());
+	const timezone = formatTimezone(-date.getTimezoneOffset());
 
 	return month + ' ' + day + ', ' + year + ' at ' + time + ' ' + timezone;
 }
 
 function utc(date) {
-	var month = MONTH_NAMES[date.getUTCMonth()];
-	var day = withOrdinalSuffix(date.getUTCDate());
-	var year = date.getUTCFullYear();
-	var time = padZero2(date.getUTCHours()) + ':' + padZero2(date.getUTCMinutes()) + ':' + padZero2(date.getUTCSeconds());
+	const month = MONTH_NAMES[date.getUTCMonth()];
+	const day = withOrdinalSuffix(date.getUTCDate());
+	const year = date.getUTCFullYear();
+	const time = padZero2(date.getUTCHours()) + ':' + padZero2(date.getUTCMinutes()) + ':' + padZero2(date.getUTCSeconds());
 
 	return month + ' ' + day + ', ' + year + ' at ' + time + ' UTC';
 }
 
 function relative(date) {
-	var time = new Date() - date;
-	var value;
-	var unit;
+	const time = new Date() - date;
+	let value;
+	let unit;
 
 	if (time >= YEAR) {
 		value = time / YEAR | 0;

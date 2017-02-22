@@ -1,13 +1,13 @@
 /* eslint new-cap: 0 */
 'use strict';
 
-var tap = require('tap');
+const tap = require('tap');
 
-var errors = require('../app/errors');
-var ApplicationError = errors.ApplicationError;
+const errors = require('../app/errors');
+const ApplicationError = errors.ApplicationError;
 
-tap.test('ApplicationError should behave in a manner consistent with other errors', function (t) {
-	function testConstructor(errorConstructor) {
+tap.test('ApplicationError should behave in a manner consistent with other errors', t => {
+	const testConstructor = errorConstructor => {
 		t.deepEqual(
 			Object.getOwnPropertyDescriptor(errorConstructor.prototype, 'message'),
 			{
@@ -18,7 +18,7 @@ tap.test('ApplicationError should behave in a manner consistent with other error
 			}
 		);
 
-		var instance = new errorConstructor('test error');
+		const instance = new errorConstructor('test error');
 
 		t.deepEqual(
 			Object.getOwnPropertyDescriptor(instance, 'message'),
@@ -30,27 +30,23 @@ tap.test('ApplicationError should behave in a manner consistent with other error
 			}
 		);
 
-		t.ok(instance instanceof errorConstructor);
-		t.ok(instance instanceof Error);
-		t.equal(instance.toString(), errorConstructor.name + ': test error');
-		t.equal(instance.constructor, errorConstructor);
+		t.ok(instance instanceof errorConstructor, 'instance is an instance of ' + errorConstructor.name);
+		t.ok(instance instanceof Error, 'instance is an instance of Error');
+		t.equal(instance.toString(), errorConstructor.name + ': test error', 'instance’s toString() includes its message');
+		t.equal(instance.constructor, errorConstructor, 'instance’s constructor is ' + errorConstructor.name);
 		t.ok(new RegExp(errorConstructor.name + ': test error\\s*at .*test\\/errors\\.js').test(instance.stack));
 		t.ok(!instance.hasOwnProperty('name'));
 
 		t.ok(!new errorConstructor().hasOwnProperty('message'));
-	}
+	};
 
-	function TestError(message) {
-		ApplicationError.call(this, message);
-	}
+	class TestError extends ApplicationError {}
 
-	ApplicationError.extend(TestError);
+	ApplicationError.extendClass(TestError);
 
-	function TestDerivedError(message) {
-		TestError.call(this, message);
-	}
+	class TestDerivedError extends TestError {}
 
-	TestError.extend(TestDerivedError);
+	TestError.extendClass(TestDerivedError);
 
 	testConstructor(RangeError);
 	testConstructor(ApplicationError);

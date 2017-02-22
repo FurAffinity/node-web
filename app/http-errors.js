@@ -1,18 +1,16 @@
 'use strict';
 
-var ApplicationError = require('./errors').ApplicationError;
+const ApplicationError = require('./errors').ApplicationError;
 
-function httpError(name, httpStatus, defaultMessage) {
-	function constructor(message) {
-		ApplicationError.call(this, message);
-	}
+const httpError = (name, httpStatus, defaultMessage) => {
+	class constructor extends ApplicationError {}
 
 	Object.defineProperty(constructor, 'name', {
 		configurable: true,
 		value: name,
 	});
 
-	ApplicationError.extend(constructor);
+	ApplicationError.extendClass(constructor);
 
 	Object.defineProperty(constructor.prototype, 'message', {
 		configurable: true,
@@ -27,7 +25,7 @@ function httpError(name, httpStatus, defaultMessage) {
 	});
 
 	return constructor;
-}
+};
 
 exports.NotAcceptableError = httpError('NotAcceptableError', 406, 'No acceptable media type');
 exports.TooManyRequestsError = httpError('TooManyRequestsError', 429, 'Too many requests');

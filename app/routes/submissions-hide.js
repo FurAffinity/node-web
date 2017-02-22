@@ -1,14 +1,14 @@
 'use strict';
 
-var express = require('express');
+const express = require('express');
 
-var r = String.raw;
+const r = String.raw;
 
-var forms = require('../forms');
-var submissions = require('../submissions');
+const forms = require('../forms');
+const submissions = require('../submissions');
 
-var hideFormReader = forms.getReader({ name: 'hide', fields: [] });
-var router = new express.Router();
+const hideFormReader = forms.getReader({ name: 'hide', fields: [] });
+const router = new express.Router();
 
 router.post(r`/api/submissions/:id(\d+)/hide`, hideFormReader, function (req, res, next) {
 	if (req.user === null) {
@@ -19,7 +19,7 @@ router.post(r`/api/submissions/:id(\d+)/hide`, hideFormReader, function (req, re
 		return;
 	}
 
-	var submissionId = req.params.id | 0;
+	const submissionId = req.params.id | 0;
 
 	submissions.hideSubmission(req.context, req.user.id, submissionId).done(
 		function () {
@@ -38,7 +38,7 @@ router.post(r`/api/submissions/:id(\d+)/unhide`, hideFormReader, function (req, 
 		return;
 	}
 
-	var submissionId = req.params.id | 0;
+	const submissionId = req.params.id | 0;
 
 	submissions.unhideSubmission(req.context, req.user.id, submissionId).done(
 		function () {

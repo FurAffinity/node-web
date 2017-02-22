@@ -1,11 +1,11 @@
 'use strict';
 
-var dgram = require('dgram');
-var ipaddr = require('ipaddr.js');
+const dgram = require('dgram');
+const ipaddr = require('ipaddr.js');
 
 function UserCounter(options) {
-	var that = this;
-	var socket = dgram.createSocket('udp4');
+	const that = this;
+	const socket = dgram.createSocket('udp4');
 
 	this.userCount = 0;
 	this.socket = socket;
@@ -24,8 +24,8 @@ UserCounter.prototype.addUser = function (address) {
 		address = address.slice(1, -1);
 	}
 
-	var addressBytes = Buffer.from(ipaddr.parse(address).toByteArray());
-	var message;
+	const addressBytes = Buffer.from(ipaddr.parse(address).toByteArray());
+	let message;
 
 	if (addressBytes.length === 4) {
 		message = Buffer.alloc(16);
@@ -46,7 +46,7 @@ UserCounter.prototype.close = function (callback) {
 Object.defineProperty(UserCounter.prototype, 'middleware', {
 	configurable: true,
 	get: function () {
-		var that = this;
+		const that = this;
 
 		return function (req, res, next) {
 			if (req.forwarded.for) {

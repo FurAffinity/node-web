@@ -1,33 +1,33 @@
 'use strict';
 
-var Promise = require('bluebird');
-var negapi = require('negapi');
+const Promise = require('bluebird');
+const negapi = require('negapi');
 
-var httpErrors = require('../http-errors');
-var json = require('./json');
-var nunjucks = require('./nunjucks');
+const httpErrors = require('../http-errors');
+const json = require('./json');
+const nunjucks = require('./nunjucks');
 
 function renderWith(renderers, source) {
-	var types = new negapi.MediaTypeSet(
+	const types = new negapi.MediaTypeSet(
 		renderers.map(function (renderer) {
 			return renderer.mediaType;
 		})
 	);
 
-	var typeMap = new Map(
+	const typeMap = new Map(
 		renderers.map(function (renderer) {
 			return [renderer.mediaType, renderer];
 		})
 	);
 
 	return function (request) {
-		var type = negapi.select(types, request.headers.accept);
+		const type = negapi.select(types, request.headers.accept);
 
 		if (!type) {
 			return Promise.reject(new httpErrors.NotAcceptableError());
 		}
 
-		var renderer = typeMap.get(type);
+		const renderer = typeMap.get(type);
 
 		return Promise.resolve(source(request))
 			.then(function (response) {

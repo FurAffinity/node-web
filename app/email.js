@@ -1,14 +1,14 @@
 'use strict';
 
-var crypto = require('crypto');
-var nunjucks = require('nunjucks');
+const crypto = require('crypto');
+const nunjucks = require('nunjucks');
 
-var spawn = require('child_process').spawn;
+const spawn = require('child_process').spawn;
 
-var config = require('./config');
+const config = require('./config');
 
-var templateLoader = new nunjucks.FileSystemLoader('templates/email');
-var templateEnvironment = new nunjucks.Environment(templateLoader, {
+const templateLoader = new nunjucks.FileSystemLoader('templates/email');
+const templateEnvironment = new nunjucks.Environment(templateLoader, {
 	autoescape: false,
 	throwOnUndefined: true,
 });
@@ -20,9 +20,9 @@ templateEnvironment.addGlobal('site_root', config.site.root);
  * e-mail addresses (no comments or folding whitespace). Unicode isn’t
  * supported yet.
  */
-var DOT_ATOM = /^[\w!#$%&'*+\-/=?^`{|}~]+(\.[\w!#$%&'*+\-/=?^`{|}~]+)*$/;
-var QUOTED_STRING = /^"(?:[\x21\x23-\x5b\x5d-\x7e]|\\[\t\x20-\x7e])*"$/;
-var UNNECESSARY_QUOTED_PAIR = /\\([\x21\x23-\x5b\x5d-\x7e])/g;
+const DOT_ATOM = /^[\w!#$%&'*+\-/=?^`{|}~]+(\.[\w!#$%&'*+\-/=?^`{|}~]+)*$/;
+const QUOTED_STRING = /^"(?:[\x21\x23-\x5b\x5d-\x7e]|\\[\t\x20-\x7e])*"$/;
+const UNNECESSARY_QUOTED_PAIR = /\\([\x21\x23-\x5b\x5d-\x7e])/g;
 
 function getCanonicalLocalPart(localPart) {
 	if (DOT_ATOM.test(localPart)) {
@@ -30,8 +30,8 @@ function getCanonicalLocalPart(localPart) {
 	}
 
 	if (QUOTED_STRING.test(localPart)) {
-		var necessaryPairsOnly = localPart.replace(UNNECESSARY_QUOTED_PAIR, '$1');
-		var stripped = necessaryPairsOnly.slice(1, -1);
+		const necessaryPairsOnly = localPart.replace(UNNECESSARY_QUOTED_PAIR, '$1');
+		const stripped = necessaryPairsOnly.slice(1, -1);
 
 		if (DOT_ATOM.test(stripped)) {
 			return stripped;
@@ -53,14 +53,14 @@ function getCanonicalAddress(address) {
 		return null;
 	}
 
-	var i = address.lastIndexOf('@');
+	const i = address.lastIndexOf('@');
 
 	if (i === -1) {
 		return null;
 	}
 
-	var localPart = getCanonicalLocalPart(address.substring(0, i));
-	var domainPart = address.substring(i + 1);
+	const localPart = getCanonicalLocalPart(address.substring(0, i));
+	const domainPart = address.substring(i + 1);
 
 	if (localPart === null || !isValidDomainPart(domainPart)) {
 		return null;
@@ -78,12 +78,12 @@ function getCanonicalAddress(address) {
  * requires no justification.
  */
 function toFlowed(body) {
-	var result = '';
-	var lastBreak = 0;
-	var lastBreakOption = -1;
+	let result = '';
+	let lastBreak = 0;
+	let lastBreakOption = -1;
 
-	for (var i = 0; i < body.length; i++) {
-		var c = body.charAt(i);
+	for (let i = 0; i < body.length; i++) {
+		const c = body.charAt(i);
 
 		if (c === '\n') {
 			if (i - lastBreak < 79 || lastBreakOption === -1) {
@@ -130,14 +130,14 @@ function toFlowed(body) {
 }
 
 function send(info, callback) {
-	var hash = crypto.createHash('sha256');
+	const hash = crypto.createHash('sha256');
 	hash.update(info.body);
 
-	var boundary = hash.digest().slice(0, 8).toString('hex');
+	const boundary = hash.digest().slice(0, 8).toString('hex');
 
-	var flowedBody = toFlowed(info.body);
+	const flowedBody = toFlowed(info.body);
 
-	var message =
+	const message =
 		'To: ' + info.to + '\n' +
 		'From: ' + info.from + '\n' +
 		'Subject: ' + info.subject + '\n' +
@@ -147,7 +147,7 @@ function send(info, callback) {
 		'\n--' + boundary + '\n' + 'Content-Type: text/plain; charset=utf-8; format=flowed\n' +
 		'\n' + flowedBody + '\n';
 
-	var p = spawn('sendmail', ['-t']);
+	const p = spawn('sendmail', ['-t']);
 
 	function closeListener(code) {
 		if (code === 0) {

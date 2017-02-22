@@ -8,7 +8,7 @@ function wrap(handlers) {
 				return;
 			}
 
-			var handler = handlers[index];
+			const handler = handlers[index];
 
 			handler(req, res, function (error) {
 				nextHandler(index + 1, error);

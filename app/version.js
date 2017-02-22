@@ -1,15 +1,15 @@
 'use strict';
 
-var bluebird = require('bluebird');
-var spawn = require('child_process').spawn;
+const bluebird = require('bluebird');
+const spawn = require('child_process').spawn;
 
 function getGitRevision() {
-	var gitProcess = spawn('git', ['rev-parse', 'HEAD'], {
+	const gitProcess = spawn('git', ['rev-parse', 'HEAD'], {
 		stdio: ['ignore', 'pipe', 'ignore'],
 	});
 
 	return new bluebird.Promise(function (resolve, reject) {
-		var parts = [];
+		const parts = [];
 
 		function closeListener(exitCode) {
 			if (exitCode !== 0) {

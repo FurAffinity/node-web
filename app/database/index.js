@@ -1,14 +1,14 @@
 'use strict';
 
-var Promise = require('bluebird');
-var pg = require('pg');
+const Promise = require('bluebird');
+const pg = require('pg');
 
 function ClientWrapper(client) {
 	this.client = client;
 }
 
 ClientWrapper.prototype.query = function (options, values) {
-	var promise = this.client.query(options, values).promise();
+	const promise = this.client.query(options, values).promise();
 	return Promise.resolve(promise);
 };
 

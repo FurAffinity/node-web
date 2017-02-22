@@ -1,26 +1,26 @@
 'use strict';
 
-var _ = require('./utilities');
-var bluebird = require('bluebird');
-var express = require('express');
-var redis = require('redis');
-var strictCookieParser = require('strict-cookie-parser');
+const _ = require('./utilities');
+const bluebird = require('bluebird');
+const express = require('express');
+const redis = require('redis');
+const strictCookieParser = require('strict-cookie-parser');
 
-var config = require('./config');
-var errors = require('./errors');
-var render = require('./render');
-var sessions = require('./sessions');
-var users = require('./users');
+const config = require('./config');
+const errors = require('./errors');
+const render = require('./render');
+const sessions = require('./sessions');
+const users = require('./users');
 
-var Pool = require('./database').Pool;
-var UserCounter = require('./user-counter').UserCounter;
+const Pool = require('./database').Pool;
+const UserCounter = require('./user-counter').UserCounter;
 
 bluebird.promisifyAll(redis.RedisClient.prototype);
 bluebird.promisifyAll(redis.Multi.prototype);
 
-var database = new Pool(config.database);
-var redisClient = redis.createClient(config.redis);
-var userCounter = new UserCounter({
+const database = new Pool(config.database);
+const redisClient = redis.createClient(config.redis);
+const userCounter = new UserCounter({
 	listenHost: config.user_counter.listen_host,
 	host: config.user_counter.host,
 	port: config.user_counter.port,
@@ -34,9 +34,9 @@ redisClient.on('error', function (error) {
 	console.error('redis client error: ' + error.stack);
 });
 
-var app = express();
+const app = express();
 
-var sessionStorage = new sessions.SessionStorage({
+const sessionStorage = new sessions.SessionStorage({
 	cookieName: config.sessions.cookie_name,
 	cookieSecure: config.sessions.cookie_secure,
 	userSessionLifetime: config.sessions.user_session_lifetime,
@@ -56,8 +56,8 @@ if (app.get('env') === 'development') {
 	bluebird.longStackTraces();
 }
 
-function withUserMeta(request, response, next) {
-	var userId = request.session.userId;
+const withUserMeta = (request, response, next) => {
+	const userId = request.session.userId;
 
 	if (userId === null) {
 		request.user = null;
@@ -72,14 +72,14 @@ function withUserMeta(request, response, next) {
 		},
 		next
 	);
-}
+};
 
-function templateLocals(request, response, next) {
+const templateLocals = (request, response, next) => {
 	response.locals.request = request;
 	next();
-}
+};
 
-app.use(function (request, response, next) {
+app.use((request, response, next) => {
 	request.forwarded = {
 		for: request.headers['x-forwarded-for'],
 	};
@@ -87,7 +87,7 @@ app.use(function (request, response, next) {
 	next();
 });
 
-app.use(function (req, res, next) {
+app.use((req, res, next) => {
 	req.context = {
 		database: database,
 		redis: redisClient,
@@ -110,24 +110,22 @@ function wrapHandler(middleware, renderers, handler) {
 	return middleware.concat([
 		function (request, httpResponse, next) {
 			handler(request)
-				.then(function (response) {
-					return response.send(httpResponse);
-				})
+				.then(response => response.send(httpResponse))
 				.catch(next);
 		},
 	]);
 }
 
-function addRoute(route) {
-	var middleware = route.middleware || [];
-	var expressRoute = app.route(route.path);
+const addRoute = route => {
+	const middleware = route.middleware || [];
+	const expressRoute = app.route(route.path);
 
 	if (route.get) {
-		expressRoute.get.apply(expressRoute, wrapHandler(middleware, route.renderers, route.get));
+		expressRoute.get(...wrapHandler(middleware, route.renderers, route.get));
 	}
-}
+};
 
-var routes = _.concat([
+const routes = _.concat([
 	require('./routes/home').routes,
 	require('./routes/notifications').routes,
 ]);
@@ -146,7 +144,7 @@ app.use(require('./routes/submissions-view').router);
 app.use(require('./routes/submissions-comment').router);
 app.use(require('./routes/submissions-hide').router);
 
-app.use(function (error, req, res, next) {
+app.use((error, req, res, next) => {
 	if (res.headersSent || !(error instanceof errors.ApplicationError)) {
 		next(error);
 		return;
@@ -156,13 +154,13 @@ app.use(function (error, req, res, next) {
 	res.render('error.html', { error: error });
 });
 
-var server = app.listen(
+const server = app.listen(
 	process.env.LISTEN || 'app.sock',
 	process.env.LISTEN_ADDRESS || '::1',
 	function () {
-		var address = server.address();
+		const address = server.address();
 
-		var displayAddress =
+		const displayAddress =
 			typeof address === 'string' ? address :
 			address.family === 'IPv6' ? '[' + address.address + ']:' + address.port :
 			address.address + ':' + address.port;
@@ -172,7 +170,7 @@ var server = app.listen(
 	}
 );
 
-process.once('SIGINT', function () {
+process.once('SIGINT', () => {
 	console.error('Shutting down.');
 	server.close();
 	database.end();

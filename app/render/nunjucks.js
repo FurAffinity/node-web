@@ -1,19 +1,19 @@
 'use strict';
 
-var negapi = require('negapi');
-var nunjucks = require('nunjucks');
-var path = require('path');
+const negapi = require('negapi');
+const nunjucks = require('nunjucks');
+const path = require('path');
 
-var filters = require('../filters');
-var types = require('../files/types');
-var version = require('../version');
+const filters = require('../filters');
+const types = require('../files/types');
+const version = require('../version');
 
-var getCsrfKey = require('../forms').getCsrfKey;
+const getCsrfKey = require('../forms').getCsrfKey;
 
-var templateRoot = path.join(__dirname, '../../templates');
-var templateLoader = new nunjucks.FileSystemLoader(templateRoot);
+const templateRoot = path.join(__dirname, '../../templates');
+const templateLoader = new nunjucks.FileSystemLoader(templateRoot);
 
-var env = new nunjucks.Environment(
+const env = new nunjucks.Environment(
 	templateLoader,
 	{
 		autoescape: true,
@@ -56,7 +56,7 @@ function NunjucksRenderer(templatePath) {
 NunjucksRenderer.prototype.mediaType = new negapi.MediaType('text', 'html');
 
 NunjucksRenderer.prototype.transform = function (request, response) {
-	var templateData = Object.assign({ request: request }, response.data);
+	const templateData = Object.assign({ request: request }, response.data);
 
 	response.setHeader('Content-Type', 'text/html; charset=utf-8');
 	response.data = this.template.render(templateData);

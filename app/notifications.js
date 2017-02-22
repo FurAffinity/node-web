@@ -1,7 +1,7 @@
 'use strict';
 
-var _ = require('./utilities');
-var bluebird = require('bluebird');
+const _ = require('./utilities');
+const bluebird = require('bluebird');
 
 function getSubmissionNotificationsQuery(user) {
 	return {
@@ -38,7 +38,7 @@ function getSubmissionNotifications(context, user) {
 	return context.database.query(getSubmissionNotificationsQuery(user))
 		.then(function (result) {
 			return result.rows.map(function (row) {
-				var updated = row.updated.getTime() !== row.created.getTime();
+				const updated = row.updated.getTime() !== row.created.getTime();
 
 				return {
 					type: updated ? 'submission-update' : 'submission',

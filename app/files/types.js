@@ -1,14 +1,16 @@
 'use strict';
 
-var ApplicationError = require('../errors').ApplicationError;
+const ApplicationError = require('../errors').ApplicationError;
 
-function UnknownMediaTypeError(mediaType) {
-	ApplicationError.call(this, 'Unknown media type: ' + mediaType);
+class UnknownMediaTypeError extends ApplicationError {
+	constructor(mediaType) {
+		super('Unknown media type: ' + mediaType);
+	}
 }
 
-ApplicationError.extend(UnknownMediaTypeError);
+ApplicationError.extendClass(UnknownMediaTypeError);
 
-var types = [
+const types = [
 	{
 		id: 'png',
 		mediaType: 'image/png',
@@ -88,10 +90,10 @@ var types = [
 	},
 ];
 
-var idMap = Object.create(null);
-var mediaTypeMap = Object.create(null);
+const idMap = Object.create(null);
+const mediaTypeMap = Object.create(null);
 
-types.forEach(function (type) {
+types.forEach(type => {
 	idMap[type.id] = type;
 
 	mediaTypeMap[type.mediaType] =
@@ -100,27 +102,27 @@ types.forEach(function (type) {
 			type;
 });
 
-function byId(id) {
+const byId = id => {
 	if (!(id in idMap)) {
 		throw new Error('Unknown type id: ' + id);
 	}
 
 	return idMap[id];
-}
+};
 
-function byMediaType(mediaType) {
+const byMediaType = mediaType => {
 	if (!(mediaType in mediaTypeMap)) {
 		throw new UnknownMediaTypeError(mediaType);
 	}
 
-	var type = mediaTypeMap[mediaType];
+	const type = mediaTypeMap[mediaType];
 
 	if (type === null) {
 		throw new Error('Ambiguous media type: ' + mediaType);
 	}
 
 	return type;
-}
+};
 
 exports.byId = byId;
 exports.byMediaType = byMediaType;

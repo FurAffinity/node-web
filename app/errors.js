@@ -1,66 +1,55 @@
 'use strict';
 
-function extend(constructor) {
-	constructor.prototype = Object.create(this.prototype, {
-		constructor: {
-			configurable: true,
-			enumerable: false,
-			writable: true,
-			value: constructor,
-		},
-		name: {
-			configurable: true,
-			enumerable: false,
-			writable: true,
-			value: constructor.name,
-		},
-		message: {
-			configurable: true,
-			enumerable: false,
-			writable: true,
-			value: '',
-		},
-	});
+class ApplicationError extends Error {
+	constructor(message) {
+		super(message);
 
-	constructor.extend = extend;
-}
+		if (message !== undefined) {
+			Object.defineProperty(this, 'message', {
+				configurable: true,
+				enumerable: false,
+				writable: true,
+				value: String(message),
+			});
+		}
 
-function ApplicationError(message) {
-	if (message !== undefined) {
-		Object.defineProperty(this, 'message', {
-			configurable: true,
-			enumerable: false,
-			writable: true,
-			value: String(message),
-		});
+		Error.captureStackTrace(this, this.constructor);
 	}
 
-	Error.captureStackTrace(this, this.constructor);
+	static extendClass(constructor) {
+		if (!(constructor.prototype instanceof this) && constructor !== this) {
+			throw new TypeError('constructor must extend class when used with extendClass');
+		}
+
+		Object.defineProperties(constructor.prototype, {
+			constructor: {
+				configurable: true,
+				enumerable: false,
+				writable: true,
+				value: constructor,
+			},
+			name: {
+				configurable: true,
+				enumerable: false,
+				writable: true,
+				value: constructor.name,
+			},
+			message: {
+				configurable: true,
+				enumerable: false,
+				writable: true,
+				value: '',
+			},
+		});
+	}
 }
 
-ApplicationError.prototype = Object.create(Error.prototype, {
-	constructor: {
-		configurable: true,
-		writable: true,
-		value: ApplicationError,
-	},
-	name: {
-		configurable: true,
-		writable: true,
-		value: ApplicationError.name,
-	},
-	message: {
-		configurable: true,
-		writable: true,
-		value: '',
-	},
-	httpStatus: {
-		configurable: true,
-		writable: true,
-		value: 500,
-	},
-});
+ApplicationError.extendClass(ApplicationError);
 
-ApplicationError.extend = extend;
+Object.defineProperty(ApplicationError.prototype, 'httpStatus', {
+	configurable: true,
+	writable: true,
+	value: 500,
+});
 
 exports.ApplicationError = ApplicationError;

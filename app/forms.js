@@ -1,14 +1,14 @@
 'use strict';
 
-var Busboy = require('busboy');
-var bluebird = require('bluebird');
-var crypto = require('crypto');
+const Busboy = require('busboy');
+const bluebird = require('bluebird');
+const crypto = require('crypto');
 
-var ApplicationError = require('./errors').ApplicationError;
-var config = require('./config');
-var timingSafeCompare = require('./timing-safe-compare').timingSafeCompare;
+const ApplicationError = require('./errors').ApplicationError;
+const config = require('./config');
+const timingSafeCompare = require('./timing-safe-compare').timingSafeCompare;
 
-var disallowedFieldNames = [
+const disallowedFieldNames = [
 	'hasOwnProperty',
 	'addError',
 	'valid',
@@ -16,74 +16,71 @@ var disallowedFieldNames = [
 	'form',
 ];
 
-var one = Symbol('one');
-var many = Symbol('many');
+const one = Symbol('one');
+const many = Symbol('many');
 
-var csrfTokenName = 't';
-var csrfMacKey = Buffer.from(config.forms.csrf_mac_key, 'base64');
+const csrfTokenName = 't';
+const csrfMacKey = Buffer.from(config.forms.csrf_mac_key, 'base64');
 
-function FormError(message) {
-	ApplicationError.call(this, message);
-}
+class FormError extends ApplicationError {}
 
-ApplicationError.extend(FormError);
+ApplicationError.extendClass(FormError);
 
-function CsrfError(message) {
-	FormError.call(this, message);
-}
+class CsrfError extends FormError {}
 
-FormError.extend(CsrfError);
+FormError.extendClass(CsrfError);
 
-function Form(fields) {
-	this.valid = true;
-	this.errors = { form: [] };
-	this.errorTypes = new Set();
+class Form {
+	constructor(fields) {
+		this.valid = true;
+		this.errors = { form: [] };
+		this.errorTypes = new Set();
 
-	for (var name in fields) {
-		if (fields.hasOwnProperty(name)) {
-			var type = fields[name];
+		for (const name in fields) {
+			if (fields.hasOwnProperty(name)) {
+				const type = fields[name];
 
-			if (type.count === one) {
-				this[name] = null;
-			} else if (type.count === many) {
-				this[name] = [];
-			} else {
-				throw new TypeError('Expected field type to be one or many');
+				if (type.count === one) {
+					this[name] = null;
+				} else if (type.count === many) {
+					this[name] = [];
+				} else {
+					throw new TypeError('Expected field type to be one or many');
+				}
+
+				this.errors[name] = [];
 			}
-
-			this.errors[name] = [];
 		}
+	}
+
+	addError(error, field) {
+		this.errors[field || 'form'].push(error);
+		this.valid = false;
+
+		let typed = error;
+
+		do {
+			this.errorTypes.add(typed.constructor.name);
+			typed = Object.getPrototypeOf(typed);
+		} while (typed);
 	}
 }
 
-Form.prototype.addError = function (error, field) {
-	this.errors[field || 'form'].push(error);
-	this.valid = false;
-
-	var typed = error;
-
-	do {
-		this.errorTypes.add(typed.constructor.name);
-		typed = Object.getPrototypeOf(typed);
-	} while (typed);
-};
-
-function getCsrfKey(session, endpoint) {
-	return crypto.createHmac('sha256', csrfMacKey)
+const getCsrfKey = (session, endpoint) =>
+	crypto.createHmac('sha256', csrfMacKey)
 		.update(session.sessionId)
 		.update(endpoint, 'utf8')
 		.digest();
-}
 
-function getReader(schema) {
-	disallowedFieldNames.forEach(function (name) {
+const getReader = schema => {
+	disallowedFieldNames.forEach(name => {
 		if (Object.prototype.hasOwnProperty.call(schema.fields, name)) {
 			throw new Error('Invalid field name: ' + name);
 		}
 	});
 
 	return function reader(request, response, next) {
-		var busboy;
+		let busboy;
 
 		try {
 			busboy = new Busboy({
@@ -94,11 +91,11 @@ function getReader(schema) {
 			return;
 		}
 
-		var expectedCsrfKey = getCsrfKey(request.session, schema.name);
-		var form = new Form(schema.fields);
-		var reads = [];
+		const expectedCsrfKey = getCsrfKey(request.session, schema.name);
+		const form = new Form(schema.fields);
+		const reads = [];
 
-		function readField(name, value, nameTruncated, valueTruncated) {
+		const readField = (name, value, nameTruncated, valueTruncated) => {
 			if (nameTruncated) {
 				return;
 			}
@@ -116,7 +113,7 @@ function getReader(schema) {
 				return;
 			}
 
-			var type = schema.fields[name];
+			const type = schema.fields[name];
 
 			if (type.reader !== null) {
 				return;
@@ -127,21 +124,21 @@ function getReader(schema) {
 			} else {
 				form[name] = value;
 			}
-		}
+		};
 
-		function readFile(name, stream, filename) {
-			var type;
+		const readFile = (name, stream, filename) => {
+			const type = schema.fields[name];
 
-			if (!schema.fields.hasOwnProperty(name) || (type = schema.fields[name]).reader === null) {
+			if (!schema.fields.hasOwnProperty(name) || type.reader === null) {
 				stream.resume();
 				return;
 			}
 
-			var fileReader = type.reader;
+			const fileReader = type.reader;
 
 			reads.push(
 				fileReader(request, stream, filename)
-					.then(function (value) {
+					.then(value => {
 						if (type.count === many) {
 							form[name].push(value);
 						} else {
@@ -149,19 +146,19 @@ function getReader(schema) {
 						}
 					})
 			);
-		}
+		};
 
-		function readFinish() {
+		const readFinish = () => {
 			bluebird.all(reads).done(
-				function () {
+				() => {
 					request.form = form;
 					next();
 				},
 				next
 			);
-		}
+		};
 
-		function csrfField(name, value) {
+		const csrfField = (name, value) => {
 			if (name !== csrfTokenName) {
 				return;
 			}
@@ -169,7 +166,7 @@ function getReader(schema) {
 			busboy.removeListener('field', csrfField);
 			busboy.removeListener('finish', csrfFinish);
 
-			var csrfKey = Buffer.from(value, 'base64');
+			const csrfKey = Buffer.from(value, 'base64');
 
 			if (!timingSafeCompare(expectedCsrfKey, csrfKey)) {
 				next(new CsrfError('CSRF token invalid'));
@@ -179,28 +176,26 @@ function getReader(schema) {
 			busboy.on('field', readField);
 			busboy.on('file', readFile);
 			busboy.on('finish', readFinish);
-		}
+		};
 
-		function csrfFinish() {
+		const csrfFinish = () => {
 			next(new CsrfError('CSRF token missing'));
-		}
+		};
 
 		busboy.on('field', csrfField);
 		busboy.on('finish', csrfFinish);
 
 		request.pipe(busboy);
 	};
-}
+};
 
 exports.getCsrfKey = getCsrfKey;
 exports.getReader = getReader;
 exports.many = { count: many, reader: null };
 exports.one = { count: one, reader: null };
 
-exports.manyFiles = function (reader) {
-	return { count: many, reader: reader };
-};
+exports.manyFiles = reader =>
+	({ count: many, reader: reader });
 
-exports.oneFile = function (reader) {
-	return { count: one, reader: reader };
-};
+exports.oneFile = reader =>
+	({ count: one, reader: reader });

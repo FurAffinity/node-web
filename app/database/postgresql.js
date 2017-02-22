@@ -1,15 +1,14 @@
 'use strict';
 
-var OID_BYTEA = 17;
+const OID_BYTEA = 17;
 
-function serializeByteaArray(values) {
-	var count = values.length;
-	var size = 20 + 4 * count;
-	var hasNulls = false;
-	var value;
-	var i;
+const serializeByteaArray = values => {
+	const count = values.length;
+	let size = 20 + 4 * count;
+	let hasNulls = false;
+	let value;
 
-	for (i = 0; i < count; i++) {
+	for (let i = 0; i < count; i++) {
 		value = values[i];
 
 		if (value === null) {
@@ -19,7 +18,7 @@ function serializeByteaArray(values) {
 		}
 	}
 
-	var result = Buffer.alloc(size);
+	const result = Buffer.alloc(size);
 
 	result.writeInt32BE(1, 0); // number of dimensions
 	result.writeInt32BE(hasNulls | 0, 4); // flags (ignored)
@@ -28,9 +27,9 @@ function serializeByteaArray(values) {
 	result.writeInt32BE(count, 12); // size of dimension
 	result.writeInt32BE(1, 16); // lower bound of dimension
 
-	var offset = 20;
+	let offset = 20;
 
-	for (i = 0; i < count; i++) {
+	for (let i = 0; i < count; i++) {
 		value = values[i];
 
 		if (value === null) {
@@ -46,6 +45,6 @@ function serializeByteaArray(values) {
 	}
 
 	return result;
-}
+};
 
 exports.serializeByteaArray = serializeByteaArray;

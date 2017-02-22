@@ -1,12 +1,14 @@
 'use strict';
 
 const concat = collections => {
-	var result = [];
+	const result = [];
+	const l = collections.length;
 
-	for (var i = 0, l = collections.length; i < l; i++) {
-		var collection = collections[i];
+	for (let i = 0; i < l; i++) {
+		const collection = collections[i];
+		const m = collection.length;
 
-		for (var j = 0, m = collection.length; j < m; j++) {
+		for (let j = 0; j < m; j++) {
 			result.push(collection[j]);
 		}
 	}

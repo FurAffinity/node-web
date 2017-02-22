@@ -1,13 +1,13 @@
 'use strict';
 
-var express = require('express');
+const express = require('express');
 
-var ApplicationError = require('../errors').ApplicationError;
-var authentication = require('../authentication');
-var duration = require('../duration');
-var forms = require('../forms');
-var rateLimit = require('../rate-limit');
-var wrap = require('./wrap').wrap;
+const ApplicationError = require('../errors').ApplicationError;
+const authentication = require('../authentication');
+const duration = require('../duration');
+const forms = require('../forms');
+const rateLimit = require('../rate-limit');
+const wrap = require('./wrap').wrap;
 
 function get(req, res) {
 	if (req.user !== null) {
@@ -18,7 +18,7 @@ function get(req, res) {
 	res.render('login.html');
 }
 
-var post = wrap([
+const post = wrap([
 	rateLimit.byAddress('login', 10, duration.minutes(5)),
 	forms.getReader({
 		name: 'login',
@@ -28,7 +28,7 @@ var post = wrap([
 		},
 	}),
 	function (req, res, next) {
-		var form = req.form;
+		const form = req.form;
 
 		if (!form.username) {
 			form.addError('A username is required.', 'username');
@@ -66,7 +66,7 @@ var post = wrap([
 	},
 ]);
 
-var router = new express.Router();
+const router = new express.Router();
 
 router.get('/login', get);
 router.post('/login', post);

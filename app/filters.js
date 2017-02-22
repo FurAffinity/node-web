@@ -1,17 +1,17 @@
 'use strict';
 
-var bbcode = require('../bbcode');
-var nunjucks = require('nunjucks');
+const bbcode = require('../bbcode');
+const nunjucks = require('nunjucks');
 
-var ht = require('./html');
-var dateFormat = require('./date-format');
-var types = require('./files/types');
-var users = require('./users');
+const ht = require('./html');
+const dateFormat = require('./date-format');
+const types = require('./files/types');
+const users = require('./users');
 
-var SIZE_KB = 1000;
-var SIZE_MB = 1000 * SIZE_KB;
+const SIZE_KB = 1000;
+const SIZE_MB = 1000 * SIZE_KB;
 
-var DEFAULT_PATHS = {
+const DEFAULT_PATHS = {
 	profile: '/images/default-profile.gif',
 	thumbnail: '/images/default-thumbnail.svg',
 };
@@ -43,21 +43,21 @@ function filePath(file, role) {
 }
 
 function relativeDateFilter(date) {
-	var datetime = date.toISOString();
-	var long = dateFormat.utc(date);
-	var relative = dateFormat.relative(date);
+	const datetime = date.toISOString();
+	const long = dateFormat.utc(date);
+	const relative = dateFormat.relative(date);
 
 	return new nunjucks.runtime.SafeString(`<time datetime="${datetime}" title="${long}">${relative}</time>`);
 }
 
 function renderBBCode(text) {
-	var html = bbcode.render(text, { automaticParagraphs: true });
+	const html = bbcode.render(text, { automaticParagraphs: true });
 	return new nunjucks.runtime.SafeString(html);
 }
 
 function renderBBCodeWithExcerpt(input, maximumExcerptLength) {
-	var html = bbcode.render(input, { automaticParagraphs: true });
-	var excerpt = ht.getExcerpt(html, maximumExcerptLength);
+	const html = bbcode.render(input, { automaticParagraphs: true });
+	const excerpt = ht.getExcerpt(html, maximumExcerptLength);
 
 	return {
 		excerpt: new nunjucks.runtime.SafeString(excerpt),

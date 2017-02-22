@@ -1,19 +1,19 @@
 'use strict';
 
-var Promise = require('bluebird');
-var crypto = require('crypto');
-var fs = require('fs');
-var path = require('path');
-var stream = require('stream');
+const Promise = require('bluebird');
+const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
+const stream = require('stream');
 
-var readFileAsync = Promise.promisify(fs.readFile);
-var unlinkAsync = Promise.promisify(fs.unlink);
+const readFileAsync = Promise.promisify(fs.readFile);
+const unlinkAsync = Promise.promisify(fs.unlink);
 
-var config = require('../config');
-var identify = require('./identify').identify;
+const config = require('../config');
+const identify = require('./identify').identify;
 
-var TEMPORARY_NAME_SIZE = 18;
-var MODE_OWNER_READ = 0o400;
+const TEMPORARY_NAME_SIZE = 18;
+const MODE_OWNER_READ = 0o400;
 
 function DisplayFile(hash, type) {
 	if (typeof hash !== 'string') {
@@ -45,9 +45,9 @@ DisplayFile.deserialize = function (s) {
 		return null;
 	}
 
-	var i = s.indexOf(':');
-	var hash = s.substring(0, i);
-	var type = s.substring(i + 1);
+	const i = s.indexOf(':');
+	const hash = s.substring(0, i);
+	const type = s.substring(i + 1);
 
 	return new DisplayFile(hash, type);
 };
@@ -82,14 +82,14 @@ function toPathSafeBase64(buffer) {
 }
 
 function getTemporaryPath() {
-	var randomName = toPathSafeBase64(crypto.randomBytes(TEMPORARY_NAME_SIZE));
+	const randomName = toPathSafeBase64(crypto.randomBytes(TEMPORARY_NAME_SIZE));
 	return path.join(config.files.temporary_root, randomName);
 }
 
 function getTemporary() {
 	return new Promise(function (resolve, reject) {
-		var temporaryPath = getTemporaryPath();
-		var temporaryStream = fs.createWriteStream(temporaryPath, {
+		const temporaryPath = getTemporaryPath();
+		const temporaryStream = fs.createWriteStream(temporaryPath, {
 			flags: 'wx',
 			mode: MODE_OWNER_READ,
 		});
@@ -112,9 +112,9 @@ function getTemporary() {
 
 function getFileInfo(filePath) {
 	return new Promise(function (resolve, reject) {
-		var byteSize = 0;
-		var hash = crypto.createHash('sha256');
-		var readStream = fs.createReadStream(filePath);
+		let byteSize = 0;
+		const hash = crypto.createHash('sha256');
+		const readStream = fs.createReadStream(filePath);
 
 		hash.on('data', function (digest) {
 			resolve({
@@ -134,7 +134,7 @@ function getFileInfo(filePath) {
 }
 
 function insertObject(context, digest, byteSize, writer) {
-	var storagePath = getStoragePath(digest);
+	const storagePath = getStoragePath(digest);
 
 	function useTransaction(client) {
 		return client.query(getInsertFileQuery(digest, byteSize))
@@ -149,9 +149,9 @@ function insertObject(context, digest, byteSize, writer) {
 						});
 				}
 
-				var fileId = result.rows[0].id;
+				const fileId = result.rows[0].id;
 
-				var storageStream = fs.createWriteStream(storagePath, {
+				const storageStream = fs.createWriteStream(storagePath, {
 					flags: 'wx',
 					mode: MODE_OWNER_READ,
 				});
@@ -182,14 +182,14 @@ function insertObject(context, digest, byteSize, writer) {
 
 function insertFile(context, digest, byteSize, temporaryPath) {
 	return insertObject(context, digest, byteSize, function (storageStream, errorCallback) {
-		var temporaryStream = fs.createReadStream(temporaryPath);
+		const temporaryStream = fs.createReadStream(temporaryPath);
 		temporaryStream.on('error', errorCallback);
 		temporaryStream.pipe(storageStream);
 	});
 }
 
 function insertBuffer(context, buffer) {
-	var digest =
+	const digest =
 		crypto.createHash('sha512')
 			.update(buffer)
 			.digest()
@@ -203,14 +203,14 @@ function insertBuffer(context, buffer) {
 function storeUpload(context, uploadStream, generators) {
 	return Promise.using(getTemporary(), function (temporary) {
 		return new Promise(function (resolve, reject) {
-			var hash = crypto.createHash('sha512');
-			var byteSize = 0;
+			const hash = crypto.createHash('sha512');
+			let byteSize = 0;
 
 			temporary.stream.on('error', reject);
 
 			function temporaryFileIdentified(fileType) {
-				var digest = hash.read().slice(0, 16);
-				var generator = generators[fileType.id];
+				const digest = hash.read().slice(0, 16);
+				const generator = generators[fileType.id];
 
 				if (!generator) {
 					return Promise.reject(new Error('Unexpected file type: ' + fileType.id));
@@ -268,7 +268,7 @@ function storeUploadOrEmpty(context, uploadStream, generators) {
 			uploadStream.removeListener('data', dataListener);
 			uploadStream.removeListener('end', endListener);
 
-			var passthrough = new stream.PassThrough();
+			const passthrough = new stream.PassThrough();
 
 			passthrough.write(data);
 			uploadStream.pipe(passthrough);

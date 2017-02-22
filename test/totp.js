@@ -1,14 +1,14 @@
 'use strict';
 
-var tap = require('tap');
+const tap = require('tap');
 
-var totp = require('../app/totp');
-var base32Encode = totp.base32Encode;
+const totp = require('../app/totp');
+const base32Encode = totp.base32Encode;
 
 function b(byteString) {
-	var bytes = [];
-	var bytePattern = /\\x([\da-f]{2})|[^]/gi;
-	var match;
+	const bytes = [];
+	const bytePattern = /\\x([\da-f]{2})|[^]/gi;
+	let match;
 
 	while ((match = bytePattern.exec(byteString.raw))) {
 		if (match[1]) {
@@ -37,7 +37,7 @@ tap.test('base-32 encoding should be accurate', function (t) {
 });
 
 tap.test('hotp', function (t) {
-	var key = Buffer.alloc(20, 0);
+	const key = Buffer.alloc(20, 0);
 
 	t.plan(2);
 	t.equals(totp.hotp(key, 0), '328482', 'hotp should produce a correct OTP');

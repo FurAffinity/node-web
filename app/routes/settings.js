@@ -1,25 +1,25 @@
 'use strict';
 
-var express = require('express');
+const express = require('express');
 
-var config = require('../config');
-var duration = require('../duration');
-var files = require('../files');
-var filters = require('../filters');
-var forms = require('../forms');
-var generators = require('../files/generators');
-var permissions = require('../permissions');
-var rateLimit = require('../rate-limit');
-var totp = require('../totp');
-var users = require('../users');
+const config = require('../config');
+const duration = require('../duration');
+const files = require('../files');
+const filters = require('../filters');
+const forms = require('../forms');
+const generators = require('../files/generators');
+const permissions = require('../permissions');
+const rateLimit = require('../rate-limit');
+const totp = require('../totp');
+const users = require('../users');
 
-var validRatings = new Set([
+const validRatings = new Set([
 	'general',
 	'mature',
 	'adult',
 ]);
 
-var router = new express.Router();
+const router = new express.Router();
 
 function readProfileImage(request, stream) {
 	return files.storeUploadOrEmpty(request.context, stream, generators.profileImageGenerators)
@@ -59,7 +59,7 @@ router.post('/settings/profile',
 		},
 	}),
 	function (req, res, next) {
-		var form = req.form;
+		const form = req.form;
 
 		users.updateProfile(
 			req.context,
@@ -92,7 +92,7 @@ router.post('/settings/browsing',
 		},
 	}),
 	function (req, res, next) {
-		var form = req.form;
+		const form = req.form;
 
 		if (!validRatings.has(form.rating)) {
 			res.status(400).send('Invalid rating');
@@ -116,8 +116,8 @@ router.get('/settings/account/two-factor',
 	permissions.user.middleware,
 	rateLimit.byAddress('two-factor-setup', 20, duration.minutes(5)),
 	function (req, res, next) {
-		var key = totp.generateKey();
-		var encodedKey = totp.base32Encode(key);
+		const key = totp.generateKey();
+		const encodedKey = totp.base32Encode(key);
 
 		totp.getKeyBarcode(config.totp.issuer, req.user.displayUsername, encodedKey).done(
 			function (barcodeUri) {
@@ -142,27 +142,27 @@ router.post('/settings/account/two-factor',
 		},
 	}),
 	function (req, res, next) {
-		var form = req.form;
+		const form = req.form;
 
 		if (form.key === null || form.otp === null) {
 			res.status(400).send('key and otp fields required');
 			return;
 		}
 
-		var key = Buffer.from(form.key, 'base64');
+		const key = Buffer.from(form.key, 'base64');
 
 		if (key.length !== totp.secretLength) {
 			res.status(400).send('invalid key length');
 			return;
 		}
 
-		var counter = totp.getCodeCounter(key, form.otp);
+		const counter = totp.getCodeCounter(key, form.otp);
 
 		if (counter === null) {
 			form.addError('The code didn’t match; check your device’s clock.', 'otp');
 			res.locals.form = form;
 
-			var encodedKey = totp.base32Encode(key);
+			const encodedKey = totp.base32Encode(key);
 
 			totp.getKeyBarcode(config.totp.issuer, req.user.displayUsername, encodedKey)
 				.then(function (barcodeUri) {

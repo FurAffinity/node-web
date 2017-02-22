@@ -1,17 +1,17 @@
 'use strict';
 
-var bluebird = require('bluebird');
-var express = require('express');
+const bluebird = require('bluebird');
+const express = require('express');
 
-var r = String.raw;
+const r = String.raw;
 
-var submissions = require('../submissions');
-var users = require('../users');
+const submissions = require('../submissions');
+const users = require('../users');
 
-var router = new express.Router();
+const router = new express.Router();
 
 router.get(r`/users/:id(\d+)/:username([\w.~-]+)`, function (req, res, next) {
-	var profileId = req.params.id | 0;
+	const profileId = req.params.id | 0;
 
 	bluebird.all([
 		users.viewProfile(req.context, profileId),

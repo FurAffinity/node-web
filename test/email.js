@@ -1,8 +1,8 @@
 'use strict';
 
-var tap = require('tap');
+const tap = require('tap');
 
-var email = require('../app/email');
+const email = require('../app/email');
 
 function repeat(c, length) {
 	return new Array(length + 1).join(c);

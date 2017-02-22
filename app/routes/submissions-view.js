@@ -1,15 +1,15 @@
 'use strict';
 
-var express = require('express');
+const express = require('express');
 
-var r = String.raw;
+const r = String.raw;
 
-var submissions = require('../submissions');
+const submissions = require('../submissions');
 
-var router = new express.Router();
+const router = new express.Router();
 
 router.get(r`/submissions/:id(\d+)`, function (req, res, next) {
-	var submissionId = req.params.id | 0;
+	const submissionId = req.params.id | 0;
 
 	submissions.viewSubmission(req.context, submissionId).done(
 		function (submission) {

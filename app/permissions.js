@@ -1,54 +1,50 @@
 'use strict';
 
-var ApplicationError = require('./errors').ApplicationError;
+const ApplicationError = require('./errors').ApplicationError;
 
-function MissingPermissionError(permission) {
-	ApplicationError.call(this, 'Missing permission: ' + permission.name);
+class MissingPermissionError extends ApplicationError {
+	constructor(permission) {
+		super('Missing permission: ' + permission.name);
+	}
 }
 
-ApplicationError.extend(MissingPermissionError);
+ApplicationError.extendClass(MissingPermissionError);
 
-function Permission(name, has) {
-	if (typeof has !== 'function') {
-		throw new TypeError('has should be a function');
+class Permission {
+	constructor(name, has) {
+		if (typeof has !== 'function') {
+			throw new TypeError('has should be a function');
+		}
+
+		this.name = name;
+		this.has = has;
 	}
 
-	this.name = name;
-	this.has = has;
-}
-
-Object.defineProperty(Permission.prototype, 'middleware', {
-	get: function () {
-		var permission = this;
-
-		return function permissionMiddleware(request, response, next) {
-			permission.has(request, function (error, hasPermission) {
+	get middleware() {
+		return (request, response, next) => {
+			this.has(request, (error, hasPermission) => {
 				if (error) {
 					next(error);
 					return;
 				}
 
 				if (hasPermission) {
-					next();
+					next(null);
 				} else {
-					next(new MissingPermissionError(permission));
+					next(new MissingPermissionError(this));
 				}
 			});
 		};
-	},
-});
+	}
+}
 
 exports.MissingPermissionError = MissingPermissionError;
 exports.Permission = Permission;
 
-exports.user = new Permission('user', function (request, callback) {
-	process.nextTick(function () {
-		callback(null, request.user !== null);
-	});
+exports.user = new Permission('user', (request, callback) => {
+	process.nextTick(callback, null, request.user !== null);
 });
 
-exports.submit = new Permission('submit', function (request, callback) {
-	process.nextTick(function () {
-		callback(null, request.user !== null);
-	});
+exports.submit = new Permission('submit', (request, callback) => {
+	process.nextTick(callback, null, request.user !== null);
 });

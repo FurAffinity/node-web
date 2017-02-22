@@ -1,24 +1,24 @@
 'use strict';
 
-var bluebird = require('bluebird');
-var tap = require('tap');
+const bluebird = require('bluebird');
+const tap = require('tap');
 
-var config = require('../app/config');
-var postgresql = require('../app/database/postgresql');
+const config = require('../app/config');
+const postgresql = require('../app/database/postgresql');
 
-var Pool = require('../app/database').Pool;
+const Pool = require('../app/database').Pool;
 
-var database = new Pool(config.database);
+const database = new Pool(config.database);
 
 tap.tearDown(function () {
 	return database.end();
 });
 
 tap.test('serializeByteaArray', function (t) {
-	var left = Buffer.alloc(8);
+	const left = Buffer.alloc(8);
 	left.writeDoubleLE(Math.PI, 0);
 
-	var right = Buffer.alloc(8);
+	const right = Buffer.alloc(8);
 	right.writeDoubleBE(Math.E, 0);
 
 	return bluebird.all([

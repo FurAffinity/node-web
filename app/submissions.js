@@ -1,13 +1,13 @@
 'use strict';
 
-var bluebird = require('bluebird');
+const bluebird = require('bluebird');
 
-var errors = require('./errors');
-var files = require('./files');
+const errors = require('./errors');
+const files = require('./files');
 
-var DisplayFile = files.DisplayFile;
+const DisplayFile = files.DisplayFile;
 
-var guestViewer = {
+const guestViewer = {
 	id: null,
 	ratingPreference: 'general',
 };
@@ -15,7 +15,7 @@ var guestViewer = {
 const keyByRole = representations => {
 	const result = Object.create(null);
 
-	for (var i = 0; i < representations.length; i++) {
+	for (let i = 0; i < representations.length; i++) {
 		const rep = representations[i];
 
 		if (rep.role in result) {
@@ -28,14 +28,16 @@ const keyByRole = representations => {
 	return result;
 };
 
-function SubmissionNotFoundError() {
-	errors.ApplicationError.call(this, 'Submission not found');
+class SubmissionNotFoundError extends errors.ApplicationError {
+	constructor() {
+		super('Submission not found');
+	}
 }
 
-errors.ApplicationError.extend(SubmissionNotFoundError);
+errors.ApplicationError.extendClass(SubmissionNotFoundError);
 
-function getSelectPendingSubmissionsQuery(userId) {
-	return {
+const getSelectPendingSubmissionsQuery = userId =>
+	({
 		name: 'select_pending_submissions',
 		text: `
 			SELECT
@@ -55,35 +57,31 @@ function getSelectPendingSubmissionsQuery(userId) {
 			ORDER BY submissions.id DESC
 		`,
 		values: [userId],
-	};
-}
+	});
 
-function getPublishSubmissionQuery(userId, submissionInfo) {
-	return {
+const getPublishSubmissionQuery = (userId, submissionInfo) =>
+	({
 		name: 'insert_submission',
 		text: "UPDATE submissions SET title = $3, description = $4, rating = $5, visibility = 'public' WHERE id = $2 AND owner = $1",
 		values: [userId, submissionInfo.id, submissionInfo.title, submissionInfo.description, submissionInfo.rating],
-	};
-}
+	});
 
-function getCreatePendingSubmissionQuery(submissionInfo) {
-	return {
+const getCreatePendingSubmissionQuery = submissionInfo =>
+	({
 		name: 'create_pending_submission',
 		text: "INSERT INTO submissions (owner, type, title, description) VALUES ($1, $2, $3, '') RETURNING id",
 		values: [submissionInfo.owner, submissionInfo.type, submissionInfo.title],
-	};
-}
+	});
 
-function getAssociateTagsQuery(submissionId, tagNames) {
-	return {
+const getAssociateTagsQuery = (submissionId, tagNames) =>
+	({
 		name: 'associate_tags',
 		text: 'WITH t AS (INSERT INTO tags (name) SELECT name FROM UNNEST ($2::TEXT[]) AS name ON CONFLICT (name) DO UPDATE SET name = tags.name RETURNING $1::INTEGER, id) INSERT INTO submission_tags (submission, tag) SELECT * FROM t',
 		values: [submissionId, tagNames],
-	};
-}
+	});
 
-function getAssociateFilesQuery(submissionId, representations) {
-	return {
+const getAssociateFilesQuery = (submissionId, representations) =>
+	({
 		name: 'associate_files',
 		text: `
 			INSERT INTO representations (submission, role, type, file)
@@ -100,19 +98,17 @@ function getAssociateFilesQuery(submissionId, representations) {
 			representations.map(r => r.type),
 			representations.map(r => r.file.id),
 		],
-	};
-}
+	});
 
-function getCreateFolderQuery(userId, title) {
-	return {
+const getCreateFolderQuery = (userId, title) =>
+	({
 		name: 'create_folder',
 		text: 'INSERT INTO folders (owner, title, "order") VALUES ($1, $2, (SELECT COALESCE(MAX("order"), 0) + 1 FROM folders WHERE owner = $1)) RETURNING id',
 		values: [userId, title],
-	};
-}
+	});
 
-function getSelectFoldersQuery(userId) {
-	return {
+const getSelectFoldersQuery = userId =>
+	({
 		name: 'select_folders',
 		text: `
 			SELECT
@@ -150,19 +146,17 @@ function getSelectFoldersQuery(userId) {
 			ORDER BY "order"
 		`,
 		values: [userId],
-	};
-}
+	});
 
-function getAssociateFoldersQuery(submissionId, userId, folders) {
-	return {
+const getAssociateFoldersQuery = (submissionId, userId, folders) =>
+	({
 		name: 'associate_folders',
 		text: 'INSERT INTO submission_folders (submission, folder, "order") SELECT $1, f, COALESCE(MAX(submission_folders.order), 0) + 1 FROM UNNEST ($3::INTEGER[]) AS f INNER JOIN folders ON f = folders.id LEFT JOIN submission_folders ON f = submission_folders.folder WHERE folders.owner = $2 GROUP BY f',
 		values: [submissionId, userId, folders],
-	};
-}
+	});
 
-function getViewSubmissionQuery(submissionId) {
-	return {
+const getViewSubmissionQuery = submissionId =>
+	({
 		name: 'view_submission',
 		text: `
 			SELECT
@@ -190,11 +184,10 @@ function getViewSubmissionQuery(submissionId) {
 			GROUP BY submissions.id, users.id
 		`,
 		values: [submissionId],
-	};
-}
+	});
 
-function getSelectCommentsQuery(submissionId) {
-	return {
+const getSelectCommentsQuery = submissionId =>
+	({
 		name: 'select_comments',
 		text: `
 			SELECT
@@ -216,27 +209,24 @@ function getSelectCommentsQuery(submissionId) {
 			ORDER BY comments.id
 		`,
 		values: [submissionId],
-	};
-}
+	});
 
-function getInsertCommentQuery(submissionId, userId, text) {
-	return {
+const getInsertCommentQuery = (submissionId, userId, text) =>
+	({
 		name: 'insert_comment',
 		text: 'INSERT INTO comments (submission, parent, owner, text) VALUES ($1, NULL, $2, $3) RETURNING id',
 		values: [submissionId, userId, text],
-	};
-}
+	});
 
-function getInsertReplyQuery(submissionId, parentId, userId, text) {
-	return {
+const getInsertReplyQuery = (submissionId, parentId, userId, text) =>
+	({
 		name: 'insert_reply',
 		text: 'INSERT INTO comments (submission, parent, owner, text) VALUES ($1, (SELECT id FROM comments WHERE id = $2 AND submission = $1), $3, $4) RETURNING id',
 		values: [submissionId, parentId, userId, text],
-	};
-}
+	});
 
-function getSelectRecentSubmissionsQuery(viewer) {
-	return {
+const getSelectRecentSubmissionsQuery = viewer =>
+	({
 		name: 'select_recent_submissions',
 		text: `
 			SELECT
@@ -261,27 +251,24 @@ function getSelectRecentSubmissionsQuery(viewer) {
 			LIMIT 20
 		`,
 		values: [viewer.id, viewer.ratingPreference],
-	};
-}
+	});
 
-function getHideSubmissionQuery(viewerId, submissionId) {
-	return {
+const getHideSubmissionQuery = (viewerId, submissionId) =>
+	({
 		name: 'hide_submission',
 		text: 'INSERT INTO hidden_submissions (hidden_by, submission) VALUES ($1, $2) ON CONFLICT DO NOTHING',
 		values: [viewerId, submissionId],
-	};
-}
+	});
 
-function getUnhideSubmissionQuery(viewerId, submissionId) {
-	return {
+const getUnhideSubmissionQuery = (viewerId, submissionId) =>
+	({
 		name: 'unhide_submission',
 		text: 'DELETE FROM hidden_submissions WHERE hidden_by = $1 AND submission = $2',
 		values: [viewerId, submissionId],
-	};
-}
+	});
 
-function getSelectRecentUserSubmissionsQuery(viewer, userId) {
-	return {
+const getSelectRecentUserSubmissionsQuery = (viewer, userId) =>
+	({
 		name: 'select_recent_user_submissions',
 		text: `
 			SELECT
@@ -299,87 +286,72 @@ function getSelectRecentUserSubmissionsQuery(viewer, userId) {
 			LIMIT 11
 		`,
 		values: [viewer.id, userId, viewer.ratingPreference],
-	};
-}
+	});
 
-function normalizeTagName(tagName) {
-	return (
-		tagName
-			.trim()
-			.toLowerCase()
-			.normalize('NFC')
-	);
-}
+const normalizeTagName = tagName =>
+	tagName
+		.trim()
+		.toLowerCase()
+		.normalize('NFC');
 
-function uniqueTags(tagNames) {
-	return Array.from(new Set(tagNames));
-}
+const uniqueTags = tagNames =>
+	Array.from(new Set(tagNames));
 
-function parseTags(tagString) {
-	return uniqueTags(
+const parseTags = tagString =>
+	uniqueTags(
 		tagString.split(',')
 			.map(normalizeTagName)
 			.filter(Boolean)
 	);
-}
 
-function createSubmission(context, userId, submissionInfo) {
-	function useTransaction(client) {
-		return client.query(getPublishSubmissionQuery(userId, submissionInfo))
-			.then(function (result) {
+const createSubmission = (context, userId, submissionInfo) => {
+	const useTransaction = client =>
+		client.query(getPublishSubmissionQuery(userId, submissionInfo))
+			.then(result => {
 				if (result.rowCount !== 1) {
 					return bluebird.reject(new Error('Submission does not exist or is not owned by the user'));
 				}
 
 				return bluebird.resolve();
 			})
-			.tap(function () {
-				var tags = parseTags(submissionInfo.tags);
+			.tap(() => {
+				const tags = parseTags(submissionInfo.tags);
 
 				return bluebird.all([
 					client.query(getAssociateTagsQuery(submissionInfo.id, tags)),
 					client.query(getAssociateFoldersQuery(submissionInfo.id, userId, submissionInfo.folders)),
 				]);
 			});
-	}
 
 	return context.database.withTransaction(useTransaction);
-}
+};
 
-function createFolder(context, userId, folderName) {
-	return (
-		context.database.query(getCreateFolderQuery(userId, folderName))
-			.then(function (result) {
-				return result.rows[0].id;
-			})
-	);
-}
+const createFolder = (context, userId, folderName) =>
+	context.database.query(getCreateFolderQuery(userId, folderName))
+		.then(result => result.rows[0].id);
 
-function getFolders(context, userId) {
-	return (
-		context.database.query(getSelectFoldersQuery(userId))
-			.then(function (result) {
-				return result.rows.map(function (row) {
-					return {
-						id: row.id,
-						title: row.title,
-						hidden: row.hidden,
-						submissions: row.submissions.map(function (submission) {
-							return {
-								title: submission.title,
-								representations: submission.representations,
-							};
-						}),
-					};
-				});
-			})
-	);
-}
+const getFolders = (context, userId) =>
+	context.database.query(getSelectFoldersQuery(userId))
+		.then(result =>
+			result.rows.map(row =>
+				({
+					id: row.id,
+					title: row.title,
+					hidden: row.hidden,
+					submissions: row.submissions.map(submission =>
+						({
+							title: submission.title,
+							representations: submission.representations,
+						})
+					),
+				})
+			)
+		);
 
-function viewSubmission(context, submissionId) {
-	return bluebird.all([
+const viewSubmission = (context, submissionId) =>
+	bluebird.all([
 		context.database.query(getViewSubmissionQuery(submissionId))
-			.then(function (result) {
+			.then(result => {
 				if (result.rows.length !== 1) {
 					return bluebird.reject(new SubmissionNotFoundError());
 				}
@@ -387,12 +359,12 @@ function viewSubmission(context, submissionId) {
 				return result.rows[0];
 			}),
 		context.database.query(getSelectCommentsQuery(submissionId))
-			.then(function (result) {
-				var comments = [];
-				var commentLookup = new Map();
+			.then(result => {
+				const comments = [];
+				const commentLookup = new Map();
 
-				result.rows.forEach(function (row) {
-					var newComment = {
+				result.rows.forEach(row => {
+					const newComment = {
 						id: row.id,
 						author: {
 							id: row.owner,
@@ -407,7 +379,7 @@ function viewSubmission(context, submissionId) {
 					if (row.parent === null) {
 						comments.push(newComment);
 					} else if (commentLookup.has(row.parent)) {
-						var parent = commentLookup.get(row.parent);
+						const parent = commentLookup.get(row.parent);
 						parent.children.push(newComment);
 					} else {
 						return;
@@ -418,8 +390,8 @@ function viewSubmission(context, submissionId) {
 
 				return comments;
 			}),
-	]).spread(function (submissionRow, comments) {
-		return {
+	]).spread((submissionRow, comments) =>
+		({
 			id: submissionId,
 			type: submissionRow.type,
 			title: submissionRow.title,
@@ -434,27 +406,24 @@ function viewSubmission(context, submissionId) {
 			tags: submissionRow.tags,
 			representations: keyByRole(submissionRow.representations),
 			comments: comments,
-		};
-	});
-}
+		})
+	);
 
-function createComment(context, submissionId, parentId, userId, text) {
-	var query =
+const createComment = (context, submissionId, parentId, userId, text) => {
+	const query =
 		parentId === null ?
 			getInsertCommentQuery(submissionId, userId, text) :
 			getInsertReplyQuery(submissionId, parentId, userId, text);
 
 	return context.database.query(query)
-		.then(function (result) {
-			return result.rows[0].id;
-		});
-}
+		.then(result => result.rows[0].id);
+};
 
-function getRecentSubmissions(context, viewer) {
-	return context.database.query(getSelectRecentSubmissionsQuery(viewer || guestViewer))
-		.then(function (result) {
-			return result.rows.map(function (row) {
-				return {
+const getRecentSubmissions = (context, viewer) =>
+	context.database.query(getSelectRecentSubmissionsQuery(viewer || guestViewer))
+		.then(result =>
+			result.rows.map(row =>
+				({
 					id: row.id,
 					title: row.title,
 					rating: row.rating,
@@ -462,16 +431,15 @@ function getRecentSubmissions(context, viewer) {
 						row.thumbnail_hash,
 						row.thumbnail_type
 					),
-				};
-			});
-		});
-}
+				})
+			)
+		);
 
-function getPendingSubmissions(context, userId) {
-	return context.database.query(getSelectPendingSubmissionsQuery(userId))
-		.then(function (result) {
-			return result.rows.map(function (row) {
-				return {
+const getPendingSubmissions = (context, userId) =>
+	context.database.query(getSelectPendingSubmissionsQuery(userId))
+		.then(result =>
+			result.rows.map(row =>
+				({
 					id: row.id,
 					type: row.type,
 					title: row.title,
@@ -479,12 +447,11 @@ function getPendingSubmissions(context, userId) {
 					rating: row.rating,
 					metadata: row.metadata,
 					representations: keyByRole(row.representations),
-				};
-			});
-		});
-}
+				})
+			)
+		);
 
-function createPendingSubmission(context, userId, upload) {
+const createPendingSubmission = (context, userId, upload) => {
 	const useTransaction = client =>
 		client.query(
 			getCreatePendingSubmissionQuery({
@@ -504,22 +471,17 @@ function createPendingSubmission(context, userId, upload) {
 			);
 
 	return context.database.withTransaction(useTransaction);
-}
+};
 
-function hideSubmission(context, viewerId, submissionId) {
-	return context.database.query(getHideSubmissionQuery(viewerId, submissionId));
-}
+const hideSubmission = (context, viewerId, submissionId) =>
+	context.database.query(getHideSubmissionQuery(viewerId, submissionId));
 
-function unhideSubmission(context, viewerId, submissionId) {
-	return context.database.query(getUnhideSubmissionQuery(viewerId, submissionId));
-}
+const unhideSubmission = (context, viewerId, submissionId) =>
+	context.database.query(getUnhideSubmissionQuery(viewerId, submissionId));
 
-function getRecentUserSubmissions(context, viewer, userId) {
-	return context.database.query(getSelectRecentUserSubmissionsQuery(viewer || guestViewer, userId))
-		.then(function (result) {
-			return result.rows;
-		});
-}
+const getRecentUserSubmissions = (context, viewer, userId) =>
+	context.database.query(getSelectRecentUserSubmissionsQuery(viewer || guestViewer, userId))
+		.then(result => result.rows);
 
 exports.createSubmission = createSubmission;
 exports.viewSubmission = viewSubmission;

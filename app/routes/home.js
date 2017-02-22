@@ -1,16 +1,16 @@
 'use strict';
 
-var _ = require('../utilities');
+const _ = require('../utilities');
 
-var duration = require('../duration');
-var permissions = require('../permissions');
-var rateLimit = require('../rate-limit');
-var render = require('../render');
-var submissions = require('../submissions');
+const duration = require('../duration');
+const permissions = require('../permissions');
+const rateLimit = require('../rate-limit');
+const render = require('../render');
+const submissions = require('../submissions');
 
-var Ok = require('../respond').Ok;
+const Ok = require('../respond').Ok;
 
-var homeRoute = {
+const homeRoute = {
 	path: '/',
 	middleware: [
 		rateLimit.byAddress('home', 5, duration.seconds(20)),
@@ -24,7 +24,7 @@ var homeRoute = {
 			.then(recentSubmissions => new Ok({ recentSubmissions })),
 };
 
-var userMenuRoute = {
+const userMenuRoute = {
 	path: '/user-menu',
 	middleware: [
 		permissions.user.middleware,

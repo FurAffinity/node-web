@@ -14,3 +14,4 @@ rules:
     - 2
     - allow:
       - e
+  no-var: 0

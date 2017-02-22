@@ -1,13 +1,13 @@
 'use strict';
 
-var express = require('express');
+const express = require('express');
 
-var r = String.raw;
+const r = String.raw;
 
-var forms = require('../forms');
-var submissions = require('../submissions');
+const forms = require('../forms');
+const submissions = require('../submissions');
 
-var commentFormReader = forms.getReader({
+const commentFormReader = forms.getReader({
 	name: 'comment',
 	fields: {
 		text: forms.one,
@@ -15,7 +15,7 @@ var commentFormReader = forms.getReader({
 });
 
 function createComment(req, res, next) {
-	var form = req.form;
+	const form = req.form;
 
 	if (!form.text) {
 		res
@@ -24,8 +24,8 @@ function createComment(req, res, next) {
 		return;
 	}
 
-	var submissionId = req.params.submission | 0;
-	var parentId =
+	const submissionId = req.params.submission | 0;
+	const parentId =
 		'comment' in req.params ?
 			req.params.comment | 0 :
 			null;
@@ -38,7 +38,7 @@ function createComment(req, res, next) {
 	);
 }
 
-var router = new express.Router();
+const router = new express.Router();
 
 router.post(r`/submissions/:submission(\d+)/comments/`, commentFormReader, createComment);
 router.post(r`/submissions/:submission(\d+)/comments/:comment(\d+)/reply`, commentFormReader, createComment);

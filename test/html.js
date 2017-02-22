@@ -1,8 +1,8 @@
 'use strict';
 
-var tap = require('tap');
+const tap = require('tap');
 
-var ht = require('../app/html');
+const ht = require('../app/html');
 
 tap.test('Safe HTML should be retained', function (t) {
 	t.equal(

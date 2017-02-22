@@ -1,75 +1,79 @@
 'use strict';
 
-var bluebird = require('bluebird');
-var bcrypt = require('bcrypt-small');
+const bluebird = require('bluebird');
+const bcrypt = require('bcrypt-small');
 
-var compareAsync = bluebird.promisify(bcrypt.compare);
-var hashAsync = bluebird.promisify(bcrypt.hash);
+const compareAsync = bluebird.promisify(bcrypt.compare);
+const hashAsync = bluebird.promisify(bcrypt.hash);
 
-var config = require('./config');
+const config = require('./config');
 
-var ApplicationError = require('./errors').ApplicationError;
+const ApplicationError = require('./errors').ApplicationError;
 
-function NoUserError() {
-	ApplicationError.call(this, 'No user with the given username exists');
+class NoUserError extends ApplicationError {
+	constructor() {
+		super('No user with the given username exists');
+	}
 }
 
-ApplicationError.extend(NoUserError);
+ApplicationError.extendClass(NoUserError);
 
-function UserNotActiveError() {
-	ApplicationError.call(this, 'This account has not yet been activated');
+class UserNotActiveError extends ApplicationError {
+	constructor() {
+		super('This account has not yet been activated');
+	}
 }
 
-ApplicationError.extend(UserNotActiveError);
+ApplicationError.extendClass(UserNotActiveError);
 
-function InvalidCredentialsError() {
-	ApplicationError.call(this, 'Incorrect username or password');
+class InvalidCredentialsError extends ApplicationError {
+	constructor() {
+		super('Incorrect username or password');
+	}
 }
 
-ApplicationError.extend(InvalidCredentialsError);
+ApplicationError.extendClass(InvalidCredentialsError);
 
-function getSelectPasswordQuery(username) {
-	return {
+const getSelectPasswordQuery = username =>
+	({
 		name: 'select_password',
 		text: 'SELECT id, password_hash, active FROM users WHERE username = $1',
 		values: [username],
-	};
-}
+	});
 
-function getRehashPasswordQuery(userId, oldHash, newHash) {
-	return {
+const getRehashPasswordQuery = (userId, oldHash, newHash) =>
+	({
 		name: 'rehash_password',
 		text: 'UPDATE users SET password_hash = $3 WHERE id = $1 AND password_hash = $2',
 		values: [userId, oldHash, newHash],
-	};
-}
+	});
 
-function rehashIfNecessary(context, userId, password, passwordHash) {
+const rehashIfNecessary = (context, userId, password, passwordHash) => {
 	if (bcrypt.getRounds(passwordHash) === config.bcrypt.log_rounds) {
 		return bluebird.resolve();
 	}
 
-	return hashAsync(password, config.bcrypt.log_rounds).then(function (newHash) {
+	return hashAsync(password, config.bcrypt.log_rounds).then(newHash => {
 		return context.database.query(getRehashPasswordQuery(userId, passwordHash, newHash));
 	});
-}
+};
 
-function authenticate(context, username, password) {
-	return context.database.query(getSelectPasswordQuery(username)).then(function (result) {
+const authenticate = (context, username, password) =>
+	context.database.query(getSelectPasswordQuery(username)).then(result => {
 		if (result.rows.length !== 1) {
 			return bluebird.reject(new NoUserError());
 		}
 
-		var row = result.rows[0];
+		const row = result.rows[0];
 
 		if (!row.active) {
 			return bluebird.reject(new UserNotActiveError());
 		}
 
-		var userId = row.id;
-		var passwordHash = row.password_hash;
+		const userId = row.id;
+		const passwordHash = row.password_hash;
 
-		return compareAsync(password, passwordHash).then(function (passwordCorrect) {
+		return compareAsync(password, passwordHash).then(passwordCorrect => {
 			if (passwordCorrect) {
 				rehashIfNecessary(context, userId, password, passwordHash);
 				return userId;
@@ -78,7 +82,6 @@ function authenticate(context, username, password) {
 			}
 		});
 	});
-}
 
 exports.NoUserError = NoUserError;
 exports.UserNotActiveError = UserNotActiveError;
