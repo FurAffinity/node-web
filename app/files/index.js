@@ -13,6 +13,7 @@ const config = require('../config');
 const identify = require('./identify').identify;
 
 const TEMPORARY_NAME_SIZE = 18;
+const FILE_HASH_SIZE = 16;
 const MODE_OWNER_READ = 0o400;
 
 function DisplayFile(hash, type) {
@@ -110,29 +111,6 @@ function getTemporary() {
 		});
 }
 
-function getFileInfo(filePath) {
-	return new Promise(function (resolve, reject) {
-		let byteSize = 0;
-		const hash = crypto.createHash('sha256');
-		const readStream = fs.createReadStream(filePath);
-
-		hash.on('data', function (digest) {
-			resolve({
-				digest: digest,
-				byteSize: byteSize,
-			});
-		});
-
-		readStream.on('error', reject);
-
-		readStream.on('data', function (part) {
-			byteSize += part.length;
-		});
-
-		readStream.pipe(hash);
-	});
-}
-
 function insertObject(context, digest, byteSize, writer) {
 	const storagePath = getStoragePath(digest);
 
@@ -193,7 +171,7 @@ function insertBuffer(context, buffer) {
 		crypto.createHash('sha512')
 			.update(buffer)
 			.digest()
-			.slice(0, 16);
+			.slice(0, FILE_HASH_SIZE);
 
 	return insertObject(context, digest, buffer.length, function (storageStream) {
 		storageStream.end(buffer);
@@ -286,7 +264,6 @@ function readFile(digest, encoding) {
 }
 
 exports.getTemporaryPath = getTemporaryPath;
-exports.getFileInfo = getFileInfo;
 exports.insertBuffer = insertBuffer;
 exports.insertFile = insertFile;
 exports.readFile = readFile;
