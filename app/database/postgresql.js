@@ -6,10 +6,9 @@ const serializeByteaArray = values => {
 	const count = values.length;
 	let size = 20 + 4 * count;
 	let hasNulls = false;
-	let value;
 
 	for (let i = 0; i < count; i++) {
-		value = values[i];
+		const value = values[i];
 
 		if (value === null) {
 			hasNulls = true;
@@ -30,7 +29,7 @@ const serializeByteaArray = values => {
 	let offset = 20;
 
 	for (let i = 0; i < count; i++) {
-		value = values[i];
+		const value = values[i];
 
 		if (value === null) {
 			result.writeInt32BE(-1, offset);
