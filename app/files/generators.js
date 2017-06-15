@@ -11,40 +11,41 @@ const SUBMISSION_PIXEL_LIMIT = 8000 * 8000;
 const WEBP_LOSSLESS_CODE = 76;  // L
 const WEBP_LOSSLESS_CODE_OFFSET = 15;
 
-const getIsLossless = (format, filePath) =>
-	format === 'jpeg' ? Promise.resolve(false) :
-	format === 'png' || format === 'gif' ? Promise.resolve(true) :
-	format === 'webp' ?
-		new Promise((resolve, reject) => {
-			fs.open(filePath, 'r', (error, fd) => {
-				if (error) {
-					reject(error);
-					return;
-				}
+const constant = x => () => x;
 
-				fs.read(fd, Buffer.alloc(1), 0, 1, WEBP_LOSSLESS_CODE_OFFSET, (readError, bytesRead, buffer) => {
-					fs.close(fd, closeError => {
-						if (readError) {
-							reject(readError);
-							return;
-						}
+const readStream = stream =>
+	new Promise((resolve, reject) => {
+		const parts = [];
 
-						if (bytesRead !== 1) {
-							reject(new Error('Unexpected number of bytes read: ' + bytesRead));
-							return;
-						}
+		stream.on('data', part => {
+			parts.push(part);
+		});
 
-						if (closeError) {
-							reject(closeError);
-							return;
-						}
+		stream.on('end', () => {
+			resolve(Buffer.concat(parts));
+		});
 
-						resolve(buffer[0] === WEBP_LOSSLESS_CODE);
-					});
-				});
-			});
-		}) :
-	Promise.reject(new Error('Unknown format: ' + format));
+		stream.on('error', reject);
+	});
+
+const losslessnessTests = Object.create(null);
+losslessnessTests.jpeg = constant(Promise.resolve(false));
+losslessnessTests.png = losslessnessTests.gif = constant(Promise.resolve(true));
+losslessnessTests.webp = filePath =>
+	readStream(
+		fs.createReadStream(filePath, {
+			start: WEBP_LOSSLESS_CODE_OFFSET,
+			end: WEBP_LOSSLESS_CODE_OFFSET + 1,
+		})
+	).then(buffer => buffer[0] === WEBP_LOSSLESS_CODE);
+
+const getIsLossless = (format, filePath) => {
+	const test = losslessnessTests[format];
+
+	return test ?
+		test(filePath) :
+		Promise.reject(new Error('Unknown format: ' + format));
+};
 
 const getImageRepresentationsForRole = (context, role, isLossless, thumbnailPipeline) => {
 	const formats =
